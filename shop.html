@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="header">
-        <h1><i class="fas fa-shopping-cart"></i> LOJA E CARRINHO</h1>
+        <h1><i class="fas fa-shopping-cart" id="cartIcon"></i> LOJA E CARRINHO</h1>
         <div class="total" id="cartTotal">Saldo R$ 0,00</div>
         <button onclick="toggleTheme()" id="themeToggle" aria-label="Alternar tema claro/escuro">Modo Claro</button>
     </div>
@@ -17,10 +17,16 @@
         <h3><i class="fas fa-wallet"></i> Saldo: R$ <span id="userBalance">0,00</span></h3>
         <button onclick="showAddBalanceForm()" aria-label="Adicionar saldo via Pix">Adicionar Saldo via Pix</button>
         <div id="pixPayment" style="display: none;">
-            <p>Chave Pix: <span id="pixKey">chave@exemplo.com</span></p>
+            <p class="bonus-message">Recarregue e Ganhe! Adicione R$ 30 e ganhe R$ 45 de saldo, R$ 50 e ganhe R$ 75, ou R$ 100 e ganhe R$ 150!</p>
+            <label for="rechargeAmount">Escolha o valor da recarga:</label>
+            <select id="rechargeAmount" onchange="updatePixDetailsDisplay()" aria-label="Valor da recarga">
+                <option value="30">R$ 30,00 (Ganhe R$ 45,00)</option>
+                <option value="50">R$ 50,00 (Ganhe R$ 75,00)</option>
+                <option value="100">R$ 100,00 (Ganhe R$ 150,00)</option>
+            </select>
+            <p>Chave Pix Copia e Cola: <span id="pixKey">Carregando...</span></p>
             <button onclick="copyPixKey()" aria-label="Copiar chave Pix">Copiar Chave</button>
             <img id="pixQRCode" src="https://via.placeholder.com/150" alt="QR Code Pix" class="loading">
-            <input type="number" id="balanceAmount" placeholder="Valor (R$)" step="0.01" required aria-label="Valor para adicionar ao saldo">
             <button onclick="addBalance()" aria-label="Confirmar pagamento Pix">Confirmar Pagamento</button>
         </div>
     </div>
