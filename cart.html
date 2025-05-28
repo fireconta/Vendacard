@@ -11,6 +11,17 @@
         <h1>CARRINHO</h1>
         <div class="total" id="cartTotal">Total R$ 0,00</div>
     </div>
+    <div class="balance-section">
+        <h3>Saldo: R$ <span id="userBalance">0,00</span></h3>
+        <button onclick="showAddBalanceForm()">Adicionar Saldo via Pix</button>
+        <div id="pixPayment" style="display: none;">
+            <p>Chave Pix: <span id="pixKey">chave@exemplo.com</span></p>
+            <button onclick="copyPixKey()">Copiar Chave</button>
+            <img id="pixQRCode" src="https://via.placeholder.com/150" alt="QR Code Pix">
+            <input type="number" id="balanceAmount" placeholder="Valor (R$)" step="0.01" required>
+            <button onclick="addBalance()">Confirmar Pagamento</button>
+        </div>
+    </div>
     <div class="product-list" id="cartList"></div>
     <button class="finalize-btn" onclick="finalizePurchase()">Finalizar Compra</button>
     <div class="navbar">
@@ -18,13 +29,13 @@
             <img src="https://img.icons8.com/ios-filled/50/aaaaaa/shop.png" alt="Store">
             Store
         </a>
-        <a href="dashboard.html">
+        <a href="account.html" id="accountLink">
             <img src="https://img.icons8.com/ios-filled/50/aaaaaa/user.png" alt="Conta">
-            Conta
+            Ver Conta
         </a>
         <a href="cart.html" class="active">
-            <img src="https://img.icons8.com/ios-filled/50/00c4b4/credit-card.png" alt="Carteira">
-            Carteira
+            <img src="https://img.icons8.com/ios-filled/50/00c4b4/credit-card.png" alt="Carrinho">
+            Carrinho
         </a>
         <a href="#" onclick="logout()">
             <img src="https://img.icons8.com/ios-filled/50/aaaaaa/logout-rounded.png" alt="Sair">
