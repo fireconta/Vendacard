@@ -439,7 +439,7 @@ function updateBalanceDisplay() {
  * Carrega os cartões no painel admin para gerenciamento.
  */
 function loadAdminCards() {
-    if (!localStorage.getItem('loggedIn')) {
+    if (!localStorage.getElementById('loggedIn')) {
         window.location.href = 'index.html';
         return;
     }
@@ -694,10 +694,11 @@ function toggleTheme() {
         savePixDetailsCache();
     }
     // Garante que o login inicial mostre o formulário
-    if (window.location.pathname.includes('index.html') && !localStorage.getItem('loggedIn')) {
+    if (window.location.pathname.includes('index.html')) {
         document.getElementById('loginForm').style.display = 'block';
         document.getElementById('accountInfo').style.display = 'none';
-        console.log('Login form displayed by default.');
+        document.getElementById('registerForm').style.display = 'none';
+        console.log('Login form initialized by default.');
     }
 })();
 
@@ -722,11 +723,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.removeItem('loginTime');
                 document.getElementById('loginForm').style.display = 'block';
                 document.getElementById('accountInfo').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'none';
                 console.log('Invalid session, showing login form.');
             }
         } else {
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('accountInfo').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
             console.log('No session, showing login form.');
         }
     }
