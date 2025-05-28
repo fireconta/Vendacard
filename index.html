@@ -5,41 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <div class="login-wrapper">
         <div class="login-container">
             <h1><i class="fas fa-lock"></i> Bem-vindo ao Sistema</h1>
+            <select id="languageSelector" onchange="changeLanguage()">
+                <option value="pt">Português</option>
+                <option value="en">English</option>
+            </select>
             <div class="login-box" id="loginForm">
                 <h2><i class="fas fa-sign-in-alt"></i> Faça Login</h2>
                 <div class="input-group">
-                    <input type="text" id="username" placeholder="Usuário" required>
+                    <input type="text" id="username" placeholder="Usuário" required aria-label="Nome de usuário">
                     <span class="error" id="usernameError"></span>
                 </div>
                 <div class="input-group">
-                    <input type="password" id="password" placeholder="Senha" required>
+                    <input type="password" id="password" placeholder="Senha" required aria-label="Senha">
                     <span class="error" id="passwordError"></span>
                 </div>
-                <button onclick="login()" id="loginButton"><i class="fas fa-arrow-right"></i> Entrar</button>
-                <button onclick="showRegisterForm()">Registrar</button>
-                <a href="#" onclick="forgotPassword()">Esqueceu a Senha?</a>
+                <button onclick="login()" id="loginButton" aria-label="Entrar no sistema"><i class="fas fa-arrow-right"></i> Entrar</button>
+                <button onclick="showRegisterForm()" aria-label="Registrar nova conta">Registrar</button>
+                <a href="#" onclick="forgotPassword()" aria-label="Recuperar senha">Esqueceu a Senha?</a>
                 <div id="loginAttempts" class="error"></div>
                 <div id="loginLoader" class="loader" style="display: none;"></div>
             </div>
             <div class="register-box" id="registerForm" style="display: none;">
                 <h2><i class="fas fa-user-plus"></i> Criar Conta</h2>
                 <div class="input-group">
-                    <input type="text" id="newUsername" placeholder="Novo Usuário" required>
+                    <input type="text" id="newUsername" placeholder="Novo Usuário" required aria-label="Novo nome de usuário">
                     <span class="error" id="newUsernameError"></span>
                 </div>
                 <div class="input-group">
-                    <input type="password" id="newPassword" placeholder="Nova Senha" required>
+                    <input type="password" id="newPassword" placeholder="Nova Senha" required aria-label="Nova senha">
                     <span class="error" id="newPasswordError"></span>
                 </div>
-                <button onclick="register()">Registrar</button>
-                <button onclick="showLoginForm()">Voltar</button>
+                <button onclick="register()" aria-label="Registrar nova conta">Registrar</button>
+                <button onclick="showLoginForm()" aria-label="Voltar para o login">Voltar</button>
             </div>
             <div class="account-info" id="accountInfo" style="display: none;">
                 <h2><i class="fas fa-info-circle"></i> Informações da Conta</h2>
@@ -52,13 +55,13 @@
         </div>
     </div>
     <div class="navbar" id="navbar" style="display: none;">
-        <a href="shop.html" id="storeLink">
+        <a href="shop.html" id="storeLink" aria-label="Ir para a loja">
             <i class="fas fa-store"></i> Store
         </a>
-        <a href="index.html" id="accountLink" class="active">
+        <a href="index.html" id="accountLink" class="active" aria-label="Ver informações da conta">
             <i class="fas fa-user"></i> Ver Conta
         </a>
-        <a href="#" onclick="logout()">
+        <a href="#" onclick="logout()" aria-label="Sair do sistema">
             <i class="fas fa-sign-out-alt"></i> Sair
         </a>
     </div>
