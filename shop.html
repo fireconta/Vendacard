@@ -3,27 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loja</title>
+    <title>Loja e Carrinho</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="header">
-        <h1>LOJA</h1>
-        <div class="total" id="cartTotal">Total R$ 0,00</div>
+        <h1>LOJA E CARRINHO</h1>
+        <div class="total" id="cartTotal">Saldo R$ 0,00</div>
     </div>
-    <div class="product-list" id="productList"></div>
+    <div class="balance-section">
+        <h3>Saldo: R$ <span id="userBalance">0,00</span></h3>
+        <button onclick="showAddBalanceForm()">Adicionar Saldo via Pix</button>
+        <div id="pixPayment" style="display: none;">
+            <p>Chave Pix: <span id="pixKey">chave@exemplo.com</span></p>
+            <button onclick="copyPixKey()">Copiar Chave</button>
+            <img id="pixQRCode" src="https://via.placeholder.com/150" alt="QR Code Pix">
+            <input type="number" id="balanceAmount" placeholder="Valor (R$)" step="0.01" required>
+            <button onclick="addBalance()">Confirmar Pagamento</button>
+        </div>
+    </div>
+    <div class="form-container">
+        <h2>Cartões à Venda</h2>
+        <div class="card-list" id="cardList"></div>
+    </div>
+    <div class="form-container">
+        <h2>Carrinho</h2>
+        <div class="card-list" id="cartList"></div>
+        <button class="finalize-btn" onclick="finalizePurchase()">Finalizar Compra</button>
+    </div>
     <div class="navbar">
         <a href="shop.html" class="active">
             <img src="https://img.icons8.com/ios-filled/50/00c4b4/shop.png" alt="Store">
             Store
         </a>
-        <a href="account.html" id="accountLink">
+        <a href="index.html" id="accountLink">
             <img src="https://img.icons8.com/ios-filled/50/aaaaaa/user.png" alt="Conta">
             Ver Conta
-        </a>
-        <a href="cart.html">
-            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/credit-card.png" alt="Carrinho">
-            Carrinho
         </a>
         <a href="#" onclick="logout()">
             <img src="https://img.icons8.com/ios-filled/50/aaaaaa/logout-rounded.png" alt="Sair">
