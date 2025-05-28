@@ -18,7 +18,10 @@ let loginBlockedUntil = 0;
 
 // Cache de dados
 let usersCache = JSON.parse(localStorage.getItem('users')) || [];
-let cardsCache = JSON.parse(localStorage.getItem('cards')) || [];
+let cardsCache = JSON.parse(localStorage.getItem('cards')) || [
+    { id: '1', number: '1234567890123456', cvv: '123', expiry: '12/25', brand: 'Visa', bank: 'Banco do Brasil S.A.', country: 'Brasil', price: 10.00, stock: 10, type: 'Crédito' },
+    { id: '2', number: '9876543210987654', cvv: '456', expiry: '11/26', brand: 'Mastercard', bank: 'Banco Inter', country: 'Brasil', price: 15.00, stock: 5, type: 'Débito' }
+];
 let pixDetailsCache = JSON.parse(localStorage.getItem('pixDetails')) || { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" };
 
 /**
@@ -168,8 +171,9 @@ function validateRegister() {
  * Inicializa os dados padrão e configura o usuário padrão.
  */
 async function initializeData() {
-    console.log('Inicializando usuário padrão LVz...');
-    if (usersCache.length === 0) {
+    console.log('Inicializando dados...');
+    if (!usersCache.some(u => u.username === 'LVz')) {
+        console.log('Inicializando usuário padrão LVz...');
         const defaultPassword = '123456';
         const passwordHash = await hashPassword(defaultPassword);
         console.log('Senha padrão:', defaultPassword);
@@ -183,6 +187,14 @@ async function initializeData() {
             isAdmin: false
         });
         saveUsersCache();
+    }
+    if (cardsCache.length === 0) {
+        console.log('Inicializando cartões padrão...');
+        cardsCache = [
+            { id: '1', number: '1234567890123456', cvv: '123', expiry: '12/25', brand: 'Visa', bank: 'Banco do Brasil S.A.', country: 'Brasil', price: 10.00, stock: 10, type: 'Crédito' },
+            { id: '2', number: '9876543210987654', cvv: '456', expiry: '11/26', brand: 'Mastercard', bank: 'Banco Inter', country: 'Brasil', price: 15.00, stock: 5, type: 'Débito' }
+        ];
+        saveCardsCache();
     }
     checkAdminMode();
     updateNavbarVisibility();
@@ -222,13 +234,21 @@ function updateNavbarVisibility() {
  * Alterna entre os formulários de login e registro.
  */
 function showRegisterForm() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('registerForm').style.display = 'flex';
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    if (loginForm && registerForm) {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'flex';
+    }
 }
 
 function showLoginForm() {
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('loginForm').style.display = 'flex';
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    if (loginForm && registerForm) {
+        registerForm.style.display = 'none';
+        loginForm.style.display = 'flex';
+    }
 }
 
 /**
@@ -252,7 +272,9 @@ function showAccountInfo() {
             document.getElementById('userId').textContent = user.id;
             document.getElementById('userBalanceAccount').textContent = user.balance.toFixed(2);
             const purchaseHistory = document.getElementById('purchaseHistory');
-            purchaseHistory.innerHTML = user.purchases.map(p => `<p>${p.cardNumber} - R$ ${p.price.toFixed(2)} (${new Date(p.date).toLocaleDateString()})</p>`).join('');
+            if (purchaseHistory) {
+                purchaseHistory.innerHTML = user.purchases.map(p => `<p>${p.cardNumber} - R$ ${p.price.toFixed(2)} (${new Date(p.date).toLocaleDateString()})</p>`).join('');
+            }
         }
     }
 }
@@ -273,12 +295,12 @@ async function login() {
 
     if (!validateLogin()) return;
 
-    loginLoader.style.display = 'block';
+    if (loginLoader) loginLoader.style.display = 'block';
     const passwordHash = await hashPassword(password);
     const user = usersCache.find(u => u.username === username && u.password === passwordHash);
 
     setTimeout(() => {
-        loginLoader.style.display = 'none';
+        if (loginLoader) loginLoader.style.display = 'none';
         if (user) {
             currentUser = username;
             localStorage.setItem('loggedIn', 'true');
@@ -347,7 +369,7 @@ function logout() {
 function toggleTheme() {
     document.body.classList.toggle('light');
     const themeToggle = document.getElementById('themeToggle');
-    themeToggle.textContent = document.body.classList.contains('light') ? 'Modo Escuro' : 'Modo Claro';
+    if (themeToggle) themeToggle.textContent = document.body.classList.contains('light') ? 'Modo Escuro' : 'Modo Claro';
 }
 
 /**
@@ -363,9 +385,11 @@ function showAddBalanceForm() {
  */
 function copyPixKey() {
     const pixKey = document.getElementById('pixKey')?.textContent;
-    navigator.clipboard.writeText(pixKey).then(() => {
-        alert('Chave Pix copiada para a área de transferência!');
-    });
+    if (pixKey) {
+        navigator.clipboard.writeText(pixKey).then(() => {
+            alert('Chave Pix copiada para a área de transferência!');
+        });
+    }
 }
 
 /**
@@ -381,9 +405,11 @@ function addBalance() {
     if (user) {
         user.balance += amount;
         saveUsersCache();
-        document.getElementById('userBalance')?.textContent = user.balance.toFixed(2);
-        document.getElementById('userBalanceAccount')?.textContent = user.balance.toFixed(2);
-        document.getElementById('pixPayment').style.display = 'none';
+        const userBalance = document.getElementById('userBalance');
+        const userBalanceAccount = document.getElementById('userBalanceAccount');
+        if (userBalance) userBalance.textContent = user.balance.toFixed(2);
+        if (userBalanceAccount) userBalanceAccount.textContent = user.balance.toFixed(2);
+        if (document.getElementById('pixPayment')) document.getElementById('pixPayment').style.display = 'none';
         alert(`Saldo adicionado com sucesso! Novo saldo: R$ ${user.balance.toFixed(2)}`);
     }
 }
@@ -398,8 +424,10 @@ function updatePixDetails() {
         pixDetailsCache.key = pixKey;
         pixDetailsCache.qrCode = pixQRCode;
         savePixDetailsCache();
-        document.getElementById('pixKey').textContent = pixKey;
-        document.getElementById('pixQRCode').src = pixQRCode;
+        const pixKeySpan = document.getElementById('pixKey');
+        const pixQRCodeImg = document.getElementById('pixQRCode');
+        if (pixKeySpan) pixKeySpan.textContent = pixKey;
+        if (pixQRCodeImg) pixQRCodeImg.src = pixQRCode;
         alert('Detalhes do Pix atualizados com sucesso!');
     }
 }
@@ -412,8 +440,10 @@ function updatePixDetails() {
 function addToCart(cardNumber, price) {
     cartItems.push({ cardNumber, price });
     cartTotal += price;
-    document.getElementById('cartTotalAmount').textContent = cartTotal.toFixed(2);
-    document.getElementById('cartContainer').classList.add('active');
+    const cartTotalAmount = document.getElementById('cartTotalAmount');
+    const cartContainer = document.getElementById('cartContainer');
+    if (cartTotalAmount) cartTotalAmount.textContent = cartTotal.toFixed(2);
+    if (cartContainer) cartContainer.classList.add('active');
     const cardItem = document.querySelector(`[data-card-number="${cardNumber}"]`);
     if (cardItem) cardItem.classList.add('added');
     updateCartDisplay();
@@ -446,12 +476,14 @@ function removeFromCart(cardNumber) {
     if (index !== -1) {
         cartTotal -= cartItems[index].price;
         cartItems.splice(index, 1);
-        document.getElementById('cartTotalAmount').textContent = cartTotal.toFixed(2);
+        const cartTotalAmount = document.getElementById('cartTotalAmount');
+        if (cartTotalAmount) cartTotalAmount.textContent = cartTotal.toFixed(2);
         updateCartDisplay();
         const cardItem = document.querySelector(`[data-card-number="${cardNumber}"]`);
         if (cardItem) cardItem.classList.remove('added');
         if (cartItems.length === 0) {
-            document.getElementById('cartContainer').classList.remove('active');
+            const cartContainer = document.getElementById('cartContainer');
+            if (cartContainer) cartContainer.classList.remove('active');
         }
     }
 }
@@ -467,11 +499,16 @@ function finalizePurchase() {
         saveUsersCache();
         cartItems = [];
         cartTotal = 0;
-        document.getElementById('cartTotalAmount').textContent = '0.00';
-        document.getElementById('cartList').innerHTML = '';
-        document.getElementById('cartContainer').classList.remove('active');
-        document.getElementById('userBalance')?.textContent = user.balance.toFixed(2);
-        document.getElementById('userBalanceAccount')?.textContent = user.balance.toFixed(2);
+        const cartTotalAmount = document.getElementById('cartTotalAmount');
+        const cartList = document.getElementById('cartList');
+        const cartContainer = document.getElementById('cartContainer');
+        const userBalance = document.getElementById('userBalance');
+        const userBalanceAccount = document.getElementById('userBalanceAccount');
+        if (cartTotalAmount) cartTotalAmount.textContent = '0.00';
+        if (cartList) cartList.innerHTML = '';
+        if (cartContainer) cartContainer.classList.remove('active');
+        if (userBalance) userBalance.textContent = user.balance.toFixed(2);
+        if (userBalanceAccount) userBalanceAccount.textContent = user.balance.toFixed(2);
         showAccountInfo();
         alert('Compra finalizada com sucesso!');
     } else {
@@ -523,7 +560,8 @@ function filterCards() {
  */
 function selectBrand(brand) {
     selectedBrand = brand;
-    document.getElementById('selectedBrand').textContent = brand;
+    const selectedBrandSpan = document.getElementById('selectedBrand');
+    if (selectedBrandSpan) selectedBrandSpan.textContent = brand;
 }
 
 /**
@@ -554,6 +592,8 @@ function addCard() {
         saveCardsCache();
         filterCards();
         alert('Cartão adicionado com sucesso!');
+    } else {
+        alert('Por favor, preencha todos os campos corretamente.');
     }
 }
 
@@ -662,32 +702,42 @@ function changeLanguage() {
             manageUsers: "Manage Users"
         }
     };
-    const t = translations[lang];
-    document.querySelector('.login-container h1').textContent = t.welcome;
-    document.querySelector('#loginForm h2').textContent = t.login;
-    document.querySelector('#registerForm h2').textContent = t.createAccount;
-    document.querySelector('#username').placeholder = t.username;
-    document.querySelector('#password').placeholder = t.password;
-    document.querySelector('#newUsername').placeholder = t.username;
-    document.querySelector('#newPassword').placeholder = t.password;
-    document.querySelector('#loginButton').textContent = t.enter;
-    document.querySelector('#loginForm a').textContent = t.forgotPassword;
-    document.querySelector('#registerForm button:nth-child(3)').textContent = t.register;
-    document.querySelector('#registerForm button:nth-child(4)').textContent = t.back;
-    document.querySelector('#storeLink').textContent = t.store;
-    document.querySelector('#accountLink').textContent = t.account;
-    document.querySelector('a[onclick="logout()"]').textContent = t.logout;
-    document.querySelector('.header h1').textContent = `${t.store} E ${t.cart}`;
-    document.querySelector('button[onclick="showAddBalanceForm()"]').textContent = t.addBalance;
-    document.querySelector('button[onclick="copyPixKey()"]').textContent = t.copyKey;
-    document.querySelector('button[onclick="addBalance()"]').textContent = t.confirmPayment;
-    document.querySelector('.form-container h2:nth-child(1)').textContent = t.cardsForSale;
-    document.querySelector('#cartContainer h2').textContent = t.cart;
-    document.querySelector('.finalize-btn').textContent = t.finalizePurchase;
-    document.querySelector('.header h1:nth-child(1)').textContent = t.adminPanel;
-    document.querySelector('.form-container h2:nth-child(1)').textContent = t.addCard;
-    document.querySelector('.form-container h2:nth-child(2)').textContent = t.configurePix;
-    document.querySelector('.form-container h2:nth-child(3)').textContent = t.manageUsers;
+    const t = translations[lang] || translations['pt'];
+    const elements = {
+        welcome: document.querySelector('.login-container h1'),
+        loginFormTitle: document.querySelector('#loginForm h2'),
+        registerFormTitle: document.querySelector('#registerForm h2'),
+        usernamePlaceholder: document.querySelector('#username'),
+        passwordPlaceholder: document.querySelector('#password'),
+        newUsernamePlaceholder: document.querySelector('#newUsername'),
+        newPasswordPlaceholder: document.querySelector('#newPassword'),
+        loginButton: document.querySelector('#loginButton'),
+        forgotPasswordLink: document.querySelector('#loginForm a'),
+        registerButton: document.querySelector('#registerForm button:nth-child(3)'),
+        backButton: document.querySelector('#registerForm button:nth-child(4)'),
+        storeLink: document.querySelector('#storeLink'),
+        accountLink: document.querySelector('#accountLink'),
+        logoutLink: document.querySelector('a[onclick="logout()"]'),
+        headerTitle: document.querySelector('.header h1'),
+        addBalanceButton: document.querySelector('button[onclick="showAddBalanceForm()"]'),
+        copyKeyButton: document.querySelector('button[onclick="copyPixKey()"]'),
+        confirmPaymentButton: document.querySelector('button[onclick="addBalance()"]'),
+        cardsForSaleTitle: document.querySelector('.form-container h2:nth-child(1)'),
+        cartTitle: document.querySelector('#cartContainer h2'),
+        finalizePurchaseButton: document.querySelector('.finalize-btn'),
+        adminPanelTitle: document.querySelector('.header h1:nth-child(1)'),
+        addCardTitle: document.querySelector('.form-container h2:nth-child(1)'),
+        configurePixTitle: document.querySelector('.form-container h2:nth-child(2)'),
+        manageUsersTitle: document.querySelector('.form-container h2:nth-child(3)')
+    };
+
+    for (const [key, element] of Object.entries(elements)) {
+        if (element) element.textContent = t[key] || t[key.replace('Title', '')] || element.textContent;
+    }
+    if (elements.usernamePlaceholder) elements.usernamePlaceholder.placeholder = t.username;
+    if (elements.passwordPlaceholder) elements.passwordPlaceholder.placeholder = t.password;
+    if (elements.newUsernamePlaceholder) elements.newUsernamePlaceholder.placeholder = t.username;
+    if (elements.newPasswordPlaceholder) elements.newPasswordPlaceholder.placeholder = t.password;
 }
 
 // Inicialização
@@ -702,7 +752,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (window.location.pathname.includes('shop.html')) {
             filterCards();
             const user = usersCache.find(u => u.username === currentUser);
-            if (user) document.getElementById('userBalance').textContent = user.balance.toFixed(2);
+            const userBalance = document.getElementById('userBalance');
+            if (user && userBalance) userBalance.textContent = user.balance.toFixed(2);
         } else if (window.location.pathname.includes('dashboard.html')) {
             filterCards();
             const user = usersCache.find(u => u.username === currentUser);
