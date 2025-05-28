@@ -693,6 +693,12 @@ function toggleTheme() {
         pixDetailsCache = { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" };
         savePixDetailsCache();
     }
+    // Garante que o login inicial mostre o formulário
+    if (window.location.pathname.includes('index.html') && !localStorage.getItem('loggedIn')) {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('accountInfo').style.display = 'none';
+        console.log('Login form displayed by default.');
+    }
 })();
 
 // Carrega tema salvo ao iniciar
@@ -703,30 +709,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const themeToggle = document.getElementById('themeToggle');
         if (themeToggle) themeToggle.textContent = 'Modo Escuro';
     }
+    // Verificar sessão e exibir login se necessário
+    if (window.location.pathname.includes('index.html')) {
+        if (localStorage.getItem('loggedIn')) {
+            currentUser = usersCache.find(u => u.username === localStorage.getItem('currentUser'));
+            if (currentUser) {
+                showAccountInfo();
+                console.log('User logged in, showing account info.');
+            } else {
+                localStorage.removeItem('loggedIn');
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('loginTime');
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('accountInfo').style.display = 'none';
+                console.log('Invalid session, showing login form.');
+            }
+        } else {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('accountInfo').style.display = 'none';
+            console.log('No session, showing login form.');
+        }
+    }
     // Verificar sessão a cada 1 minuto
     setInterval(checkSession, 60000);
     checkSession();
-});
 
-// Carrega dados nas páginas correspondentes
-if (window.location.pathname.includes('shop.html')) {
-    if (localStorage.getItem('loggedIn')) {
-        loadCards();
-    } else {
-        window.location.href = 'index.html';
+    // Carrega dados nas páginas correspondentes
+    if (window.location.pathname.includes('shop.html')) {
+        if (localStorage.getItem('loggedIn')) {
+            loadCards();
+            console.log('Shop page loaded.');
+        } else {
+            window.location.href = 'index.html';
+        }
     }
-}
-if (window.location.pathname.includes('dashboard.html')) {
-    if (localStorage.getItem('loggedIn')) {
-        loadAdminCards();
-        searchUsers();
-    } else {
-        window.location.href = 'index.html';
+    if (window.location.pathname.includes('dashboard.html')) {
+        if (localStorage.getItem('loggedIn')) {
+            loadAdminCards();
+            searchUsers();
+            console.log('Dashboard page loaded.');
+        } else {
+            window.location.href = 'index.html';
+        }
     }
-}
-if (window.location.pathname.includes('index.html')) {
-    if (localStorage.getItem('loggedIn')) {
-        currentUser = usersCache.find(u => u.username === localStorage.getItem('currentUser'));
-        showAccountInfo();
-    }
-}
+});
