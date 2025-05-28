@@ -27,19 +27,25 @@
         <input type="number" id="cardStock" placeholder="Estoque" required>
         <button onclick="addCard()">Adicionar</button>
     </div>
+    <div class="form-container">
+        <h2>Configurar Pix</h2>
+        <input type="text" id="pixKeyInput" placeholder="Chave Pix">
+        <input type="text" id="pixQRCodeInput" placeholder="URL do QR Code">
+        <button onclick="updatePixDetails()">Salvar</button>
+    </div>
     <div class="product-list" id="productList"></div>
     <div class="navbar">
         <a href="shop.html">
             <img src="https://img.icons8.com/ios-filled/50/aaaaaa/shop.png" alt="Store">
             Store
         </a>
-        <a href="dashboard.html" class="active">
-            <img src="https://img.icons8.com/ios-filled/50/00c4b4/user.png" alt="Conta">
-            Conta
+        <a href="account.html" id="accountLink">
+            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/user.png" alt="Conta">
+            Ver Conta
         </a>
         <a href="cart.html">
-            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/credit-card.png" alt="Carteira">
-            Carteira
+            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/credit-card.png" alt="Carrinho">
+            Carrinho
         </a>
         <a href="#" onclick="logout()">
             <img src="https://img.icons8.com/ios-filled/50/aaaaaa/logout-rounded.png" alt="Sair">
