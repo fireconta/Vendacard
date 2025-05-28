@@ -476,31 +476,10 @@ function addBalance() {
         const userBalanceAccount = document.getElementById('userBalanceAccount');
         if (userBalance) userBalance.textContent = user.balance.toFixed(2);
         if (userBalanceAccount) userBalanceAccount.textContent = user.balance.toFixed(2);
-        if (document.getElementById('pixPayment')) document.getElementById('pixPayment').style.display = 'none';
+        const pixPayment = document.getElementById('pixPayment');
+        if (pixPayment) pixPayment.style.display = 'none';
         alert(`Saldo adicionado com sucesso! Você recarregou R$ ${selectedRechargeAmount.toFixed(2)} e recebeu R$ ${totalCredit.toFixed(2)} (incluindo bônus de R$ ${bonus.toFixed(2)}).`);
-        selectedRechargeAmount = null;
-    }
-}
-
-/**
- * Atualiza os detalhes do Pix para cada valor de recarga.
- */
-function updatePixDetails() {
-    const pixKey30 = document.getElementById('pixKeyInput30')?.value;
-    const pixQRCode30 = document.getElementById('pixQRCodeInput30')?.value;
-    const pixKey50 = document.getElementById('pixKeyInput50')?.value;
-    const pixQRCode50 = document.getElementById('pixQRCodeInput50')?.value;
-    const pixKey100 = document.getElementById('pixKeyInput100')?.value;
-    const pixQRCode100 = document.getElementById('pixQRCodeInput100')?.value;
-
-    if (pixKey30 && pixQRCode30 && pixKey50 && pixQRCode50 && pixKey100 && pixQRCode100) {
-        pixDetailsCache[30] = { key: pixKey30, qrCode: pixQRCode30 };
-        pixDetailsCache[50] = { key: pixKey50, qrCode: pixQRCode50 };
-        pixDetailsCache[100] = { key: pixKey100, qrCode: pixQRCode100 };
-        savePixDetailsCache();
-        alert('Detalhes do Pix atualizados com sucesso!');
-    } else {
-        alert('Por favor, preencha todos os campos de configuração do Pix.');
+        selectedRechargeAmount = null; // Reset após uso
     }
 }
 
@@ -580,8 +559,7 @@ function finalizePurchase() {
     if (user.balance < cartTotal) {
         const confirmRecharge = confirm(`Saldo insuficiente! Deseja recarregar R$ ${cartTotal.toFixed(2)} para completar a compra?`);
         if (confirmRecharge) {
-            addBalance(cartTotal);
-            finalizePurchase(); // Tenta finalizar a compra novamente após a recarga
+            showAddBalanceForm(); // Abre o modal para recarga
         }
         return;
     }
@@ -635,8 +613,7 @@ function buyCard(cardNumber) {
     if (user.balance < card.price) {
         const confirmRecharge = confirm(`Saldo insuficiente! Deseja recarregar R$ ${card.price.toFixed(2)} para comprar este cartão?`);
         if (confirmRecharge) {
-            addBalance(card.price);
-            buyCard(cardNumber); // Tenta comprar novamente após a recarga
+            showAddBalanceForm(); // Abre o modal para recarga
         }
         return;
     }
