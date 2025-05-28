@@ -5,59 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Admin</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <div class="header">
         <h1><i class="fas fa-tachometer-alt"></i> PAINEL ADMIN</h1>
         <div class="total" id="cartTotal">Saldo R$ 0,00</div>
-        <button onclick="toggleTheme()" id="themeToggle">Modo Claro</button>
+        <button onclick="toggleTheme()" id="themeToggle" aria-label="Alternar tema claro/escuro">Modo Claro</button>
     </div>
     <div class="form-container">
         <h2><i class="fas fa-plus-circle"></i> Adicionar Cartão</h2>
-        <input type="text" id="cardId" placeholder="ID" required>
-        <input type="text" id="cardNumber" placeholder="Número do Cartão (16 dígitos)" maxlength="16" required>
-        <input type="text" id="cardCVV" placeholder="CVV (3 dígitos)" maxlength="3" required>
-        <input type="text" id="cardExpiry" placeholder="Validade (MM/AA)" maxlength="5" required>
+        <input type="text" id="cardId" placeholder="ID" required aria-label="ID do cartão">
+        <input type="text" id="cardNumber" placeholder="Número do Cartão (16 dígitos)" maxlength="16" required aria-label="Número do cartão">
+        <input type="text" id="cardCVV" placeholder="CVV (3 dígitos)" maxlength="3" required aria-label="CVV do cartão">
+        <input type="text" id="cardExpiry" placeholder="Validade (MM/AA)" maxlength="5" required aria-label="Validade do cartão">
         <div class="brand-select">
-            <label>Selecione a Bandeira:</label>
-            <i class="fab fa-cc-visa" onclick="selectBrand('Visa')" title="Visa"></i>
-            <i class="fab fa-cc-mastercard" onclick="selectBrand('Mastercard')" title="Mastercard"></i>
-            <i class="fab fa-cc-amex" onclick="selectBrand('Amex')" title="Amex"></i>
+            <label for="brandSelect">Selecione a Bandeira:</label>
+            <i class="fab fa-cc-visa" onclick="selectBrand('Visa')" title="Visa" aria-label="Selecionar bandeira Visa"></i>
+            <i class="fab fa-cc-mastercard" onclick="selectBrand('Mastercard')" title="Mastercard" aria-label="Selecionar bandeira Mastercard"></i>
+            <i class="fab fa-cc-amex" onclick="selectBrand('Amex')" title="Amex" aria-label="Selecionar bandeira Amex"></i>
             <span id="selectedBrand">Nenhuma</span>
         </div>
         <div class="type-select">
-            <label>Tipo do Cartão:</label>
-            <select id="cardType">
+            <label for="cardType">Tipo do Cartão:</label>
+            <select id="cardType" aria-label="Tipo do cartão">
                 <option value="Crédito">Crédito</option>
                 <option value="Débito">Débito</option>
             </select>
         </div>
-        <input type="number" id="cardPrice" placeholder="Preço (R$)" step="0.01" required>
-        <input type="number" id="cardStock" placeholder="Estoque" required>
-        <button onclick="addCard()">Adicionar</button>
+        <input type="number" id="cardPrice" placeholder="Preço (R$)" step="0.01" required aria-label="Preço do cartão">
+        <input type="number" id="cardStock" placeholder="Estoque" required aria-label="Estoque do cartão">
+        <button onclick="addCard()" aria-label="Adicionar cartão">Adicionar</button>
     </div>
     <div class="form-container">
         <h2><i class="fas fa-qrcode"></i> Configurar Pix</h2>
-        <input type="text" id="pixKeyInput" placeholder="Chave Pix">
-        <input type="text" id="pixQRCodeInput" placeholder="URL do QR Code">
-        <button onclick="updatePixDetails()">Salvar</button>
+        <input type="text" id="pixKeyInput" placeholder="Chave Pix" aria-label="Chave Pix">
+        <input type="text" id="pixQRCodeInput" placeholder="URL do QR Code" aria-label="URL do QR Code">
+        <button onclick="updatePixDetails()" aria-label="Salvar configuração Pix">Salvar</button>
     </div>
     <div class="form-container">
         <h2><i class="fas fa-users"></i> Gerenciar Usuários</h2>
-        <input type="text" id="searchUser" placeholder="Pesquisar por Nome ou ID" oninput="searchUsers()">
+        <input type="text" id="searchUser" placeholder="Pesquisar por Nome ou ID" oninput="searchUsers()" aria-label="Pesquisar usuários">
         <div class="user-list" id="userList"></div>
     </div>
     <div class="card-list" id="productList"></div>
     <div class="navbar">
-        <a href="shop.html">
+        <a href="shop.html" aria-label="Ir para a loja">
             <i class="fas fa-store"></i> Store
         </a>
-        <a href="index.html" id="accountLink">
+        <a href="index.html" id="accountLink" aria-label="Ver informações da conta">
             <i class="fas fa-user"></i> Ver Conta
         </a>
-        <a href="#" onclick="logout()">
+        <a href="#" onclick="logout()" aria-label="Sair do sistema">
             <i class="fas fa-sign-out-alt"></i> Sair
         </a>
     </div>
