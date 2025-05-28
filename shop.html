@@ -6,26 +6,27 @@
     <title>Loja e Carrinho</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <div class="header">
-        <h1>LOJA E CARRINHO</h1>
+        <h1><i class="fas fa-shopping-cart"></i> LOJA E CARRINHO</h1>
         <div class="total" id="cartTotal">Saldo R$ 0,00</div>
         <button onclick="toggleTheme()" id="themeToggle">Modo Claro</button>
     </div>
     <div class="balance-section">
-        <h3>Saldo: R$ <span id="userBalance">0,00</span></h3>
+        <h3><i class="fas fa-wallet"></i> Saldo: R$ <span id="userBalance">0,00</span></h3>
         <button onclick="showAddBalanceForm()">Adicionar Saldo via Pix</button>
         <div id="pixPayment" style="display: none;">
             <p>Chave Pix: <span id="pixKey">chave@exemplo.com</span></p>
             <button onclick="copyPixKey()">Copiar Chave</button>
-            <img id="pixQRCode" src="https://via.placeholder.com/150" alt="QR Code Pix">
+            <img id="pixQRCode" src="https://via.placeholder.com/150" alt="QR Code Pix" class="loading">
             <input type="number" id="balanceAmount" placeholder="Valor (R$)" step="0.01" required>
             <button onclick="addBalance()">Confirmar Pagamento</button>
         </div>
     </div>
     <div class="form-container">
-        <h2>Cartões à Venda</h2>
+        <h2><i class="fas fa-credit-card"></i> Cartões à Venda</h2>
         <div class="filter-section">
             <label>Filtrar por Bandeira:</label>
             <select id="brandFilter" onchange="filterCards()">
@@ -44,23 +45,20 @@
         <div class="card-list" id="cardList"></div>
     </div>
     <div class="form-container" id="cartContainer" style="display: none;">
-        <h2>Carrinho</h2>
+        <h2><i class="fas fa-shopping-basket"></i> Carrinho</h2>
         <p>Total do Carrinho: R$ <span id="cartTotalAmount">0,00</span></p>
         <div class="card-list" id="cartList"></div>
         <button class="finalize-btn" onclick="finalizePurchase()">Finalizar Compra</button>
     </div>
     <div class="navbar">
         <a href="shop.html" class="active">
-            <img src="https://img.icons8.com/ios-filled/50/00c4b4/shop.png" alt="Store">
-            Store
+            <i class="fas fa-store"></i> Store
         </a>
         <a href="index.html" id="accountLink">
-            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/user.png" alt="Conta">
-            Ver Conta
+            <i class="fas fa-user"></i> Ver Conta
         </a>
         <a href="#" onclick="logout()">
-            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/logout-rounded.png" alt="Sair">
-            Sair
+            <i class="fas fa-sign-out-alt"></i> Sair
         </a>
     </div>
     <script src="script.js"></script>
