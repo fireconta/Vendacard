@@ -6,7 +6,7 @@
     <title>Login</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <div class="login-wrapper">
@@ -41,7 +41,26 @@
                 <button onclick="register()">Registrar</button>
                 <button onclick="showLoginForm()">Voltar</button>
             </div>
+            <div class="account-info" id="accountInfo" style="display: none;">
+                <h2><i class="fas fa-info-circle"></i> Informações da Conta</h2>
+                <p>Nome de Usuário: <span id="userName"></span></p>
+                <p>ID do Usuário: <span id="userId"></span></p>
+                <p>Saldo: R$ <span id="userBalanceAccount">0,00</span></p>
+                <h3><i class="fas fa-history"></i> Histórico de Compras</h3>
+                <div class="card-list" id="purchaseHistory"></div>
+            </div>
         </div>
+    </div>
+    <div class="navbar" id="navbar" style="display: none;">
+        <a href="shop.html" id="storeLink">
+            <i class="fas fa-store"></i> Store
+        </a>
+        <a href="index.html" id="accountLink" class="active">
+            <i class="fas fa-user"></i> Ver Conta
+        </a>
+        <a href="#" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Sair
+        </a>
     </div>
     <script src="script.js"></script>
 </body>
