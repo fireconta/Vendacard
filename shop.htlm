@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loja</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background-color: #1a1a1a; color: #fff; display: flex; flex-direction: column; min-height: 100vh; }
+        .header { background-color: #00c4b4; padding: 15px; display: flex; justify-content: space-between; border-radius: 0 0 20px 20px; }
+        .header h1 { font-size: 24px; }
+        .header .total { font-size: 18px; }
+        .product-list { flex: 1; padding: 20px; overflow-y: auto; }
+        .product-item { background-color: #2a2a2a; padding: 15px; margin-bottom: 15px; border-radius: 10px; }
+        .product-item h2 { font-size: 16px; margin-bottom: 5px; }
+        .product-item p { font-size: 14px; color: #aaa; margin-bottom: 10px; }
+        .product-item .price { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        .product-item .buttons { display: flex; gap: 10px; }
+        .product-item button { flex: 1; padding: 10px; border: none; border-radius: 20px; font-size: 14px; cursor: pointer; }
+        .product-item .add-to-cart { background-color: #00c4b4; color: #fff; }
+        .product-item .details { background-color: transparent; border: 1px solid #00c4b4; color: #00c4b4; }
+        .navbar { background-color: #2a2a2a; padding: 10px; display: flex; justify-content: space-around; border-top: 1px solid #444; position: sticky; bottom: 0; }
+        .navbar a { color: #aaa; text-decoration: none; font-size: 12px; display: flex; flex-direction: column; align-items: center; }
+        .navbar a.active { color: #00c4b4; }
+        .navbar a img { width: 24px; height: 24px; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LOJA</h1>
+        <div class="total" id="cartTotal">Total R$ 0,00</div>
+    </div>
+    <div class="product-list" id="productList"></div>
+    <div class="navbar">
+        <a href="shop.html" class="active">
+            <img src="https://img.icons8.com/ios-filled/50/00c4b4/shop.png" alt="Loja">
+            Loja
+        </a>
+        <a href="dashboard.html">
+            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/user.png" alt="Conta">
+            Admin
+        </a>
+        <a href="#" onclick="logout()">
+            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/logout-rounded.png" alt="Sair">
+            Sair
+        </a>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
