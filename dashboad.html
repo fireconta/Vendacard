@@ -9,6 +9,7 @@
 <body>
     <div class="header">
         <h1>PAINEL ADMIN</h1>
+        <div class="total" id="cartTotal">Saldo R$ 0,00</div>
     </div>
     <div class="form-container">
         <h2>Adicionar Cartão</h2>
@@ -23,6 +24,13 @@
             <img src="https://img.icons8.com/color/48/000000/american-express.png" onclick="selectBrand('Amex')" alt="Amex">
             <span id="selectedBrand">Nenhuma</span>
         </div>
+        <div class="type-select">
+            <label>Tipo do Cartão:</label>
+            <select id="cardType">
+                <option value="Crédito">Crédito</option>
+                <option value="Débito">Débito</option>
+            </select>
+        </div>
         <input type="number" id="cardPrice" placeholder="Preço (R$)" step="0.01" required>
         <input type="number" id="cardStock" placeholder="Estoque" required>
         <button onclick="addCard()">Adicionar</button>
@@ -33,19 +41,20 @@
         <input type="text" id="pixQRCodeInput" placeholder="URL do QR Code">
         <button onclick="updatePixDetails()">Salvar</button>
     </div>
-    <div class="product-list" id="productList"></div>
+    <div class="form-container">
+        <h2>Gerenciar Usuários</h2>
+        <input type="text" id="searchUser" placeholder="Pesquisar por Nome ou ID" oninput="searchUsers()">
+        <div class="user-list" id="userList"></div>
+    </div>
+    <div class="card-list" id="productList"></div>
     <div class="navbar">
         <a href="shop.html">
             <img src="https://img.icons8.com/ios-filled/50/aaaaaa/shop.png" alt="Store">
             Store
         </a>
-        <a href="account.html" id="accountLink">
+        <a href="index.html" id="accountLink">
             <img src="https://img.icons8.com/ios-filled/50/aaaaaa/user.png" alt="Conta">
             Ver Conta
-        </a>
-        <a href="cart.html">
-            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/credit-card.png" alt="Carrinho">
-            Carrinho
         </a>
         <a href="#" onclick="logout()">
             <img src="https://img.icons8.com/ios-filled/50/aaaaaa/logout-rounded.png" alt="Sair">
