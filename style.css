@@ -13,6 +13,44 @@ body {
     min-height: 100vh;
 }
 
+body.light {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+body.light .header {
+    background-color: #00a89a;
+}
+
+body.light .card-item,
+body.light .login-container,
+body.light .register-container,
+body.light .form-container,
+body.light .account-info,
+body.light .balance-section,
+body.light .user-item {
+    background-color: #fff;
+    color: #333;
+}
+
+body.light .navbar {
+    background-color: #ddd;
+    border-top: 1px solid #aaa;
+}
+
+body.light .navbar a {
+    color: #555;
+}
+
+body.light .navbar a.active {
+    color: #00a89a;
+}
+
+body.light #themeToggle {
+    border: 1px solid #333;
+    color: #333;
+}
+
 .header {
     background-color: #00c4b4;
     padding: 15px;
@@ -31,6 +69,14 @@ body {
     font-size: 18px;
 }
 
+#themeToggle {
+    background-color: transparent;
+    border: 1px solid #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: #fff;
+}
+
 .card-list {
     flex: 1;
     padding: 20px;
@@ -45,6 +91,16 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+}
+
+.card-item.added {
+    animation: highlight 0.5s ease;
+}
+
+@keyframes highlight {
+    0% { background-color: #2a2a2a; }
+    50% { background-color: #00c4b4; }
+    100% { background-color: #2a2a2a; }
 }
 
 .card-item h2 {
@@ -168,6 +224,41 @@ button {
     margin: 5px;
 }
 
+button:hover {
+    background-color: #00a89a;
+    transition: background-color 0.3s ease;
+}
+
+.finalize-btn {
+    width: 100%;
+    padding: 15px;
+    margin-top: 10px;
+    background-color: #00c4b4;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#cartTotalAmount {
+    font-weight: bold;
+    color: #00c4b4;
+}
+
+.filter-section {
+    margin-bottom: 20px;
+}
+
+.filter-section label {
+    margin-right: 10px;
+}
+
+.filter-section select {
+    padding: 5px;
+    border-radius: 5px;
+}
+
 h2, h3 {
     margin-bottom: 20px;
 }
@@ -194,4 +285,12 @@ h2, h3 {
 
 .user-list {
     margin-top: 10px;
+}
+
+#cartContainer {
+    display: none;
+}
+
+#cartContainer.active {
+    display: block;
 }
