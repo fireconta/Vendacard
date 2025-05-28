@@ -10,8 +10,7 @@ body {
     color: #ecf0f1;
     min-height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
     animation: gradientShift 10s ease infinite;
 }
 
@@ -26,27 +25,223 @@ body.light {
     color: #2c3e50;
 }
 
-body.light .login-container {
-    background-color: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+body.light .header {
+    background-color: #3498db;
 }
 
-body.light .input-group input {
-    border-color: #bdc3c7;
+body.light .card-item,
+body.light .login-container,
+body.light .register-container,
+body.light .form-container,
+body.light .account-info,
+body.light .balance-section,
+body.light .user-item {
+    background-color: #ffffff;
+    color: #2c3e50;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+body.light .navbar {
+    background-color: #ecf0f1;
+    border-top: 1px solid #bdc3c7;
+}
+
+body.light .navbar a {
+    color: #7f8c8d;
+}
+
+body.light .navbar a.active {
+    color: #3498db;
+}
+
+body.light #themeToggle {
+    border: 1px solid #2c3e50;
     color: #2c3e50;
 }
 
-body.light .input-group input:focus {
-    border-color: #3498db;
+body.light .filter-section select,
+body.light input,
+body.light select {
+    border: 1px solid #bdc3c7;
 }
 
-body.light button {
+.header {
+    background-color: #2c3e50;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 0 0 15px 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header .total {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+#themeToggle {
+    background-color: transparent;
+    border: 1px solid #ecf0f1;
+    padding: 8px 15px;
+    border-radius: 5px;
+    color: #ecf0f1;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#themeToggle:hover {
+    background-color: #34495e;
+}
+
+.card-list {
+    flex: 1;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.card-item {
+    background-color: #34495e;
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.card-item.added {
+    animation: highlight 0.5s ease;
+}
+
+@keyframes highlight {
+    0% { background-color: #34495e; }
+    50% { background-color: #3498db; }
+    100% { background-color: #34495e; }
+}
+
+.card-item h2 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #ecf0f1;
+}
+
+.card-item p {
+    font-size: 14px;
+    color: #bdc3c7;
+    margin-bottom: 10px;
+}
+
+.card-item .price {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2ecc71;
+    margin-bottom: 15px;
+}
+
+.card-item .buttons {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.card-item button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    background-color: #3498db;
+    color: #fff;
+    transition: background-color 0.3s ease;
+}
+
+.card-item button:hover {
+    background-color: #2980b9;
+}
+
+.user-item {
+    background-color: #34495e;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    transition: transform 0.2s ease;
+}
+
+.user-item:hover {
+    transform: translateY(-5px);
+}
+
+.user-item .buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.user-item button {
+    padding: 10px;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.user-item .edit-balance {
     background-color: #2ecc71;
     color: #fff;
 }
 
-body.light button:hover {
+.user-item .edit-balance:hover {
     background-color: #27ae60;
+}
+
+.navbar {
+    background-color: #2c3e50;
+    padding: 15px;
+    display: flex;
+    justify-content: space-around;
+    border-top: 1px solid #34495e;
+    position: sticky;
+    bottom: 0;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.navbar a {
+    color: #bdc3c7;
+    text-decoration: none;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+    color: #ecf0f1;
+}
+
+.navbar a.active {
+    color: #2ecc71;
+}
+
+.navbar a i {
+    font-size: 20px;
+    margin-bottom: 5px;
 }
 
 .login-wrapper {
@@ -78,7 +273,7 @@ body.light button:hover {
     gap: 10px;
 }
 
-.login-box, .register-box {
+.login-box, .register-box, .account-info {
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -165,12 +360,68 @@ a:hover {
     100% { transform: rotate(360deg); }
 }
 
-@media (max-width: 480px) {
-    .login-container {
-        padding: 20px;
-        margin: 10px;
-    }
-    .login-container h1 {
-        font-size: 22px;
-    }
+.account-info, .balance-section {
+    width: 90%;
+    max-width: 600px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#pixPayment img {
+    display: block;
+    margin: 15px auto;
+    width: 150px;
+    height: 150px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.loading {
+    opacity: 0.5;
+}
+
+.user-list {
+    margin-top: 10px;
+}
+
+#cartContainer {
+    display: none;
+}
+
+#cartContainer.active {
+    display: block;
+}
+
+.filter-section {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-section label {
+    margin-right: 10px;
+    font-weight: 500;
+}
+
+.filter-section select {
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+h2, h3 {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
