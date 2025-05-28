@@ -1,17 +1,22 @@
 let cartTotal = 0;
 let cartItems = [];
 let selectedBrand = 'Nenhuma';
+let clickCount = 0;
+let currentUser = null;
 
 // Inicializa dados no localStorage
 (function initializeData() {
     if (!localStorage.getItem('users')) {
-        localStorage.setItem('users', JSON.stringify([{ username: "LVz", password: "LVz" }]));
+        localStorage.setItem('users', JSON.stringify([{ username: "LVz", password: "LVz", id: "USER1", balance: 0, purchases: [] }]));
     }
     if (!localStorage.getItem('cards')) {
         localStorage.setItem('cards', JSON.stringify([
             { id: "1", number: "1234567890123456", cvv: "123", expiry: "12/25", brand: "Visa", price: 10.00, stock: 10 },
             { id: "2", number: "9876543210987654", cvv: "456", expiry: "06/26", brand: "Mastercard", price: 15.00, stock: 5 }
         ]));
+    }
+    if (!localStorage.getItem('pixDetails')) {
+        localStorage.setItem('pixDetails', JSON.stringify({ key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" }));
     }
 })();
 
@@ -22,6 +27,8 @@ function login() {
     const user = users.find(u => u.username === username && u.password === password);
     if (user) {
         localStorage.setItem('loggedIn', 'true');
+        localStorage.setItem('currentUser', username);
+        currentUser = user;
         window.location.href = 'shop.html';
     } else {
         alert("Usuário ou senha inválidos!");
@@ -31,12 +38,17 @@ function login() {
 function register() {
     const username = document.getElementById('newUsername').value;
     const password = document.getElementById('newPassword').value;
+    if (password.length < 6) {
+        alert("A senha deve ter no mínimo 6 caracteres!");
+        return;
+    }
     let users = JSON.parse(localStorage.getItem('users'));
     if (users.find(u => u.username === username)) {
         alert("Usuário já existe!");
         return;
     }
-    users.push({ username, password });
+    const newId = "USER" + (users.length + 1);
+    users.push({ username, password, id: newId, balance: 0, purchases: [] });
     localStorage.setItem('users', JSON.stringify(users));
     alert("Usuário registrado com sucesso!");
     showLoginForm();
@@ -54,8 +66,10 @@ function showLoginForm() {
 
 function logout() {
     localStorage.removeItem('loggedIn');
+    localStorage.removeItem('currentUser');
     cartTotal = 0;
     cartItems = [];
+    currentUser = null;
     window.location.href = 'index.html';
 }
 
@@ -155,11 +169,67 @@ function loadCart() {
         cartList.appendChild(cartItemDiv);
     });
     updateTotal();
+    loadPixDetails();
+    updateBalanceDisplay();
+}
+
+function loadPixDetails() {
+    const pixDetails = JSON.parse(localStorage.getItem('pixDetails'));
+    document.getElementById('pixKey').textContent = pixDetails.key;
+    document.getElementById('pixQRCode').src = pixDetails.qrCode;
+}
+
+function updatePixDetails() {
+    const key = document.getElementById('pixKeyInput').value;
+    const qrCode = document.getElementById('pixQRCodeInput').value;
+    localStorage.setItem('pixDetails', JSON.stringify({ key, qrCode }));
+    alert("Detalhes do Pix atualizados!");
+}
+
+function showAddBalanceForm() {
+    document.getElementById('pixPayment').style.display = 'block';
+}
+
+function copyPixKey() {
+    const pixKey = document.getElementById('pixKey').textContent;
+    navigator.clipboard.writeText(pixKey).then(() => {
+        alert("Chave Pix copiada!");
+    });
+}
+
+function addBalance() {
+    const amount = parseFloat(document.getElementById('balanceAmount').value);
+    if (isNaN(amount) || amount <= 0) {
+        alert("Insira um valor válido!");
+        return;
+    }
+    let users = JSON.parse(localStorage.getItem('users'));
+    const user = users.find(u => u.username === localStorage.getItem('currentUser'));
+    user.balance += amount;
+    localStorage.setItem('users', JSON.stringify(users));
+    updateBalanceDisplay();
+    document.getElementById('pixPayment').style.display = 'none';
+    alert(`Saldo de R$ ${amount.toFixed(2).replace('.', ',')} adicionado com sucesso!`);
+}
+
+function updateBalanceDisplay() {
+    const users = JSON.parse(localStorage.getItem('users'));
+    const user = users.find(u => u.username === localStorage.getItem('currentUser'));
+    const balanceElements = document.querySelectorAll('#userBalance, #userBalanceAccount');
+    balanceElements.forEach(element => {
+        element.textContent = user.balance.toFixed(2).replace('.', ',');
+    });
 }
 
 function finalizePurchase() {
     if (cartItems.length === 0) {
         alert("Carrinho vazio!");
+        return;
+    }
+    let users = JSON.parse(localStorage.getItem('users'));
+    const user = users.find(u => u.username === localStorage.getItem('currentUser'));
+    if (user.balance < cartTotal) {
+        alert("Saldo insuficiente! Adicione mais saldo via Pix.");
         return;
     }
     let cards = JSON.parse(localStorage.getItem('cards'));
@@ -170,12 +240,15 @@ function finalizePurchase() {
             if (card.stock < 0) card.stock = 0;
         }
     });
+    user.balance -= cartTotal;
+    user.purchases.push({ date: new Date().toLocaleString(), items: [...cartItems], total: cartTotal });
+    localStorage.setItem('users', JSON.stringify(users));
     localStorage.setItem('cards', JSON.stringify(cards));
     alert("Compra finalizada com sucesso!");
     cartTotal = 0;
     cartItems = [];
     loadCart();
-    updateTotal();
+    updateBalanceDisplay();
 }
 
 function addCard() {
@@ -236,6 +309,42 @@ function selectBrand(brand) {
     document.getElementById('selectedBrand').textContent = selectedBrand;
 }
 
+function loadAccountInfo() {
+    if (!localStorage.getItem('loggedIn')) {
+        window.location.href = 'index.html';
+        return;
+    }
+    const users = JSON.parse(localStorage.getItem('users'));
+    const user = users.find(u => u.username === localStorage.getItem('currentUser'));
+    document.getElementById('userName').textContent = user.username;
+    document.getElementById('userId').textContent = user.id;
+    document.getElementById('userBalanceAccount').textContent = user.balance.toFixed(2).replace('.', ',');
+    const purchaseHistory = document.getElementById('purchaseHistory');
+    purchaseHistory.innerHTML = '';
+    user.purchases.forEach(purchase => {
+        const purchaseDiv = document.createElement('div');
+        purchaseDiv.className = 'product-item';
+        let itemsList = purchase.items.map(item => `<p>${item.name} - R$ ${item.price.toFixed(2).replace('.', ',')}</p>`).join('');
+        purchaseDiv.innerHTML = `
+            <h2>Compra em ${purchase.date}</h2>
+            ${itemsList}
+            <div class="price">Total: R$ ${purchase.total.toFixed(2).replace('.', ',')}</div>
+        `;
+        purchaseHistory.appendChild(purchaseDiv);
+    });
+}
+
+// Configura o acesso ao painel admin
+if (document.getElementById('accountLink')) {
+    document.getElementById('accountLink').addEventListener('click', function(e) {
+        clickCount++;
+        if (clickCount === 6) {
+            clickCount = 0;
+            window.location.href = 'dashboard.html';
+        }
+    });
+}
+
 // Carrega dados nas páginas correspondentes
 if (document.getElementById('productList') && window.location.pathname.includes('shop.html')) {
     loadCards();
@@ -245,4 +354,7 @@ if (document.getElementById('productList') && window.location.pathname.includes(
 }
 if (document.getElementById('cartList')) {
     loadCart();
+}
+if (window.location.pathname.includes('account.html')) {
+    loadAccountInfo();
 }
