@@ -6,24 +6,25 @@
     <title>Painel Admin</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <div class="header">
-        <h1>PAINEL ADMIN</h1>
+        <h1><i class="fas fa-tachometer-alt"></i> PAINEL ADMIN</h1>
         <div class="total" id="cartTotal">Saldo R$ 0,00</div>
         <button onclick="toggleTheme()" id="themeToggle">Modo Claro</button>
     </div>
     <div class="form-container">
-        <h2>Adicionar Cartão</h2>
+        <h2><i class="fas fa-plus-circle"></i> Adicionar Cartão</h2>
         <input type="text" id="cardId" placeholder="ID" required>
         <input type="text" id="cardNumber" placeholder="Número do Cartão (16 dígitos)" maxlength="16" required>
         <input type="text" id="cardCVV" placeholder="CVV (3 dígitos)" maxlength="3" required>
         <input type="text" id="cardExpiry" placeholder="Validade (MM/AA)" maxlength="5" required>
         <div class="brand-select">
             <label>Selecione a Bandeira:</label>
-            <img src="https://img.icons8.com/color/48/000000/visa.png" onclick="selectBrand('Visa')" alt="Visa">
-            <img src="https://img.icons8.com/color/48/000000/mastercard.png" onclick="selectBrand('Mastercard')" alt="Mastercard">
-            <img src="https://img.icons8.com/color/48/000000/american-express.png" onclick="selectBrand('Amex')" alt="Amex">
+            <i class="fab fa-cc-visa" onclick="selectBrand('Visa')" title="Visa"></i>
+            <i class="fab fa-cc-mastercard" onclick="selectBrand('Mastercard')" title="Mastercard"></i>
+            <i class="fab fa-cc-amex" onclick="selectBrand('Amex')" title="Amex"></i>
             <span id="selectedBrand">Nenhuma</span>
         </div>
         <div class="type-select">
@@ -38,29 +39,26 @@
         <button onclick="addCard()">Adicionar</button>
     </div>
     <div class="form-container">
-        <h2>Configurar Pix</h2>
+        <h2><i class="fas fa-qrcode"></i> Configurar Pix</h2>
         <input type="text" id="pixKeyInput" placeholder="Chave Pix">
         <input type="text" id="pixQRCodeInput" placeholder="URL do QR Code">
         <button onclick="updatePixDetails()">Salvar</button>
     </div>
     <div class="form-container">
-        <h2>Gerenciar Usuários</h2>
+        <h2><i class="fas fa-users"></i> Gerenciar Usuários</h2>
         <input type="text" id="searchUser" placeholder="Pesquisar por Nome ou ID" oninput="searchUsers()">
         <div class="user-list" id="userList"></div>
     </div>
     <div class="card-list" id="productList"></div>
     <div class="navbar">
         <a href="shop.html">
-            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/shop.png" alt="Store">
-            Store
+            <i class="fas fa-store"></i> Store
         </a>
         <a href="index.html" id="accountLink">
-            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/user.png" alt="Conta">
-            Ver Conta
+            <i class="fas fa-user"></i> Ver Conta
         </a>
         <a href="#" onclick="logout()">
-            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/logout-rounded.png" alt="Sair">
-            Sair
+            <i class="fas fa-sign-out-alt"></i> Sair
         </a>
     </div>
     <script src="script.js"></script>
