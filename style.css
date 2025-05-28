@@ -61,6 +61,16 @@ body {
     margin-bottom: 10px;
 }
 
+.product-item .card-info {
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 10px;
+}
+
+.product-item .card-info span {
+    margin-right: 10px;
+}
+
 .product-item .buttons {
     display: flex;
     gap: 10px;
@@ -150,4 +160,17 @@ button {
 
 h2 {
     margin-bottom: 20px;
+}
+
+.brand-select {
+    margin: 10px 0;
+}
+
+.brand-select img {
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.brand-select #selectedBrand {
+    color: #aaa;
 }
