@@ -36,7 +36,8 @@ body.light .form-container,
 body.light .account-info,
 body.light .balance-section,
 body.light .user-item,
-body.light .modal-content {
+body.light .modal-content,
+body.light .bonus-explanation {
     background: #ffffff;
     color: #2c3e50;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -476,12 +477,27 @@ h2, h3 {
     font-weight: 600;
 }
 
-.bonus-message {
-    font-size: 16px;
-    color: #2ecc71;
-    font-weight: bold;
-    margin-bottom: 15px;
+.bonus-explanation {
+    background: linear-gradient(135deg, #ff6f61, #ff9a76);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
     text-align: center;
+    animation: bounce 1.5s ease infinite;
+}
+
+.bonus-explanation h4 {
+    font-size: 20px;
+    color: #fff;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.bonus-explanation p {
+    font-size: 16px;
+    color: #fff;
+    font-weight: 600;
 }
 
 .modal {
@@ -524,15 +540,21 @@ h2, h3 {
     font-size: 16px;
     border: none;
     border-radius: 10px;
-    background: linear-gradient(90deg, #3498db, #2ecc71);
+    background: linear-gradient(90deg, #ff6f61, #ff9a76);
     color: #fff;
     cursor: pointer;
     transition: background 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .recharge-options button:hover {
-    background: linear-gradient(90deg, #2980b9, #27ae60);
+    background: linear-gradient(90deg, #e65b51, #ff8c66);
     transform: translateY(-3px);
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
 @media (max-width: 600px) {
@@ -573,5 +595,8 @@ h2, h3 {
     .recharge-options {
         flex-direction: column;
         gap: 10px;
+    }
+    .bonus-explanation {
+        padding: 10px;
     }
 }
