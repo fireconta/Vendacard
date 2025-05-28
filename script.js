@@ -1,6 +1,7 @@
 const CONFIG = {
     SESSION_TIMEOUT_MINUTES: 30,
-    ADMIN_CLICKS: 6,
+    ADMIN_CLICKS: 5,
+    ADMIN_PASSWORD: '2025',
     MIN_PASSWORD_LENGTH: 6,
     MAX_LOGIN_ATTEMPTS: 3,
     LOGIN_BLOCK_TIME: 60000 // 1 minuto em milissegundos
@@ -22,7 +23,11 @@ let cardsCache = JSON.parse(localStorage.getItem('cards')) || [
     { id: '1', number: '1234567890123456', cvv: '123', expiry: '12/25', brand: 'Visa', bank: 'Banco do Brasil S.A.', country: 'Brasil', price: 10.00, stock: 10, type: 'Crédito' },
     { id: '2', number: '9876543210987654', cvv: '456', expiry: '11/26', brand: 'Mastercard', bank: 'Banco Inter', country: 'Brasil', price: 15.00, stock: 5, type: 'Débito' }
 ];
-let pixDetailsCache = JSON.parse(localStorage.getItem('pixDetails')) || { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" };
+let pixDetailsCache = JSON.parse(localStorage.getItem('pixDetails')) || {
+    30: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" },
+    50: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" },
+    100: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" }
+};
 
 /**
  * Guarda o cache de usuários no localStorage.
@@ -196,26 +201,35 @@ async function initializeData() {
         ];
         saveCardsCache();
     }
-    checkAdminMode();
     updateNavbarVisibility();
 }
 
 /**
- * Verifica se o modo administrador deve ser ativado.
+ * Verifica se o modo administrador deve ser ativado via cliques no ícone do carrinho.
  */
 function checkAdminMode() {
-    document.body.addEventListener('click', () => {
-        clickCount++;
-        if (clickCount >= CONFIG.ADMIN_CLICKS) {
-            const adminUser = usersCache.find(u => u.username === 'LVz');
-            if (adminUser) {
-                adminUser.isAdmin = true;
-                saveUsersCache();
-                alert('Modo Admin ativado para LVz!');
-                window.location.href = 'dashboard.html';
+    const cartIcon = document.getElementById('cartIcon');
+    if (cartIcon) {
+        cartIcon.addEventListener('click', () => {
+            clickCount++;
+            console.log(`Clique no carrinho: ${clickCount}`);
+            if (clickCount >= CONFIG.ADMIN_CLICKS) {
+                const password = prompt('Insira a senha para acessar o Painel Admin:');
+                if (password === CONFIG.ADMIN_PASSWORD) {
+                    const adminUser = usersCache.find(u => u.username === currentUser);
+                    if (adminUser) {
+                        adminUser.isAdmin = true;
+                        saveUsersCache();
+                        alert('Acesso ao Painel Admin concedido!');
+                        window.location.href = 'dashboard.html';
+                    }
+                } else {
+                    alert('Senha incorreta!');
+                    clickCount = 0; // Reseta a contagem se a senha estiver errada
+                }
             }
-        }
-    });
+        });
+    }
 }
 
 /**
@@ -273,7 +287,9 @@ function showAccountInfo() {
             document.getElementById('userBalanceAccount').textContent = user.balance.toFixed(2);
             const purchaseHistory = document.getElementById('purchaseHistory');
             if (purchaseHistory) {
-                purchaseHistory.innerHTML = user.purchases.map(p => `<p>${p.cardNumber} - R$ ${p.price.toFixed(2)} (${new Date(p.date).toLocaleDateString()})</p>`).join('');
+                purchaseHistory.innerHTML = user.purchases.length > 0
+                    ? user.purchases.map(p => `<p>${p.cardNumber} - R$ ${p.price.toFixed(2)} (${new Date(p.date).toLocaleDateString()})</p>`).join('')
+                    : '<p>Nenhuma compra registrada.</p>';
             }
         }
     }
@@ -308,10 +324,7 @@ async function login() {
             loginAttempts = 0;
             loginAttemptsDiv.textContent = '';
             console.log('Login successful for', username);
-            showAccountInfo();
-            if (user.isAdmin) {
-                window.location.href = 'dashboard.html';
-            }
+            window.location.href = 'shop.html'; // Redireciona para a Store após login
         } else {
             loginAttempts++;
             loginAttemptsDiv.textContent = `Credenciais inválidas. Tentativas restantes: ${CONFIG.MAX_LOGIN_ATTEMPTS - loginAttempts}`;
@@ -377,7 +390,10 @@ function toggleTheme() {
  */
 function showAddBalanceForm() {
     const pixPayment = document.getElementById('pixPayment');
-    if (pixPayment) pixPayment.style.display = 'block';
+    if (pixPayment) {
+        pixPayment.style.display = 'block';
+        updatePixDetailsDisplay(); // Atualiza o QR code e chave ao abrir o formulário
+    }
 }
 
 /**
@@ -385,50 +401,76 @@ function showAddBalanceForm() {
  */
 function copyPixKey() {
     const pixKey = document.getElementById('pixKey')?.textContent;
-    if (pixKey) {
+    if (pixKey && pixKey !== 'Carregando...') {
         navigator.clipboard.writeText(pixKey).then(() => {
             alert('Chave Pix copiada para a área de transferência!');
         });
+    } else {
+        alert('Chave Pix não disponível.');
     }
 }
 
 /**
- * Adiciona saldo ao usuário via Pix.
+ * Atualiza a exibição dos detalhes do Pix (QR code e chave) com base no valor selecionado.
+ */
+function updatePixDetailsDisplay() {
+    const rechargeAmount = document.getElementById('rechargeAmount')?.value;
+    const pixKeySpan = document.getElementById('pixKey');
+    const pixQRCodeImg = document.getElementById('pixQRCode');
+
+    if (rechargeAmount && pixDetailsCache[rechargeAmount]) {
+        if (pixKeySpan) pixKeySpan.textContent = pixDetailsCache[rechargeAmount].key;
+        if (pixQRCodeImg) pixQRCodeImg.src = pixDetailsCache[rechargeAmount].qrCode;
+    } else {
+        if (pixKeySpan) pixKeySpan.textContent = 'Chave não configurada';
+        if (pixQRCodeImg) pixQRCodeImg.src = 'https://via.placeholder.com/150';
+    }
+}
+
+/**
+ * Adiciona saldo ao usuário via Pix com bônus de 50%.
  */
 function addBalance() {
-    const amount = parseFloat(document.getElementById('balanceAmount')?.value);
-    if (isNaN(amount) || amount <= 0) {
-        alert('Por favor, insira um valor válido.');
+    const rechargeAmount = parseFloat(document.getElementById('rechargeAmount')?.value);
+    if (isNaN(rechargeAmount) || ![30, 50, 100].includes(rechargeAmount)) {
+        alert('Por favor, selecione um valor de recarga válido.');
         return;
     }
     const user = usersCache.find(u => u.username === currentUser);
     if (user) {
-        user.balance += amount;
+        // Calcula o bônus de 50%
+        const bonus = rechargeAmount * 0.5;
+        const totalCredit = rechargeAmount + bonus;
+        user.balance += totalCredit;
         saveUsersCache();
         const userBalance = document.getElementById('userBalance');
         const userBalanceAccount = document.getElementById('userBalanceAccount');
         if (userBalance) userBalance.textContent = user.balance.toFixed(2);
         if (userBalanceAccount) userBalanceAccount.textContent = user.balance.toFixed(2);
         if (document.getElementById('pixPayment')) document.getElementById('pixPayment').style.display = 'none';
-        alert(`Saldo adicionado com sucesso! Novo saldo: R$ ${user.balance.toFixed(2)}`);
+        alert(`Saldo adicionado com sucesso! Você recarregou R$ ${rechargeAmount.toFixed(2)} e recebeu R$ ${totalCredit.toFixed(2)} (incluindo bônus de R$ ${bonus.toFixed(2)}).`);
     }
 }
 
 /**
- * Atualiza os detalhes do Pix.
+ * Atualiza os detalhes do Pix para cada valor de recarga.
  */
 function updatePixDetails() {
-    const pixKey = document.getElementById('pixKeyInput')?.value;
-    const pixQRCode = document.getElementById('pixQRCodeInput')?.value;
-    if (pixKey && pixQRCode) {
-        pixDetailsCache.key = pixKey;
-        pixDetailsCache.qrCode = pixQRCode;
+    const pixKey30 = document.getElementById('pixKeyInput30')?.value;
+    const pixQRCode30 = document.getElementById('pixQRCodeInput30')?.value;
+    const pixKey50 = document.getElementById('pixKeyInput50')?.value;
+    const pixQRCode50 = document.getElementById('pixQRCodeInput50')?.value;
+    const pixKey100 = document.getElementById('pixKeyInput100')?.value;
+    const pixQRCode100 = document.getElementById('pixQRCodeInput100')?.value;
+
+    if (pixKey30 && pixQRCode30 && pixKey50 && pixQRCode50 && pixKey100 && pixQRCode100) {
+        pixDetailsCache[30] = { key: pixKey30, qrCode: pixQRCode30 };
+        pixDetailsCache[50] = { key: pixKey50, qrCode: pixQRCode50 };
+        pixDetailsCache[100] = { key: pixKey100, qrCode: pixQRCode100 };
         savePixDetailsCache();
-        const pixKeySpan = document.getElementById('pixKey');
-        const pixQRCodeImg = document.getElementById('pixQRCode');
-        if (pixKeySpan) pixKeySpan.textContent = pixKey;
-        if (pixQRCodeImg) pixQRCodeImg.src = pixQRCode;
         alert('Detalhes do Pix atualizados com sucesso!');
+    } else {
+        alert('Por favor, preencha todos os campos de configuração do Pix.');
     }
 }
 
@@ -438,7 +480,12 @@ function updatePixDetails() {
  * @param {number} price - Preço do cartão.
  */
 function addToCart(cardNumber, price) {
-    cartItems.push({ cardNumber, price });
+    const card = cardsCache.find(c => c.number === cardNumber);
+    if (!card || card.stock <= 0) {
+        alert('Cartão fora de estoque!');
+        return;
+    }
+    cartItems.push({ cardNumber, price, expiry: card.expiry });
     cartTotal += price;
     const cartTotalAmount = document.getElementById('cartTotalAmount');
     const cartContainer = document.getElementById('cartContainer');
@@ -458,10 +505,13 @@ function updateCartDisplay() {
         cartList.innerHTML = cartItems.map(item => `
             <div class="card-item" data-card-number="${item.cardNumber}">
                 <h2>${item.cardNumber.slice(0, 6)} **** **** ****</h2>
+                <p>Validade: ${item.expiry}</p>
                 <p>Visa - Banco do Brasil S.A.</p>
                 <p>Brasil</p>
                 <div class="price">R$ ${item.price.toFixed(2)}</div>
-                <button onclick="removeFromCart('${item.cardNumber}')">Remover</button>
+                <div class="buttons">
+                    <button onclick="removeFromCart('${item.cardNumber}')">Remover</button>
+                </div>
             </div>
         `).join('');
     }
@@ -493,27 +543,44 @@ function removeFromCart(cardNumber) {
  */
 function finalizePurchase() {
     const user = usersCache.find(u => u.username === currentUser);
-    if (user && user.balance >= cartTotal) {
-        user.balance -= cartTotal;
-        user.purchases.push(...cartItems.map(item => ({ ...item, date: new Date() })));
-        saveUsersCache();
-        cartItems = [];
-        cartTotal = 0;
-        const cartTotalAmount = document.getElementById('cartTotalAmount');
-        const cartList = document.getElementById('cartList');
-        const cartContainer = document.getElementById('cartContainer');
-        const userBalance = document.getElementById('userBalance');
-        const userBalanceAccount = document.getElementById('userBalanceAccount');
-        if (cartTotalAmount) cartTotalAmount.textContent = '0.00';
-        if (cartList) cartList.innerHTML = '';
-        if (cartContainer) cartContainer.classList.remove('active');
-        if (userBalance) userBalance.textContent = user.balance.toFixed(2);
-        if (userBalanceAccount) userBalanceAccount.textContent = user.balance.toFixed(2);
-        showAccountInfo();
-        alert('Compra finalizada com sucesso!');
-    } else {
-        alert('Saldo insuficiente para completar a compra.');
+    if (!user) {
+        alert('Usuário não encontrado. Faça login novamente.');
+        return;
     }
+    if (user.balance < cartTotal) {
+        const confirmRecharge = confirm(`Saldo insuficiente! Deseja recarregar R$ ${cartTotal.toFixed(2)} para completar a compra?`);
+        if (confirmRecharge) {
+            addBalance(cartTotal);
+            finalizePurchase(); // Tenta finalizar a compra novamente após a recarga
+        }
+        return;
+    }
+    if (cartItems.length === 0) {
+        alert('Seu carrinho está vazio.');
+        return;
+    }
+    user.balance -= cartTotal;
+    user.purchases.push(...cartItems.map(item => ({ ...item, date: new Date() })));
+    cartItems.forEach(item => {
+        const card = cardsCache.find(c => c.number === item.cardNumber);
+        if (card) card.stock -= 1;
+    });
+    saveUsersCache();
+    saveCardsCache();
+    cartItems = [];
+    cartTotal = 0;
+    const cartTotalAmount = document.getElementById('cartTotalAmount');
+    const cartList = document.getElementById('cartList');
+    const cartContainer = document.getElementById('cartContainer');
+    const userBalance = document.getElementById('userBalance');
+    const userBalanceAccount = document.getElementById('userBalanceAccount');
+    if (cartTotalAmount) cartTotalAmount.textContent = '0.00';
+    if (cartList) cartList.innerHTML = '';
+    if (cartContainer) cartContainer.classList.remove('active');
+    if (userBalance) userBalance.textContent = user.balance.toFixed(2);
+    if (userBalanceAccount) userBalanceAccount.textContent = user.balance.toFixed(2);
+    showAccountInfo();
+    alert('Compra finalizada com sucesso!');
 }
 
 /**
@@ -522,10 +589,39 @@ function finalizePurchase() {
  */
 function buyCard(cardNumber) {
     const card = cardsCache.find(c => c.number === cardNumber);
-    if (card) {
-        addToCart(cardNumber, card.price);
-        finalizePurchase();
+    if (!card) {
+        alert('Cartão não encontrado.');
+        return;
     }
+    if (card.stock <= 0) {
+        alert('Cartão fora de estoque!');
+        return;
+    }
+    const user = usersCache.find(u => u.username === currentUser);
+    if (!user) {
+        alert('Usuário não encontrado. Faça login novamente.');
+        return;
+    }
+    if (user.balance < card.price) {
+        const confirmRecharge = confirm(`Saldo insuficiente! Deseja recarregar R$ ${card.price.toFixed(2)} para comprar este cartão?`);
+        if (confirmRecharge) {
+            addBalance(card.price);
+            buyCard(cardNumber); // Tenta comprar novamente após a recarga
+        }
+        return;
+    }
+    user.balance -= card.price;
+    user.purchases.push({ cardNumber: card.number, price: card.price, date: new Date() });
+    card.stock -= 1;
+    saveUsersCache();
+    saveCardsCache();
+    const userBalance = document.getElementById('userBalance');
+    const userBalanceAccount = document.getElementById('userBalanceAccount');
+    if (userBalance) userBalance.textContent = user.balance.toFixed(2);
+    if (userBalanceAccount) userBalanceAccount.textContent = user.balance.toFixed(2);
+    filterCards();
+    showAccountInfo();
+    alert('Cartão comprado com sucesso!');
 }
 
 /**
@@ -542,13 +638,26 @@ function filterCards() {
             .map(card => `
                 <div class="card-item" data-card-number="${card.number}">
                     <h2>${card.number.slice(0, 6)} **** **** ****</h2>
+                    <p>Validade: ${card.expiry}</p>
                     <p>${card.brand} - ${card.bank}</p>
                     <p>${card.country}</p>
                     <div class="price">R$ ${card.price.toFixed(2)}</div>
                     <div class="buttons">
-                        <button onclick="addToCart('${card.number}', ${card.price})">${card.type === 'Crédito' ? 'Crédito' : 'Débito'}</button>
                         <button onclick="buyCard('${card.number}')">Comprar</button>
                     </div>
+                </div>
+            `).join('');
+    }
+    const productList = document.getElementById('productList');
+    if (productList) {
+        productList.innerHTML = cardsCache
+            .map(card => `
+                <div class="card-item" data-card-number="${card.number}">
+                    <h2>${card.number.slice(0, 6)} **** **** ****</h2>
+                    <p>Validade: ${card.expiry}</p>
+                    <p>${card.brand} - ${card.bank}</p>
+                    <p>${card.country}</p>
+                    <div class="price">R$ ${card.price.toFixed(2)}</div>
                 </div>
             `).join('');
     }
@@ -754,13 +863,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = usersCache.find(u => u.username === currentUser);
             const userBalance = document.getElementById('userBalance');
             if (user && userBalance) userBalance.textContent = user.balance.toFixed(2);
+            checkAdminMode();
+            updatePixDetailsDisplay();
         } else if (window.location.pathname.includes('dashboard.html')) {
             filterCards();
             const user = usersCache.find(u => u.username === currentUser);
             if (user && user.isAdmin) {
                 searchUsers();
             } else {
-                window.location.href = 'index.html';
+                window.location.href = 'shop.html';
             }
         }
     } else if (!window.location.pathname.includes('index.html')) {
