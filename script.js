@@ -4,15 +4,24 @@ let selectedBrand = 'Nenhuma';
 let clickCount = 0;
 let currentUser = null;
 
+// Função para gerar ID único de 6 dígitos
+function generateUniqueId(users) {
+    let id;
+    do {
+        id = Math.floor(100000 + Math.random() * 900000).toString();
+    } while (users.some(u => u.id === id));
+    return id;
+}
+
 // Inicializa dados no localStorage
 (function initializeData() {
     if (!localStorage.getItem('users')) {
-        localStorage.setItem('users', JSON.stringify([{ username: "LVz", password: "LVz", id: "USER1", balance: 0, purchases: [] }]));
+        localStorage.setItem('users', JSON.stringify([{ username: "LVz", password: "LVz", id: generateUniqueId([]), balance: 0, purchases: [] }]));
     }
     if (!localStorage.getItem('cards')) {
         localStorage.setItem('cards', JSON.stringify([
-            { id: "1", number: "1234567890123456", cvv: "123", expiry: "12/25", brand: "Visa", price: 10.00, stock: 10 },
-            { id: "2", number: "9876543210987654", cvv: "456", expiry: "06/26", brand: "Mastercard", price: 15.00, stock: 5 }
+            { id: "1", number: "1234567890123456", cvv: "123", expiry: "12/25", brand: "Visa", type: "Crédito", price: 10.00, stock: 10 },
+            { id: "2", number: "9876543210987654", cvv: "456", expiry: "06/26", brand: "Mastercard", type: "Débito", price: 15.00, stock: 5 }
         ]));
     }
     if (!localStorage.getItem('pixDetails')) {
@@ -29,7 +38,7 @@ function login() {
         localStorage.setItem('loggedIn', 'true');
         localStorage.setItem('currentUser', username);
         currentUser = user;
-        window.location.href = 'shop.html';
+        showAccountInfo();
     } else {
         alert("Usuário ou senha inválidos!");
     }
@@ -47,7 +56,7 @@ function register() {
         alert("Usuário já existe!");
         return;
     }
-    const newId = "USER" + (users.length + 1);
+    const newId = generateUniqueId(users);
     users.push({ username, password, id: newId, balance: 0, purchases: [] });
     localStorage.setItem('users', JSON.stringify(users));
     alert("Usuário registrado com sucesso!");
@@ -55,12 +64,12 @@ function register() {
 }
 
 function showRegisterForm() {
-    document.querySelector('.login-container').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'none';
     document.getElementById('registerForm').style.display = 'block';
 }
 
 function showLoginForm() {
-    document.querySelector('.login-container').style.display = 'block';
+    document.getElementById('loginForm').style.display = 'block';
     document.getElementById('registerForm').style.display = 'none';
 }
 
@@ -79,28 +88,27 @@ function loadCards() {
         return;
     }
     const cards = JSON.parse(localStorage.getItem('cards'));
-    const productList = document.getElementById('productList');
-    productList.innerHTML = '';
+    const cardList = document.getElementById('cardList');
+    cardList.innerHTML = '';
     cards.forEach(card => {
         if (card.stock > 0) {
-            const productDiv = document.createElement('div');
-            productDiv.className = 'product-item';
-            productDiv.innerHTML = `
-                <h2>${card.number}</h2>
-                <div class="card-info">
-                    <span>CVV: ${card.cvv}</span>
-                    <span>Validade: ${card.expiry}</span>
-                    <span>Bandeira: ${card.brand}</span>
-                </div>
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card-item';
+            const bin = card.number.substring(0, 6);
+            cardDiv.innerHTML = `
+                <h2>${bin} **** **** ****</h2>
+                <p>${card.brand} - Banco do Brasil S.A.</p>
+                <p>Brasil</p>
                 <div class="price">R$ ${card.price.toFixed(2).replace('.', ',')}</div>
                 <div class="buttons">
-                    <button class="add-to-cart" onclick="addToCart('${card.number}', ${card.price})">Adicionar</button>
-                    <button class="details" onclick="showDetails('${card.number}')">Detalhes</button>
+                    <button onclick="addToCart('${card.number}', ${card.price})">${card.type}</button>
+                    <button onclick="buyCard('${card.number}')">Comprar</button>
                 </div>
             `;
-            productList.appendChild(productDiv);
+            cardList.appendChild(cardDiv);
         }
     });
+    loadCart();
 }
 
 function loadAdminCards() {
@@ -109,17 +117,18 @@ function loadAdminCards() {
         return;
     }
     const cards = JSON.parse(localStorage.getItem('cards'));
-    const productList = document.getElementById('productList');
-    productList.innerHTML = '';
+    const cardList = document.getElementById('productList');
+    cardList.innerHTML = '';
     cards.forEach(card => {
-        const productDiv = document.createElement('div');
-        productDiv.className = 'product-item';
-        productDiv.innerHTML = `
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card-item';
+        cardDiv.innerHTML = `
             <h2>${card.number}</h2>
             <div class="card-info">
                 <span>CVV: ${card.cvv}</span>
                 <span>Validade: ${card.expiry}</span>
                 <span>Bandeira: ${card.brand}</span>
+                <span>Tipo: ${card.type}</span>
             </div>
             <div class="price">R$ ${card.price.toFixed(2).replace('.', ',')}</div>
             <p>Estoque: ${card.stock}</p>
@@ -128,7 +137,7 @@ function loadAdminCards() {
                 <button class="delete" onclick="deleteCard('${card.id}')">Deletar</button>
             </div>
         `;
-        productList.appendChild(productDiv);
+        cardList.appendChild(cardDiv);
     });
 }
 
@@ -136,35 +145,56 @@ function addToCart(cardNumber, price) {
     cartTotal += price;
     cartItems.push({ name: cardNumber, price });
     updateTotal();
-    alert(`${cardNumber} adicionado ao carrinho!`);
+    loadCart();
+    alert(`${cardNumber.substring(0, 6)} **** **** **** adicionado ao carrinho!`);
 }
 
-function showDetails(cardNumber) {
+function buyCard(cardNumber) {
     const cards = JSON.parse(localStorage.getItem('cards'));
     const card = cards.find(c => c.number === cardNumber);
-    alert(`Detalhes do cartão:\nNúmero: ${card.number}\nCVV: ${card.cvv}\nValidade: ${card.expiry}\nBandeira: ${card.brand}`);
+    let users = JSON.parse(localStorage.getItem('users'));
+    const user = users.find(u => u.username === localStorage.getItem('currentUser'));
+    if (user.balance < card.price) {
+        alert("Saldo insuficiente! Adicione mais saldo via Pix.");
+        return;
+    }
+    card.stock -= 1;
+    if (card.stock < 0) card.stock = 0;
+    user.balance -= card.price;
+    user.purchases.push({ date: new Date().toLocaleString(), items: [{ name: card.number, price: card.price }], total: card.price });
+    localStorage.setItem('users', JSON.stringify(users));
+    localStorage.setItem('cards', JSON.stringify(cards));
+    alert(`Cartão ${card.number.substring(0, 6)} **** **** **** comprado com sucesso!`);
+    loadCards();
+    updateBalanceDisplay();
 }
 
 function updateTotal() {
     const totalElement = document.getElementById('cartTotal');
     if (totalElement) {
-        totalElement.textContent = `Total R$ ${cartTotal.toFixed(2).replace('.', ',')}`;
+        totalElement.textContent = `Saldo R$ ${currentUser ? currentUser.balance.toFixed(2).replace('.', ',') : '0,00'}`;
     }
 }
 
 function loadCart() {
-    if (!localStorage.getItem('loggedIn')) {
-        window.location.href = 'index.html';
-        return;
-    }
     const cartList = document.getElementById('cartList');
+    if (!cartList) return;
     cartList.innerHTML = '';
     cartItems.forEach(item => {
+        const cards = JSON.parse(localStorage.getItem('cards'));
+        const card = cards.find(c => c.number === item.name);
         const cartItemDiv = document.createElement('div');
-        cartItemDiv.className = 'product-item';
+        cartItemDiv.className = 'card-item';
+        const bin = item.name.substring(0, 6);
         cartItemDiv.innerHTML = `
-            <h2>${item.name}</h2>
+            <h2>${bin} **** **** ****</h2>
+            <p>${card.brand} - Banco do Brasil S.A.</p>
+            <p>Brasil</p>
             <div class="price">R$ ${item.price.toFixed(2).replace('.', ',')}</div>
+            <div class="buttons">
+                <button onclick="removeFromCart('${item.name}')">Remover</button>
+                <button onclick="buyCard('${item.name}')">Comprar</button>
+            </div>
         `;
         cartList.appendChild(cartItemDiv);
     });
@@ -173,10 +203,25 @@ function loadCart() {
     updateBalanceDisplay();
 }
 
+function removeFromCart(cardNumber) {
+    const itemIndex = cartItems.findIndex(item => item.name === cardNumber);
+    if (itemIndex !== -1) {
+        cartTotal -= cartItems[itemIndex].price;
+        cartItems.splice(itemIndex, 1);
+        loadCart();
+        updateTotal();
+        alert(`Cartão ${cardNumber.substring(0, 6)} **** **** **** removido do carrinho!`);
+    }
+}
+
 function loadPixDetails() {
     const pixDetails = JSON.parse(localStorage.getItem('pixDetails'));
-    document.getElementById('pixKey').textContent = pixDetails.key;
-    document.getElementById('pixQRCode').src = pixDetails.qrCode;
+    const pixKeyElement = document.getElementById('pixKey');
+    const pixQRCodeElement = document.getElementById('pixQRCode');
+    if (pixKeyElement && pixQRCodeElement) {
+        pixKeyElement.textContent = pixDetails.key;
+        pixQRCodeElement.src = pixDetails.qrCode;
+    }
 }
 
 function updatePixDetails() {
@@ -215,10 +260,12 @@ function addBalance() {
 function updateBalanceDisplay() {
     const users = JSON.parse(localStorage.getItem('users'));
     const user = users.find(u => u.username === localStorage.getItem('currentUser'));
+    currentUser = user;
     const balanceElements = document.querySelectorAll('#userBalance, #userBalanceAccount');
     balanceElements.forEach(element => {
-        element.textContent = user.balance.toFixed(2).replace('.', ',');
+        if (element) element.textContent = user.balance.toFixed(2).replace('.', ',');
     });
+    updateTotal();
 }
 
 function finalizePurchase() {
@@ -256,6 +303,7 @@ function addCard() {
     const number = document.getElementById('cardNumber').value;
     const cvv = document.getElementById('cardCVV').value;
     const expiry = document.getElementById('cardExpiry').value;
+    const type = document.getElementById('cardType').value;
     const price = parseFloat(document.getElementById('cardPrice').value);
     const stock = parseInt(document.getElementById('cardStock').value);
 
@@ -264,7 +312,7 @@ function addCard() {
         alert("ID já existe!");
         return;
     }
-    cards.push({ id, number, cvv, expiry, brand: selectedBrand, price, stock });
+    cards.push({ id, number, cvv, expiry, brand: selectedBrand, type, price, stock });
     localStorage.setItem('cards', JSON.stringify(cards));
     alert("Cartão adicionado com sucesso!");
     loadAdminCards();
@@ -285,12 +333,14 @@ function editCard(id) {
     const newCVV = prompt("Novo CVV:", card.cvv);
     const newExpiry = prompt("Nova validade (MM/AA):", card.expiry);
     const newBrand = prompt("Nova bandeira:", card.brand);
+    const newType = prompt("Novo tipo (Crédito/Débito):", card.type);
     const newPrice = parseFloat(prompt("Novo preço:", card.price));
     const newStock = parseInt(prompt("Novo estoque:", card.stock));
     card.number = newNumber;
     card.cvv = newCVV;
     card.expiry = newExpiry;
     card.brand = newBrand;
+    card.type = newType;
     card.price = newPrice;
     card.stock = newStock;
     localStorage.setItem('cards', JSON.stringify(cards));
@@ -309,11 +359,41 @@ function selectBrand(brand) {
     document.getElementById('selectedBrand').textContent = selectedBrand;
 }
 
-function loadAccountInfo() {
+function showAccountInfo() {
     if (!localStorage.getItem('loggedIn')) {
         window.location.href = 'index.html';
         return;
     }
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('accountInfo').style.display = 'block';
+
+    const headerContainer = document.getElementById('headerContainer');
+    headerContainer.innerHTML = `
+        <div class="header">
+            <h1>VER CONTA</h1>
+            <div class="total" id="cartTotal">Saldo R$ 0,00</div>
+        </div>
+    `;
+
+    const navbarContainer = document.getElementById('navbarContainer');
+    navbarContainer.innerHTML = `
+        <div class="navbar">
+            <a href="shop.html">
+                <img src="https://img.icons8.com/ios-filled/50/aaaaaa/shop.png" alt="Store">
+                Store
+            </a>
+            <a href="index.html" id="accountLink" class="active">
+                <img src="https://img.icons8.com/ios-filled/50/00c4b4/user.png" alt="Conta">
+                Ver Conta
+            </a>
+            <a href="#" onclick="logout()">
+                <img src="https://img.icons8.com/ios-filled/50/aaaaaa/logout-rounded.png" alt="Sair">
+                Sair
+            </a>
+        </div>
+    `;
+
     const users = JSON.parse(localStorage.getItem('users'));
     const user = users.find(u => u.username === localStorage.getItem('currentUser'));
     document.getElementById('userName').textContent = user.username;
@@ -323,8 +403,8 @@ function loadAccountInfo() {
     purchaseHistory.innerHTML = '';
     user.purchases.forEach(purchase => {
         const purchaseDiv = document.createElement('div');
-        purchaseDiv.className = 'product-item';
-        let itemsList = purchase.items.map(item => `<p>${item.name} - R$ ${item.price.toFixed(2).replace('.', ',')}</p>`).join('');
+        purchaseDiv.className = 'card-item';
+        let itemsList = purchase.items.map(item => `<p>${item.name.substring(0, 6)} **** **** **** - R$ ${item.price.toFixed(2).replace('.', ',')}</p>`).join('');
         purchaseDiv.innerHTML = `
             <h2>Compra em ${purchase.date}</h2>
             ${itemsList}
@@ -332,29 +412,65 @@ function loadAccountInfo() {
         `;
         purchaseHistory.appendChild(purchaseDiv);
     });
+
+    // Configura o acesso ao painel admin
+    if (document.getElementById('accountLink')) {
+        document.getElementById('accountLink').addEventListener('click', function(e) {
+            clickCount++;
+            if (clickCount === 6) {
+                clickCount = 0;
+                window.location.href = 'dashboard.html';
+            }
+        });
+    }
 }
 
-// Configura o acesso ao painel admin
-if (document.getElementById('accountLink')) {
-    document.getElementById('accountLink').addEventListener('click', function(e) {
-        clickCount++;
-        if (clickCount === 6) {
-            clickCount = 0;
-            window.location.href = 'dashboard.html';
+function searchUsers() {
+    const searchTerm = document.getElementById('searchUser').value.toLowerCase();
+    const users = JSON.parse(localStorage.getItem('users'));
+    const userList = document.getElementById('userList');
+    userList.innerHTML = '';
+    users.forEach(user => {
+        if (user.username.toLowerCase().includes(searchTerm) || user.id.includes(searchTerm)) {
+            const userDiv = document.createElement('div');
+            userDiv.className = 'user-item';
+            userDiv.innerHTML = `
+                <h2>${user.username}</h2>
+                <p>ID: ${user.id}</p>
+                <p>Saldo: R$ ${user.balance.toFixed(2).replace('.', ',')}</p>
+                <div class="buttons">
+                    <button class="edit-balance" onclick="editUserBalance('${user.id}')">Editar Saldo</button>
+                </div>
+            `;
+            userList.appendChild(userDiv);
         }
     });
 }
 
+function editUserBalance(userId) {
+    const newBalance = parseFloat(prompt("Novo saldo (R$):"));
+    if (isNaN(newBalance) || newBalance < 0) {
+        alert("Insira um valor válido!");
+        return;
+    }
+    let users = JSON.parse(localStorage.getItem('users'));
+    const user = users.find(u => u.id === userId);
+    user.balance = newBalance;
+    localStorage.setItem('users', JSON.stringify(users));
+    alert(`Saldo de ${user.username} atualizado para R$ ${newBalance.toFixed(2).replace('.', ',')}!`);
+    searchUsers();
+}
+
 // Carrega dados nas páginas correspondentes
-if (document.getElementById('productList') && window.location.pathname.includes('shop.html')) {
+if (window.location.pathname.includes('shop.html')) {
     loadCards();
 }
-if (document.getElementById('productList') && window.location.pathname.includes('dashboard.html')) {
+if (window.location.pathname.includes('dashboard.html')) {
     loadAdminCards();
+    searchUsers();
 }
-if (document.getElementById('cartList')) {
-    loadCart();
-}
-if (window.location.pathname.includes('account.html')) {
-    loadAccountInfo();
+if (window.location.pathname.includes('index.html') && localStorage.getItem('loggedIn')) {
+    const users = JSON.parse(localStorage.getItem('users'));
+    currentUser = users.find(u => u.username === localStorage.getItem('currentUser'));
+    showAccountInfo();
 }
