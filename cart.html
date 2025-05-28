@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>CARRINHO</h1>
+        <div class="total" id="cartTotal">Total R$ 0,00</div>
+    </div>
+    <div class="product-list" id="cartList"></div>
+    <button class="finalize-btn" onclick="finalizePurchase()">Finalizar Compra</button>
+    <div class="navbar">
+        <a href="shop.html">
+            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/shop.png" alt="Store">
+            Store
+        </a>
+        <a href="dashboard.html">
+            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/user.png" alt="Conta">
+            Conta
+        </a>
+        <a href="cart.html" class="active">
+            <img src="https://img.icons8.com/ios-filled/50/00c4b4/credit-card.png" alt="Carteira">
+            Carteira
+        </a>
+        <a href="#" onclick="logout()">
+            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/logout-rounded.png" alt="Sair">
+            Sair
+        </a>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
