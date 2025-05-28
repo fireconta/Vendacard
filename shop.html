@@ -5,38 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loja e Carrinho</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <div class="header">
         <h1><i class="fas fa-shopping-cart"></i> LOJA E CARRINHO</h1>
         <div class="total" id="cartTotal">Saldo R$ 0,00</div>
-        <button onclick="toggleTheme()" id="themeToggle">Modo Claro</button>
+        <button onclick="toggleTheme()" id="themeToggle" aria-label="Alternar tema claro/escuro">Modo Claro</button>
     </div>
     <div class="balance-section">
         <h3><i class="fas fa-wallet"></i> Saldo: R$ <span id="userBalance">0,00</span></h3>
-        <button onclick="showAddBalanceForm()">Adicionar Saldo via Pix</button>
+        <button onclick="showAddBalanceForm()" aria-label="Adicionar saldo via Pix">Adicionar Saldo via Pix</button>
         <div id="pixPayment" style="display: none;">
             <p>Chave Pix: <span id="pixKey">chave@exemplo.com</span></p>
-            <button onclick="copyPixKey()">Copiar Chave</button>
+            <button onclick="copyPixKey()" aria-label="Copiar chave Pix">Copiar Chave</button>
             <img id="pixQRCode" src="https://via.placeholder.com/150" alt="QR Code Pix" class="loading">
-            <input type="number" id="balanceAmount" placeholder="Valor (R$)" step="0.01" required>
-            <button onclick="addBalance()">Confirmar Pagamento</button>
+            <input type="number" id="balanceAmount" placeholder="Valor (R$)" step="0.01" required aria-label="Valor para adicionar ao saldo">
+            <button onclick="addBalance()" aria-label="Confirmar pagamento Pix">Confirmar Pagamento</button>
         </div>
     </div>
     <div class="form-container">
         <h2><i class="fas fa-credit-card"></i> Cartões à Venda</h2>
         <div class="filter-section">
-            <label>Filtrar por Bandeira:</label>
-            <select id="brandFilter" onchange="filterCards()">
+            <label for="brandFilter">Filtrar por Bandeira:</label>
+            <select id="brandFilter" onchange="filterCards()" aria-label="Filtrar cartões por bandeira">
                 <option value="all">Todas</option>
                 <option value="Visa">Visa</option>
                 <option value="Mastercard">Mastercard</option>
                 <option value="Amex">Amex</option>
             </select>
-            <label>Filtrar por Tipo:</label>
-            <select id="typeFilter" onchange="filterCards()">
+            <label for="typeFilter">Filtrar por Tipo:</label>
+            <select id="typeFilter" onchange="filterCards()" aria-label="Filtrar cartões por tipo">
                 <option value="all">Todos</option>
                 <option value="Crédito">Crédito</option>
                 <option value="Débito">Débito</option>
@@ -48,16 +47,16 @@
         <h2><i class="fas fa-shopping-basket"></i> Carrinho</h2>
         <p>Total do Carrinho: R$ <span id="cartTotalAmount">0,00</span></p>
         <div class="card-list" id="cartList"></div>
-        <button class="finalize-btn" onclick="finalizePurchase()">Finalizar Compra</button>
+        <button class="finalize-btn" onclick="finalizePurchase()" aria-label="Finalizar compra">Finalizar Compra</button>
     </div>
     <div class="navbar">
-        <a href="shop.html" class="active">
+        <a href="shop.html" class="active" aria-label="Ir para a loja">
             <i class="fas fa-store"></i> Store
         </a>
-        <a href="index.html" id="accountLink">
+        <a href="index.html" id="accountLink" aria-label="Ver informações da conta">
             <i class="fas fa-user"></i> Ver Conta
         </a>
-        <a href="#" onclick="logout()">
+        <a href="#" onclick="logout()" aria-label="Sair do sistema">
             <i class="fas fa-sign-out-alt"></i> Sair
         </a>
     </div>
