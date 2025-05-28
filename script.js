@@ -16,6 +16,7 @@ let currentUser = null;
 let debounceTimeout;
 let loginAttempts = 0;
 let loginBlockedUntil = 0;
+let selectedRechargeAmount = null;
 
 // Cache de dados
 let usersCache = JSON.parse(localStorage.getItem('users')) || [];
@@ -162,7 +163,7 @@ function validateRegister() {
         document.querySelector('#newPassword')?.parentElement.classList.add('invalid');
         isValid = false;
     } else if (password.length < CONFIG.MIN_PASSWORD_LENGTH) {
-        passwordError.textContent = `Senha deve ter no mínimo ${CONFIG.MIN_PASSWORD_LENGTH} caracteres.`;
+        passwordError.textContent = `Senha deve ter no mínimo ${CONFIG.MIN_PASSWORD_LENGTH} caracteres.';
         document.querySelector('#newPassword')?.parentElement.classList.add('invalid');
         isValid = false;
     } else {
@@ -386,13 +387,43 @@ function toggleTheme() {
 }
 
 /**
- * Exibe o formulário de adição de saldo via Pix.
+ * Exibe o modal de recarga.
  */
 function showAddBalanceForm() {
+    const rechargeModal = document.getElementById('rechargeModal');
+    if (rechargeModal) {
+        rechargeModal.style.display = 'flex';
+    }
+}
+
+/**
+ * Fecha o modal de recarga.
+ */
+function closeModal() {
+    const rechargeModal = document.getElementById('rechargeModal');
+    if (rechargeModal) {
+        rechargeModal.style.display = 'none';
+    }
+}
+
+/**
+ * Seleciona o valor da recarga e inicia o processo de geração do Pix.
+ * @param {number} amount - Valor da recarga (30, 50 ou 100).
+ */
+function selectRecharge(amount) {
+    selectedRechargeAmount = amount;
+    closeModal();
     const pixPayment = document.getElementById('pixPayment');
-    if (pixPayment) {
+    const pixLoading = document.getElementById('pixLoading');
+    if (pixPayment && pixLoading) {
         pixPayment.style.display = 'block';
-        updatePixDetailsDisplay(); // Atualiza o QR code e chave ao abrir o formulário
+        pixLoading.style.display = 'block';
+        document.getElementById('pixKey').textContent = 'Carregando...';
+        document.getElementById('pixQRCode').src = 'https://via.placeholder.com/150';
+        setTimeout(() => {
+            pixLoading.style.display = 'none';
+            updatePixDetailsDisplay();
+        }, 5000); // Aguarda 5 segundos antes de exibir o QR code e a chave
     }
 }
 
@@ -411,16 +442,15 @@ function copyPixKey() {
 }
 
 /**
- * Atualiza a exibição dos detalhes do Pix (QR code e chave) com base no valor selecionado.
+ * Atualiza a exibição dos detalhes do Pix com base no valor selecionado.
  */
 function updatePixDetailsDisplay() {
-    const rechargeAmount = document.getElementById('rechargeAmount')?.value;
     const pixKeySpan = document.getElementById('pixKey');
     const pixQRCodeImg = document.getElementById('pixQRCode');
 
-    if (rechargeAmount && pixDetailsCache[rechargeAmount]) {
-        if (pixKeySpan) pixKeySpan.textContent = pixDetailsCache[rechargeAmount].key;
-        if (pixQRCodeImg) pixQRCodeImg.src = pixDetailsCache[rechargeAmount].qrCode;
+    if (selectedRechargeAmount && pixDetailsCache[selectedRechargeAmount]) {
+        if (pixKeySpan) pixKeySpan.textContent = pixDetailsCache[selectedRechargeAmount].key;
+        if (pixQRCodeImg) pixQRCodeImg.src = pixDetailsCache[selectedRechargeAmount].qrCode;
     } else {
         if (pixKeySpan) pixKeySpan.textContent = 'Chave não configurada';
         if (pixQRCodeImg) pixQRCodeImg.src = 'https://via.placeholder.com/150';
@@ -431,16 +461,15 @@ function updatePixDetailsDisplay() {
  * Adiciona saldo ao usuário via Pix com bônus de 50%.
  */
 function addBalance() {
-    const rechargeAmount = parseFloat(document.getElementById('rechargeAmount')?.value);
-    if (isNaN(rechargeAmount) || ![30, 50, 100].includes(rechargeAmount)) {
+    if (!selectedRechargeAmount || ![30, 50, 100].includes(selectedRechargeAmount)) {
         alert('Por favor, selecione um valor de recarga válido.');
         return;
     }
     const user = usersCache.find(u => u.username === currentUser);
     if (user) {
         // Calcula o bônus de 50%
-        const bonus = rechargeAmount * 0.5;
-        const totalCredit = rechargeAmount + bonus;
+        const bonus = selectedRechargeAmount * 0.5;
+        const totalCredit = selectedRechargeAmount + bonus;
         user.balance += totalCredit;
         saveUsersCache();
         const userBalance = document.getElementById('userBalance');
@@ -448,7 +477,8 @@ function addBalance() {
         if (userBalance) userBalance.textContent = user.balance.toFixed(2);
         if (userBalanceAccount) userBalanceAccount.textContent = user.balance.toFixed(2);
         if (document.getElementById('pixPayment')) document.getElementById('pixPayment').style.display = 'none';
-        alert(`Saldo adicionado com sucesso! Você recarregou R$ ${rechargeAmount.toFixed(2)} e recebeu R$ ${totalCredit.toFixed(2)} (incluindo bônus de R$ ${bonus.toFixed(2)}).`);
+        alert(`Saldo adicionado com sucesso! Você recarregou R$ ${selectedRechargeAmount.toFixed(2)} e recebeu R$ ${totalCredit.toFixed(2)} (incluindo bônus de R$ ${bonus.toFixed(2)}).`);
+        selectedRechargeAmount = null;
     }
 }
 
@@ -864,7 +894,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const userBalance = document.getElementById('userBalance');
             if (user && userBalance) userBalance.textContent = user.balance.toFixed(2);
             checkAdminMode();
-            updatePixDetailsDisplay();
         } else if (window.location.pathname.includes('dashboard.html')) {
             filterCards();
             const user = usersCache.find(u => u.username === currentUser);
