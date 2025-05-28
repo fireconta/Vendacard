@@ -16,19 +16,6 @@
     <div class="balance-section">
         <h3><i class="fas fa-wallet"></i> Saldo: R$ <span id="userBalance">0,00</span></h3>
         <button onclick="showAddBalanceForm()" aria-label="Adicionar saldo via Pix">Adicionar Saldo via Pix</button>
-        <div id="pixPayment" style="display: none;">
-            <p class="bonus-message">Recarregue e Ganhe! Adicione R$ 30 e ganhe R$ 45 de saldo, R$ 50 e ganhe R$ 75, ou R$ 100 e ganhe R$ 150!</p>
-            <label for="rechargeAmount">Escolha o valor da recarga:</label>
-            <select id="rechargeAmount" onchange="updatePixDetailsDisplay()" aria-label="Valor da recarga">
-                <option value="30">R$ 30,00 (Ganhe R$ 45,00)</option>
-                <option value="50">R$ 50,00 (Ganhe R$ 75,00)</option>
-                <option value="100">R$ 100,00 (Ganhe R$ 150,00)</option>
-            </select>
-            <p>Chave Pix Copia e Cola: <span id="pixKey">Carregando...</span></p>
-            <button onclick="copyPixKey()" aria-label="Copiar chave Pix">Copiar Chave</button>
-            <img id="pixQRCode" src="https://via.placeholder.com/150" alt="QR Code Pix" class="loading">
-            <button onclick="addBalance()" aria-label="Confirmar pagamento Pix">Confirmar Pagamento</button>
-        </div>
     </div>
     <div class="form-container">
         <h2><i class="fas fa-credit-card"></i> Cartões à Venda</h2>
@@ -54,6 +41,25 @@
         <p>Total do Carrinho: R$ <span id="cartTotalAmount">0,00</span></p>
         <div class="card-list" id="cartList"></div>
         <button class="finalize-btn" onclick="finalizePurchase()" aria-label="Finalizar compra">Finalizar Compra</button>
+    </div>
+    <div class="modal" id="rechargeModal" style="display: none;">
+        <div class="modal-content">
+            <h3>Selecione o valor da recarga</h3>
+            <div class="recharge-options">
+                <button onclick="selectRecharge(30)" aria-label="Recarga de R$ 30">R$ 30,00 (Ganhe R$ 45,00)</button>
+                <button onclick="selectRecharge(50)" aria-label="Recarga de R$ 50">R$ 50,00 (Ganhe R$ 75,00)</button>
+                <button onclick="selectRecharge(100)" aria-label="Recarga de R$ 100">R$ 100,00 (Ganhe R$ 150,00)</button>
+            </div>
+            <button onclick="closeModal()" aria-label="Fechar modal">Fechar</button>
+        </div>
+    </div>
+    <div class="pix-payment" id="pixPayment" style="display: none;">
+        <p class="bonus-message">Recarregue e Ganhe! Adicione R$ 30 e ganhe R$ 45 de saldo, R$ 50 e ganhe R$ 75, ou R$ 100 e ganhe R$ 150!</p>
+        <p id="pixLoading" style="display: none;">Aguarde, estamos gerando o Pix para depósito...</p>
+        <p>Chave Pix Copia e Cola: <span id="pixKey">Carregando...</span></p>
+        <button onclick="copyPixKey()" aria-label="Copiar chave Pix">Copiar Chave</button>
+        <img id="pixQRCode" src="https://via.placeholder.com/150" alt="QR Code Pix" class="loading">
+        <button onclick="addBalance()" aria-label="Confirmar pagamento Pix">Confirmar Pagamento</button>
     </div>
     <div class="navbar">
         <a href="shop.html" class="active" aria-label="Ir para a loja">
