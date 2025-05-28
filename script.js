@@ -774,7 +774,7 @@ function toggleTheme() {
     localStorage.removeItem('users'); // Limpa usuários existentes para evitar conflitos
     if (!localStorage.getItem('users')) {
         const newId = generateUniqueId([]);
-        const defaultPassword = "LVz";
+        const defaultPassword = "123456";
         const hashedPassword = CryptoJS.SHA256(defaultPassword).toString();
         console.log('Inicializando usuário padrão LVz...');
         console.log('Senha padrão:', defaultPassword);
@@ -805,14 +805,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (themeToggle) themeToggle.textContent = 'Modo Escuro';
     }
 
-    // Pré-preenche os campos de login com "LVz"
+    // Pré-preenche os campos de login com "LVz" e "123456"
     if (window.location.pathname.includes('index.html')) {
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
         if (usernameInput && passwordInput) {
             usernameInput.value = "LVz";
-            passwordInput.value = "LVz";
-            console.log('Campos de login preenchidos com usuário padrão LVz.');
+            passwordInput.value = "123456";
+            console.log('Campos de login preenchidos com usuário padrão LVz e senha 123456.');
         }
     }
 
