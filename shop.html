@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loja e Carrinho</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
     <div class="header">
         <h1>LOJA E CARRINHO</h1>
         <div class="total" id="cartTotal">Saldo R$ 0,00</div>
+        <button onclick="toggleTheme()" id="themeToggle">Modo Claro</button>
     </div>
     <div class="balance-section">
         <h3>Saldo: R$ <span id="userBalance">0,00</span></h3>
@@ -24,10 +26,26 @@
     </div>
     <div class="form-container">
         <h2>Cartões à Venda</h2>
+        <div class="filter-section">
+            <label>Filtrar por Bandeira:</label>
+            <select id="brandFilter" onchange="filterCards()">
+                <option value="all">Todas</option>
+                <option value="Visa">Visa</option>
+                <option value="Mastercard">Mastercard</option>
+                <option value="Amex">Amex</option>
+            </select>
+            <label>Filtrar por Tipo:</label>
+            <select id="typeFilter" onchange="filterCards()">
+                <option value="all">Todos</option>
+                <option value="Crédito">Crédito</option>
+                <option value="Débito">Débito</option>
+            </select>
+        </div>
         <div class="card-list" id="cardList"></div>
     </div>
-    <div class="form-container">
+    <div class="form-container" id="cartContainer" style="display: none;">
         <h2>Carrinho</h2>
+        <p>Total do Carrinho: R$ <span id="cartTotalAmount">0,00</span></p>
         <div class="card-list" id="cartList"></div>
         <button class="finalize-btn" onclick="finalizePurchase()">Finalizar Compra</button>
     </div>
