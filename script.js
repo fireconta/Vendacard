@@ -25,9 +25,10 @@ let cardsCache = JSON.parse(localStorage.getItem('cards')) || [
     { id: '2', number: '9876543210987654', cvv: '456', expiry: '11/26', brand: 'Mastercard', bank: 'Banco Inter', country: 'Brasil', price: 15.00, stock: 5, type: 'Débito' }
 ];
 let pixDetailsCache = JSON.parse(localStorage.getItem('pixDetails')) || {
-    30: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" },
-    50: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" },
-    100: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" }
+    40: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" },
+    70: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" },
+    150: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" },
+    300: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" }
 };
 
 /**
@@ -337,6 +338,11 @@ async function login() {
     }, 1000); // Simula atraso de servidor
 }
 
+// Adiciona evento de tecla Enter para login
+document.getElementById('password')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') login();
+});
+
 /**
  * Registra um novo usuário.
  */
@@ -359,6 +365,11 @@ async function register() {
     showLoginForm();
     alert('Usuário registrado com sucesso! Faça login.');
 }
+
+// Adiciona evento de tecla Enter para registro
+document.getElementById('newPassword')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') register();
+});
 
 /**
  * Lida com a funcionalidade "Esqueceu a Senha?".
@@ -408,7 +419,7 @@ function closeModal() {
 
 /**
  * Seleciona o valor da recarga e inicia o processo de geração do Pix.
- * @param {number} amount - Valor da recarga (30, 50 ou 100).
+ * @param {number} amount - Valor da recarga (40, 70, 150 ou 300).
  */
 function selectRecharge(amount) {
     selectedRechargeAmount = amount;
@@ -461,7 +472,7 @@ function updatePixDetailsDisplay() {
  * Adiciona saldo ao usuário via Pix com bônus de 50%.
  */
 function addBalance() {
-    if (!selectedRechargeAmount || ![30, 50, 100].includes(selectedRechargeAmount)) {
+    if (!selectedRechargeAmount || ![40, 70, 150, 300].includes(selectedRechargeAmount)) {
         alert('Por favor, selecione um valor de recarga válido.');
         return;
     }
@@ -884,4 +895,8 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'index.html';
     }
     checkOffline();
+
+    // Associa eventos aos botões
+    document.getElementById('loginButton')?.addEventListener('click', login);
+    document.getElementById('registerForm')?.querySelector('button:nth-child(3)')?.addEventListener('click', register);
 });
