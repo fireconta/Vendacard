@@ -2,16 +2,16 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Arial', sans-serif;
 }
 
 body {
-    background: linear-gradient(135deg, #1e272e 0%, #3498db 100%);
+    background: linear-gradient(135deg, #1e272e 0%, #2ecc71 100%);
     color: #ecf0f1;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    animation: gradientShift 10s ease infinite;
+    animation: gradientShift 15s ease infinite;
 }
 
 @keyframes gradientShift {
@@ -21,12 +21,12 @@ body {
 }
 
 body.light {
-    background: linear-gradient(135deg, #f5f6fa 0%, #3498db 100%);
+    background: linear-gradient(135deg, #f5f6fa 0%, #2ecc71 100%);
     color: #2c3e50;
 }
 
 body.light .header {
-    background-color: #3498db;
+    background: linear-gradient(90deg, #2ecc71, #3498db);
 }
 
 body.light .card-item,
@@ -35,10 +35,11 @@ body.light .register-container,
 body.light .form-container,
 body.light .account-info,
 body.light .balance-section,
-body.light .user-item {
-    background-color: #ffffff;
+body.light .user-item,
+body.light .modal-content {
+    background: #ffffff;
     color: #2c3e50;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 body.light .navbar {
@@ -51,7 +52,7 @@ body.light .navbar a {
 }
 
 body.light .navbar a.active {
-    color: #3498db;
+    color: #2ecc71;
 }
 
 body.light #themeToggle {
@@ -61,143 +62,153 @@ body.light #themeToggle {
 
 body.light .filter-section select,
 body.light input,
-body.light select {
+body.light select,
+body.light .recharge-options button {
     border: 1px solid #bdc3c7;
 }
 
 .header {
-    background-color: #2c3e50;
-    padding: 15px;
+    background: linear-gradient(90deg, #2c3e50, #34495e);
+    padding: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-radius: 0 0 15px 15px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .header h1 {
-    font-size: 24px;
-    font-weight: 600;
+    font-size: 28px;
+    font-weight: 700;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
+    color: #2ecc71;
 }
 
 .header .total {
-    font-size: 18px;
-    font-weight: 500;
+    font-size: 20px;
+    font-weight: 600;
+    color: #ecf0f1;
 }
 
 #themeToggle {
     background-color: transparent;
-    border: 1px solid #ecf0f1;
-    padding: 8px 15px;
-    border-radius: 5px;
-    color: #ecf0f1;
+    border: 2px solid #2ecc71;
+    padding: 10px 20px;
+    border-radius: 10px;
+    color: #2ecc71;
     cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
 }
 
 #themeToggle:hover {
-    background-color: #34495e;
+    background-color: #2ecc71;
+    color: #fff;
+    transform: scale(1.05);
 }
 
 .card-list {
     flex: 1;
-    padding: 20px;
+    padding: 25px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
 }
 
 .card-item {
-    background-color: #34495e;
-    padding: 15px;
-    border-radius: 10px;
+    background: linear-gradient(145deg, #2c3e50, #34495e);
+    padding: 20px;
+    border-radius: 15px;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid #2ecc71;
 }
 
 .card-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    transform: translateY(-10px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
 }
 
 .card-item.added {
-    animation: highlight 0.5s ease;
+    animation: highlight 0.6s ease;
 }
 
 @keyframes highlight {
-    0% { background-color: #34495e; }
-    50% { background-color: #3498db; }
-    100% { background-color: #34495e; }
+    0% { background: linear-gradient(145deg, #2c3e50, #34495e); }
+    50% { background: linear-gradient(145deg, #3498db, #2ecc71); }
+    100% { background: linear-gradient(145deg, #2c3e50, #34495e); }
 }
 
 .card-item h2 {
-    font-size: 16px;
-    margin-bottom: 10px;
+    font-size: 20px;
+    margin-bottom: 15px;
     color: #ecf0f1;
+    font-weight: 600;
 }
 
 .card-item p {
-    font-size: 14px;
+    font-size: 16px;
     color: #bdc3c7;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
 .card-item .price {
-    font-size: 18px;
+    font-size: 22px;
     font-weight: bold;
     color: #2ecc71;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .card-item .buttons {
     display: flex;
-    gap: 10px;
+    justify-content: center;
     width: 100%;
 }
 
 .card-item button {
-    flex: 1;
-    padding: 10px;
+    padding: 12px 30px;
     border: none;
-    border-radius: 20px;
-    font-size: 14px;
+    border-radius: 25px;
+    font-size: 16px;
     cursor: pointer;
-    background-color: #3498db;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
     color: #fff;
-    transition: background-color 0.3s ease;
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .card-item button:hover {
-    background-color: #2980b9;
+    background: linear-gradient(90deg, #2980b9, #27ae60);
+    transform: translateY(-3px);
 }
 
 .user-item {
-    background-color: #34495e;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 10px;
-    transition: transform 0.2s ease;
+    background: linear-gradient(145deg, #34495e, #2c3e50);
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 .user-item:hover {
-    transform: translateY(-5px);
+    transform: translateY(-10px);
 }
 
 .user-item .buttons {
     display: flex;
-    gap: 10px;
+    gap: 15px;
 }
 
 .user-item button {
-    padding: 10px;
+    padding: 12px;
     border: none;
-    border-radius: 20px;
-    font-size: 14px;
+    border-radius: 25px;
+    font-size: 16px;
     cursor: pointer;
 }
 
@@ -208,31 +219,33 @@ body.light select {
 
 .user-item .edit-balance:hover {
     background-color: #27ae60;
+    transform: translateY(-3px);
 }
 
 .navbar {
-    background-color: #2c3e50;
-    padding: 15px;
+    background: linear-gradient(90deg, #2c3e50, #34495e);
+    padding: 20px;
     display: flex;
     justify-content: space-around;
-    border-top: 1px solid #34495e;
+    border-top: 2px solid #2ecc71;
     position: sticky;
     bottom: 0;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .navbar a {
     color: #bdc3c7;
     text-decoration: none;
-    font-size: 14px;
+    font-size: 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, transform 0.2s ease;
 }
 
 .navbar a:hover {
-    color: #ecf0f1;
+    color: #2ecc71;
+    transform: scale(1.1);
 }
 
 .navbar a.active {
@@ -240,8 +253,8 @@ body.light select {
 }
 
 .navbar a i {
-    font-size: 20px;
-    margin-bottom: 5px;
+    font-size: 22px;
+    margin-bottom: 8px;
 }
 
 .login-wrapper {
@@ -250,33 +263,34 @@ body.light select {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.2);
 }
 
 .login-container {
-    background-color: #2c3e50;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
     padding: 40px;
-    border-radius: 15px;
+    border-radius: 20px;
     text-align: center;
     width: 100%;
-    max-width: 400px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-    animation: fadeIn 0.5s ease;
+    max-width: 450px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.6s ease;
 }
 
 .login-container h1 {
-    font-size: 28px;
-    margin-bottom: 20px;
+    font-size: 32px;
+    margin-bottom: 25px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 15px;
+    color: #2ecc71;
 }
 
 .login-box, .register-box, .account-info {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
 }
 
 .input-group {
@@ -286,25 +300,25 @@ body.light select {
 
 .input-group input {
     width: 100%;
-    padding: 12px;
-    border: 2px solid #34495e;
-    border-radius: 5px;
-    font-size: 14px;
+    padding: 15px;
+    border: 2px solid #2ecc71;
+    border-radius: 10px;
+    font-size: 16px;
     background-color: #34495e;
     color: #ecf0f1;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .input-group input:focus {
-    border-color: #2ecc71;
-    box-shadow: 0 0 5px rgba(46, 204, 113, 0.5);
+    border-color: #3498db;
+    box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
     outline: none;
 }
 
 .input-group .error {
     color: #e74c3c;
-    font-size: 12px;
-    margin-top: 5px;
+    font-size: 14px;
+    margin-top: 8px;
     display: none;
 }
 
@@ -317,41 +331,42 @@ body.light select {
 }
 
 button {
-    padding: 12px;
-    background-color: #3498db;
+    padding: 15px;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
     color: #fff;
-    font-size: 16px;
+    font-size: 18px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
 button:hover {
-    background-color: #2980b9;
-    transform: translateY(-2px);
+    background: linear-gradient(90deg, #2980b9, #27ae60);
+    transform: translateY(-4px);
 }
 
 a {
-    color: #2ecc71;
+    color: #3498db;
     text-decoration: none;
-    font-size: 12px;
-    margin-top: 10px;
+    font-size: 14px;
+    margin-top: 15px;
     display: block;
 }
 
 a:hover {
     text-decoration: underline;
+    color: #2ecc71;
 }
 
 .loader {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #2ecc71;
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    animation: spin 1s linear infinite;
-    margin: 10px auto;
+    width: 25px;
+    height: 25px;
+    animation: spin 1.2s linear infinite;
+    margin: 15px auto;
     display: none;
 }
 
@@ -362,34 +377,36 @@ a:hover {
 
 .account-info, .balance-section {
     width: 90%;
-    max-width: 600px;
+    max-width: 650px;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(25px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 #pixPayment img {
     display: block;
-    margin: 15px auto;
-    width: 150px;
-    height: 150px;
-    animation: pulse 1.5s infinite;
+    margin: 20px auto;
+    width: 160px;
+    height: 160px;
+    animation: pulse 1.8s infinite;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 @keyframes pulse {
     0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+    50% { transform: scale(1.06); }
     100% { transform: scale(1); }
 }
 
 .loading {
-    opacity: 0.5;
+    opacity: 0.6;
 }
 
 .user-list {
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
 #cartContainer {
@@ -401,68 +418,160 @@ a:hover {
 }
 
 .filter-section {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     display: flex;
     gap: 15px;
     align-items: center;
     flex-wrap: wrap;
+    background: rgba(52, 152, 219, 0.1);
+    padding: 15px;
+    border-radius: 10px;
 }
 
 .filter-section label {
     margin-right: 10px;
-    font-weight: 500;
+    font-weight: 600;
+    color: #2ecc71;
 }
 
 .filter-section select {
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 14px;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    border: 2px solid #3498db;
+    background-color: #34495e;
+    color: #ecf0f1;
 }
 
 h2, h3 {
     margin-bottom: 20px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
+    color: #2ecc71;
+    font-weight: 700;
 }
 
 .brand-select, .type-select {
-    margin: 10px 0;
+    margin: 15px 0;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
 }
 
 .brand-select i {
-    font-size: 24px;
+    font-size: 28px;
     cursor: pointer;
     color: #bdc3c7;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, transform 0.2s ease;
 }
 
 .brand-select i:hover {
-    color: #ecf0f1;
+    color: #2ecc71;
+    transform: scale(1.2);
 }
 
 .brand-select #selectedBrand {
     color: #bdc3c7;
+    font-weight: 600;
+}
+
+.bonus-message {
+    font-size: 16px;
+    color: #2ecc71;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h3 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #2ecc71;
+}
+
+.recharge-options {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.recharge-options button {
+    padding: 15px 25px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.recharge-options button:hover {
+    background: linear-gradient(90deg, #2980b9, #27ae60);
+    transform: translateY(-3px);
 }
 
 @media (max-width: 600px) {
     .header h1 {
-        font-size: 20px;
+        font-size: 22px;
     }
     .navbar a {
-        font-size: 12px;
+        font-size: 14px;
     }
     .navbar a i {
-        font-size: 18px;
+        font-size: 20px;
     }
-    .login-container, .register-container, .form-container, .account-info, .balance-section {
-        padding: 15px;
-        margin: 10px auto;
+    .login-container, .register-container, .form-container, .account-info, .balance-section, .modal-content {
+        padding: 20px;
+        margin: 15px auto;
     }
     .card-list {
         grid-template-columns: 1fr;
+        padding: 15px;
+    }
+    .header {
+        padding: 15px;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .card-item {
+        padding: 15px;
+    }
+    .card-item h2 {
+        font-size: 18px;
+    }
+    .card-item p {
+        font-size: 14px;
+    }
+    .card-item .price {
+        font-size: 18px;
+    }
+    .recharge-options {
+        flex-direction: column;
+        gap: 10px;
     }
 }
