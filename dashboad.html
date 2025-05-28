@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Admin</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
     <div class="header">
         <h1>PAINEL ADMIN</h1>
         <div class="total" id="cartTotal">Saldo R$ 0,00</div>
+        <button onclick="toggleTheme()" id="themeToggle">Modo Claro</button>
     </div>
     <div class="form-container">
         <h2>Adicionar Cartão</h2>
