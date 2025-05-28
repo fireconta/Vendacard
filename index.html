@@ -9,7 +9,7 @@
 <body>
     <div class="login-container">
         <h2>Login</h2>
-        <input type="text" id="username" placeholder="Usuário" required>
+        <input type="text" id="username" placeholder="Nome de Usuário" required>
         <input type="password" id="password" placeholder="Senha" required>
         <button onclick="login()">Entrar</button>
         <button onclick="showRegisterForm()">Registrar</button>
@@ -17,8 +17,8 @@
 
     <div class="register-container" id="registerForm" style="display: none;">
         <h2>Registrar</h2>
-        <input type="text" id="newUsername" placeholder="Novo Usuário" required>
-        <input type="password" id="newPassword" placeholder="Nova Senha" required>
+        <input type="text" id="newUsername" placeholder="Nome de Usuário" required>
+        <input type="password" id="newPassword" placeholder="Senha (mín. 6 caracteres)" required>
         <button onclick="register()">Registrar</button>
         <button onclick="showLoginForm()">Voltar</button>
     </div>
