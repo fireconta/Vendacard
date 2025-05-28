@@ -425,3 +425,44 @@ h2, h3 {
     align-items: center;
     gap: 10px;
 }
+
+.brand-select, .type-select {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-select i {
+    font-size: 24px;
+    cursor: pointer;
+    color: #bdc3c7;
+    transition: color 0.3s ease;
+}
+
+.brand-select i:hover {
+    color: #ecf0f1;
+}
+
+.brand-select #selectedBrand {
+    color: #bdc3c7;
+}
+
+@media (max-width: 600px) {
+    .header h1 {
+        font-size: 20px;
+    }
+    .navbar a {
+        font-size: 12px;
+    }
+    .navbar a i {
+        font-size: 18px;
+    }
+    .login-container, .register-container, .form-container, .account-info, .balance-section {
+        padding: 15px;
+        margin: 10px auto;
+    }
+    .card-list {
+        grid-template-columns: 1fr;
+    }
+}
