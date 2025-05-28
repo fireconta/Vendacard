@@ -44,7 +44,11 @@
     </div>
     <div class="modal" id="rechargeModal" style="display: none;">
         <div class="modal-content">
-            <h3>Selecione o valor da recarga</h3>
+            <h3>Escolha seu Super Bônus!</h3>
+            <div class="bonus-explanation">
+                <h4>💰 Recarregue e Ganhe 50% a Mais! 💰</h4>
+                <p>Desbloqueie um bônus incrível! Deposte agora e receba 50% extra no seu saldo. É a chance perfeita para aproveitar ao máximo suas compras!</p>
+            </div>
             <div class="recharge-options">
                 <button onclick="selectRecharge(30)" aria-label="Recarga de R$ 30">R$ 30,00 (Ganhe R$ 45,00)</button>
                 <button onclick="selectRecharge(50)" aria-label="Recarga de R$ 50">R$ 50,00 (Ganhe R$ 75,00)</button>
@@ -54,7 +58,10 @@
         </div>
     </div>
     <div class="pix-payment" id="pixPayment" style="display: none;">
-        <p class="bonus-message">Recarregue e Ganhe! Adicione R$ 30 e ganhe R$ 45 de saldo, R$ 50 e ganhe R$ 75, ou R$ 100 e ganhe R$ 150!</p>
+        <div class="bonus-explanation">
+            <h4>🎉 Recarregue e Ganhe 50% a Mais! 🎉</h4>
+            <p>Não perca essa oportunidade! Cada recarga vem com um bônus de 50% no saldo. Deposte agora e aproveite ao máximo!</p>
+        </div>
         <p id="pixLoading" style="display: none;">Aguarde, estamos gerando o Pix para depósito...</p>
         <p>Chave Pix Copia e Cola: <span id="pixKey">Carregando...</span></p>
         <button onclick="copyPixKey()" aria-label="Copiar chave Pix">Copiar Chave</button>
