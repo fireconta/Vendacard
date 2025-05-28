@@ -5,9 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
-    <div id="headerContainer"></div>
+    <div class="header" id="header">
+        <h1 id="pageTitle">Login</h1>
+        <div class="total" id="cartTotal">Saldo R$ 0,00</div>
+        <button onclick="toggleTheme()" id="themeToggle">Modo Claro</button>
+    </div>
     <div class="login-container" id="loginForm">
         <h2>Login</h2>
         <input type="text" id="username" placeholder="Usuário" required>
@@ -30,7 +35,20 @@
         <h3>Histórico de Compras</h3>
         <div class="card-list" id="purchaseHistory"></div>
     </div>
-    <div id="navbarContainer"></div>
+    <div class="navbar" id="navbar">
+        <a href="shop.html" id="storeLink">
+            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/shop.png" alt="Store">
+            Store
+        </a>
+        <a href="index.html" id="accountLink">
+            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/user.png" alt="Conta">
+            Ver Conta
+        </a>
+        <a href="#" onclick="logout()">
+            <img src="https://img.icons8.com/ios-filled/50/aaaaaa/logout-rounded.png" alt="Sair">
+            Sair
+        </a>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
