@@ -27,7 +27,7 @@ const state = {
     editingCardId: null,
     editingPixAmount: null,
     logs: JSON.parse(localStorage.getItem('logs')) || [],
-    viewMode: 'grid',
+    cachedCards: null,
     achievements: JSON.parse(localStorage.getItem('achievements')) || {}
 };
 
@@ -36,7 +36,7 @@ const storage = {
     users: JSON.parse(localStorage.getItem('users')) || [],
     cards: JSON.parse(localStorage.getItem('cards')) || [
         { id: '1', number: '1234567890123456', cvv: '123', expiry: '12/25', brand: 'Visa', bank: 'Banco do Brasil S.A.', country: 'Brasil', price: 10.00, stock: 10, type: 'Crédito', name: 'João Silva', cpf: '123.456.789-00', level: 'Padrão' },
-        { id: '2', number: '9876543210987654', cvv: '456', expiry: '11/26', brand: 'Mastercard', bank: 'Banco Inter', country: 'Brasil', price: '15.00', stock: 5, type: 'Débito', name: 'Maria Oliveira', cpf: '987.654.321-00', level: 'Gold' }
+        { id: '2', number: '9876543210987654', cvv: '456', expiry: '11/26', brand: 'Mastercard', bank: 'Banco Inter', country: 'Brasil', price: 15.00, stock: 5, type: 'Débito', name: 'Maria Oliveira', cpf: '987.654.321-00', level: 'Gold' }
     ],
     pixDetails: JSON.parse(localStorage.getItem('pixDetails')) || {
         40: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" },
@@ -45,21 +45,57 @@ const storage = {
         300: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" }
     },
     saveUsers() { localStorage.setItem('users', JSON.stringify(this.users)); },
-    saveCards() { localStorage.setItem('cards', JSON.stringify(this.cards)); },
+    saveCards() { 
+        localStorage.setItem('cards', JSON.stringify(this.cards)); 
+        state.cachedCards = null; // Invalida o cache quando os cartões são atualizados
+    },
     savePixDetails() { localStorage.setItem('pixDetails', JSON.stringify(this.pixDetails)); },
     saveLogs() { localStorage.setItem('logs', JSON.stringify(state.logs)); },
     saveAchievements() { localStorage.setItem('achievements', JSON.stringify(state.achievements)); }
 };
 
+// === Funções de Sanitização ===
+function sanitizeInput(input) {
+    const div = document.createElement('div');
+    div.textContent = input;
+    return div.innerHTML;
+}
+
 // === Funções de Formatação Automática ===
-function formatCardNumber(input) { let value = input.value.replace(/\D/g, ''); if (value.length > 16) value = value.substring(0, 16); value = value.replace(/(\d{4})(?=\d)/g, '$1 '); input.value = value; }
-function restrictCvv(input) { let value = input.value.replace(/\D/g, ''); if (value.length > 3) value = value.substring(0, 3); input.value = value; }
-function formatExpiry(input) { let value = input.value.replace(/\D/g, ''); if (value.length > 4) value = value.substring(0, 4); if (value.length > 2) value = value.substring(0, 2) + '/' + value.substring(2); input.value = value; }
-function formatCpf(input) { let value = input.value.replace(/\D/g, ''); if (value.length > 11) value = value.substring(0, 11); value = value.replace(/(\d{3})(\d)/, '$1.$2'); value = value.replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3'); value = value.replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4'); input.value = value; }
+function formatCardNumber(input) { 
+    let value = input.value.replace(/\D/g, ''); 
+    if (value.length > 16) value = value.substring(0, 16); 
+    value = value.replace(/(\d{4})(?=\d)/g, '$1 '); 
+    input.value = value; 
+}
+function restrictCvv(input) { 
+    let value = input.value.replace(/\D/g, ''); 
+    if (value.length > 3) value = value.substring(0, 3); 
+    input.value = value; 
+}
+function formatExpiry(input) { 
+    let value = input.value.replace(/\D/g, ''); 
+    if (value.length > 4) value = value.substring(0, 4); 
+    if (value.length > 2) value = value.substring(0, 2) + '/' + value.substring(2); 
+    input.value = value; 
+}
+function formatCpf(input) { 
+    let value = input.value.replace(/\D/g, ''); 
+    if (value.length > 11) value = value.substring(0, 11); 
+    value = value.replace(/(\d{3})(\d)/, '$1.$2'); 
+    value = value.replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3'); 
+    value = value.replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4'); 
+    input.value = value; 
+}
 
 // === Autenticação ===
 const auth = {
-    generateUniqueId() { let id; do { id = Math.floor(100000 + Math.random() * 900000).toString(); } while (storage.users.some(u => u.id === id)); return id; },
+    generateUniqueId() { 
+        let id; 
+        do { id = Math.floor(100000 + Math.random() * 900000).toString(); } 
+        while (storage.users.some(u => u.id === id)); 
+        return id; 
+    },
     async hashPassword(password) { 
         if (window.crypto && window.crypto.subtle) {
             const encoder = new TextEncoder();
@@ -71,6 +107,7 @@ const auth = {
         return md5(password);
     },
     validateLogin(username, password) {
+        username = sanitizeInput(username);
         if (!username || !password) {
             document.getElementById('usernameError').textContent = !username ? 'Usuário é obrigatório.' : '';
             document.getElementById('passwordError').textContent = !password ? 'Senha é obrigatória.' : '';
@@ -84,6 +121,7 @@ const auth = {
         return user;
     },
     validateRegister(username, password) {
+        username = sanitizeInput(username);
         if (!username || !password) {
             document.getElementById('newUsernameError').textContent = !username ? 'Usuário é obrigatório.' : '';
             document.getElementById('newPasswordError').textContent = !password ? 'Senha é obrigatória.' : '';
@@ -322,7 +360,7 @@ const ui = {
                 this.updatePixDetailsDisplay();
                 pixPayment.innerHTML += `<p>Você receberá R$ ${totalCredit.toFixed(2)} (R$ ${amount.toFixed(2)} + bônus de R$ ${bonus.toFixed(2)}).</p>`;
                 this.addBalance(amount, bonus);
-            }, 2000);
+            }, 1000);
         }
     },
     selectCustomRecharge() {
@@ -429,67 +467,42 @@ const ui = {
         }
     },
     filterCards() {
-        const binFilter = document.getElementById('binFilter')?.value;
+        const binFilter = sanitizeInput(document.getElementById('binFilter')?.value || '');
         const brandFilter = document.getElementById('brandFilter')?.value;
         const bankFilter = document.getElementById('bankFilter')?.value;
-        const levelFilter = document.getElementById('levelFilter')?.value;
-        const typeFilter = document.getElementById('typeFilter')?.value;
-        const priceRangeFilter = document.getElementById('priceRangeFilter')?.value;
-        const stockFilter = document.getElementById('stockFilter')?.value;
         const cardList = document.getElementById('cardList');
-        if (cardList) {
-            cardList.innerHTML = storage.cards
-                .filter(card => {
-                    const binMatch = !binFilter || card.number.startsWith(binFilter);
-                    const brandMatch = brandFilter === 'all' || card.brand === brandFilter;
-                    const bankMatch = bankFilter === 'all' || card.bank === bankFilter;
-                    const levelMatch = levelFilter === 'all' || card.level === levelFilter;
-                    const typeMatch = typeFilter === 'all' || card.type === typeFilter;
-                    const priceMatch = this.filterPriceRange(card.price, priceRangeFilter);
-                    const stockMatch = this.filterStock(card.stock, stockFilter);
-                    return binMatch && brandMatch && bankMatch && levelMatch && typeMatch && priceMatch && stockMatch;
-                })
-                .map(card => {
-                    const formattedNumber = card.number.replace(/(\d{4})(?=\d)/g, '$1 ');
-                    const viewClass = state.viewMode === 'list' ? 'card-list-item' : 'card-list-grid';
-                    return `
-                        <div class="card-item ${viewClass}" data-card-number="${card.number}">
-                            <h2>${formattedNumber.slice(0, 19)}</h2>
-                            <p>Validade: ${card.expiry}</p>
-                            <p>${card.brand} - ${card.bank} (${card.level})</p>
-                            <p>${card.country}</p>
-                            <div class="price">R$ ${card.price.toFixed(2)}</div>
-                            <div class="buttons">
-                                <button onclick="buyCard('${card.number}')">Comprar</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+        
+        if (!cardList) return;
+
+        // Usar cache se disponível
+        if (!state.cachedCards) {
+            state.cachedCards = storage.cards.map(card => ({
+                ...card,
+                formattedNumber: card.number.replace(/(\d{4})(?=\d)/g, '$1 ')
+            }));
         }
-    },
-    filterPriceRange(price, range) {
-        if (range === 'all') return true;
-        const [min, max] = range.split('-').map(v => v === '+' ? Infinity : parseFloat(v) || 0);
-        return price >= min && price <= max;
-    },
-    filterStock(stock, filter) {
-        if (filter === 'all') return true;
-        return filter === 'inStock' ? stock > 0 : stock <= 0;
-    },
-    clearFilters() {
-        document.getElementById('binFilter').value = '';
-        document.getElementById('brandFilter').value = 'all';
-        document.getElementById('bankFilter').value = 'all';
-        document.getElementById('levelFilter').value = 'all';
-        document.getElementById('typeFilter').value = 'all';
-        document.getElementById('priceRangeFilter').value = 'all';
-        document.getElementById('stockFilter').value = 'all';
-        this.filterCards();
-    },
-    toggleViewMode() {
-        state.viewMode = document.getElementById('viewMode').value;
-        document.getElementById('cardList').className = `card-list card-list-${state.viewMode}`;
-        this.filterCards();
+
+        const filteredCards = state.cachedCards.filter(card => {
+            const binMatch = !binFilter || card.number.startsWith(binFilter);
+            const brandMatch = brandFilter === 'all' || card.brand === brandFilter;
+            const bankMatch = bankFilter === 'all' || card.bank === bankFilter;
+            return binMatch && brandMatch && bankMatch;
+        });
+
+        cardList.innerHTML = filteredCards.length > 0
+            ? filteredCards.map(card => `
+                <div class="card-item" data-card-number="${card.number}">
+                    <h2>${card.formattedNumber.slice(0, 19)}</h2>
+                    <p>Validade: ${card.expiry}</p>
+                    <p>${card.brand} - ${card.bank} (${card.level})</p>
+                    <p>${card.country}</p>
+                    <div class="price">R$ ${card.price.toFixed(2)}</div>
+                    <div class="buttons">
+                        <button onclick="buyCard('${card.number}')">Comprar</button>
+                    </div>
+                </div>
+            `).join('')
+            : '<p>Nenhum cartão encontrado.</p>';
     },
     updateStats() {
         const totalUsers = storage.users.length;
@@ -503,54 +516,6 @@ const ui = {
         if (totalUsersElement) totalUsersElement.textContent = totalUsers;
         if (totalCardsElement) totalCardsElement.textContent = totalCards;
         if (totalBalanceElement) totalBalanceElement.textContent = totalBalance.toFixed(2);
-
-        this.updateBalanceChart();
-        this.updateSalesChart();
-        this.updateSalesByBrandChart();
-        this.updateConversionRateChart();
-    },
-    updateBalanceChart() { /* Placeholder chart implementation */ },
-    updateSalesChart() { /* Placeholder chart implementation */ },
-    updateSalesByBrandChart() {
-        const ctx = document.getElementById('salesByBrandChart')?.getContext('2d');
-        if (!ctx) return;
-        if (window.salesByBrandChart) window.salesByBrandChart.destroy();
-        const salesByBrand = {};
-        storage.users.flatMap(user => user.purchases).forEach(p => {
-            const card = storage.cards.find(c => c.number === p.cardNumber) || {};
-            salesByBrand[card.brand || 'Desconhecido'] = (salesByBrand[card.brand || 'Desconhecido'] || 0) + p.price;
-        });
-        window.salesByBrandChart = new Chart(ctx, {
-            type: 'pie',
-            data: { labels: Object.keys(salesByBrand), datasets: [{ label: 'Vendas por Bandeira (R$)', data: Object.values(salesByBrand), backgroundColor: ['#28a745', '#007bff', '#dc3545', '#ffc107'] }] },
-            options: { responsive: true, plugins: { legend: { position: 'top' } } }
-        });
-    },
-    updateConversionRateChart() {
-        const ctx = document.getElementById('conversionRateChart')?.getContext('2d');
-        if (!ctx) return;
-        if (window.conversionRateChart) window.conversionRateChart.destroy();
-        const totalViews = storage.cards.length * 10; // Estimativa de visualizações
-        const totalPurchases = storage.users.flatMap(u => u.purchases).length;
-        const conversionRate = totalPurchases / totalViews * 100 || 0;
-        window.conversionRateChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: { labels: ['Taxa de Conversão', 'Não Convertido'], datasets: [{ data: [conversionRate, 100 - conversionRate], backgroundColor: ['#28a745', '#ccc'] }] },
-            options: { responsive: true, plugins: { legend: { position: 'top' } } }
-        });
-    },
-    displayUsers(searchTerm = '') { /* Placeholder user display */ },
-    displayAdminCards(searchTerm = '') { /* Placeholder card display */ },
-    checkLowStockAlerts() {
-        const lowStockCards = storage.cards.filter(card => card.stock <= CONFIG.LOW_STOCK_THRESHOLD);
-        const alertDiv = document.getElementById('lowStockAlert');
-        if (alertDiv && lowStockCards.length > 0) {
-            alertDiv.style.display = 'block';
-            alertDiv.innerHTML = `<p class="alert-text">Atenção: ${lowStockCards.length} cartão(s) com estoque baixo (${CONFIG.LOW_STOCK_THRESHOLD} ou menos).</p>`;
-            this.showNotification(`Estoque baixo: ${lowStockCards.length} cartão(s).`);
-        } else if (alertDiv) {
-            alertDiv.style.display = 'none';
-        }
     },
     addLog(action, details = {}) {
         const ip = '127.0.0.1'; // Placeholder
@@ -582,191 +547,7 @@ const ui = {
                 </div>
             `).join('');
         }
-    },
-    clearLogs() { 
-        if (confirm('Tem certeza que deseja limpar todos os logs?')) { 
-            state.logs = []; 
-            storage.saveLogs(); 
-            this.displayLogs(); 
-            this.showNotification('Logs limpos com sucesso!'); 
-        } 
-    },
-    exportLogs(format) {
-        const data = state.logs.map(log => ({
-            timestamp: new Date(log.timestamp).toLocaleString(),
-            user: log.user,
-            ip: log.ip,
-            action: log.action,
-            type: log.type,
-            details: JSON.stringify(log.details)
-        }));
-        let content;
-        if (format === 'csv') {
-            content = ['Data,Usuário,IP,Ação,Tipo,Detalhes', ...data.map(d => `${d.timestamp},${d.user},${d.ip},${d.action},${d.type},${d.details}`).join('\n')].join('\n');
-            const blob = new Blob([content], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'logs.csv'; a.click(); window.URL.revokeObjectURL(url);
-        } else if (format === 'json') {
-            content = JSON.stringify(data, null, 2);
-            const blob = new Blob([content], { type: 'application/json' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'logs.json'; a.click(); window.URL.revokeObjectURL(url);
-        }
-    },
-    exportUsers() { /* Placeholder export users */ },
-    exportCards() { /* Placeholder export cards */ },
-    importCards() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.csv';
-        input.onchange = (e) => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const text = event.target.result;
-                const lines = text.split('\n').slice(1); // Ignora cabeçalho
-                lines.forEach(line => {
-                    const [id, number, cvv, expiry, brand, bank, country, price, stock, type, name, cpf, level] = line.split(',');
-                    if (number && cvv && expiry) {
-                        storage.cards.push({ id, number, cvv, expiry, brand, bank, country, price: parseFloat(price), stock: parseInt(stock), type, name, cpf, level });
-                    }
-                });
-                storage.saveCards();
-                this.displayAdminCards();
-                this.addLog('Importados cartões via CSV');
-            };
-            reader.readAsText(file);
-        };
-        input.click();
-    },
-    showAddCardModal() { 
-        state.editingCardId = null; 
-        document.getElementById('modalTitle').textContent = 'Adicionar Novo Cartão'; 
-        document.getElementById('cardModal').style.display = 'flex'; 
-    },
-    showBulkEditModal() { 
-        document.getElementById('bulkEditField').value = ''; 
-        document.getElementById('bulkEditValue').value = ''; 
-        document.getElementById('bulkEditModal').style.display = 'flex'; 
-    },
-    showAddPixModal() { 
-        state.editingPixAmount = null; 
-        document.getElementById('pixModalTitle').textContent = 'Adicionar Configuração PIX'; 
-        document.getElementById('pixModal').style.display = 'flex'; 
-    },
-    editUser(userId) { 
-        const user = storage.users.find(u => u.id === userId); 
-        if (user) { 
-            user.balance = parseFloat(prompt(`Novo saldo para ${user.username} (R$):`, user.balance)) || user.balance; 
-            storage.saveUsers(); 
-            this.displayUsers(); 
-            this.addLog(`Editado saldo do usuário ${user.username}`, { newBalance: user.balance }); 
-        } 
-    },
-    deleteUser(userId) { 
-        if (confirm('Tem certeza que deseja excluir este usuário?')) { 
-            const userIndex = storage.users.findIndex(u => u.id === userId); 
-            if (userIndex !== -1) { 
-                storage.users.splice(userIndex, 1); 
-                storage.saveUsers(); 
-                this.displayUsers(); 
-                this.addLog(`Excluído usuário com ID ${userId}`); 
-            } 
-        } 
-    },
-    editCard(cardId) { 
-        const card = storage.cards.find(c => c.id === cardId); 
-        if (card) { 
-            state.editingCardId = cardId; 
-            document.getElementById('modalTitle').textContent = 'Editar Cartão'; 
-            document.getElementById('cardModal').style.display = 'flex'; 
-        } 
-    },
-    deleteCard(cardId) { 
-        if (confirm('Tem certeza que deseja excluir este cartão?')) { 
-            const cardIndex = storage.cards.findIndex(c => c.id === cardId); 
-            if (cardIndex !== -1) { 
-                storage.cards.splice(cardIndex, 1); 
-                storage.saveCards(); 
-                this.displayAdminCards(); 
-                this.addLog(`Excluído cartão com ID ${cardId}`); 
-            } 
-        } 
-    },
-    saveCard() { 
-        const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, ''); 
-        const cardCvv = document.getElementById('cardCvv').value;
-        const cardExpiry = document.getElementById('cardExpiry').value;
-        const cardBrand = document.getElementById('cardBrand').value;
-        const cardBank = document.getElementById('cardBank').value;
-        const cardCountry = document.getElementById('cardCountry').value;
-        const cardPrice = parseFloat(document.getElementById('cardPrice').value);
-        const cardStock = parseInt(document.getElementById('cardStock').value);
-        const cardType = document.getElementById('cardType').value;
-        const cardName = document.getElementById('cardName').value;
-        const cardCpf = document.getElementById('cardCpf').value;
-        const cardLevel = document.getElementById('cardLevel').value;
-
-        const cardData = { 
-            id: state.editingCardId || Math.random().toString(36).substr(2, 9), 
-            number: cardNumber, 
-            cvv: cardCvv, 
-            expiry: cardExpiry, 
-            brand: cardBrand, 
-            bank: cardBank, 
-            country: cardCountry, 
-            price: cardPrice, 
-            stock: cardStock, 
-            type: cardType, 
-            name: cardName, 
-            cpf: cardCpf, 
-            level: cardLevel 
-        };
-
-        if (state.editingCardId) {
-            const cardIndex = storage.cards.findIndex(c => c.id === state.editingCardId);
-            if (cardIndex !== -1) {
-                storage.cards[cardIndex] = cardData;
-                this.addLog(`Editado cartão com ID ${state.editingCardId}`, { changes: cardData });
-            }
-        } else {
-            storage.cards.push(cardData);
-            this.addLog(`Adicionado novo cartão com ID ${cardData.id}`, { card: cardData });
-        }
-        storage.saveCards();
-        document.getElementById('cardModal').style.display = 'none';
-        this.clearCardFormErrors();
-    },
-    clearCardFormErrors() { 
-        const errorFields = ['cardNumberError', 'cardCvvError', 'cardExpiryError', 'cardBrandError', 'cardBankError', 'cardCountryError', 'cardPriceError', 'cardStockError', 'cardTypeError', 'cardNameError', 'cardCpfError', 'cardLevelError'];
-        errorFields.forEach(field => {
-            const element = document.getElementById(field);
-            if (element) element.textContent = '';
-        });
-    },
-    applyBulkEdit() { 
-        const field = document.getElementById('bulkEditField').value; 
-        const value = document.getElementById('bulkEditValue').value; 
-        if (!field || !value) { 
-            document.getElementById('bulkEditFieldError').textContent = 'Selecione um campo e insira um valor.'; 
-            return; 
-        } 
-        const numericFields = ['price', 'stock']; 
-        const newValue = numericFields.includes(field) ? parseFloat(value) : value; 
-        if (isNaN(newValue) && numericFields.includes(field)) { 
-            document.getElementById('bulkEditValueError').textContent = 'Valor deve ser numérico.'; 
-            return; 
-        } 
-        storage.cards.forEach(card => card[field] = newValue); 
-        storage.saveCards(); 
-        document.getElementById('bulkEditModal').style.display = 'none'; 
-        this.displayAdminCards(); 
-        this.addLog(`Edição em massa aplicada no campo ${field} com valor ${value}`, { field, value }); 
-    },
-    savePix() { /* Placeholder save pix */ },
-    editPix(amount) { /* Placeholder edit pix */ },
-    displayPixConfigs() { /* Placeholder display pix configs */ },
-    filterPurchases() { /* Placeholder filter purchases */ }
+    }
 };
 
 // === Funções Globais ===
@@ -774,6 +555,16 @@ function buyCard(cardNumber) {
     const card = storage.cards.find(c => c.number === cardNumber);
     const user = storage.users.find(u => u.username === state.currentUser);
     if (!card || !user) return;
+
+    // Validação inicial
+    if (card.stock <= 0) {
+        alert('Cartão fora de estoque.');
+        return;
+    }
+    if (user.balance < card.price) {
+        alert('Saldo insuficiente. Adicione mais saldo para continuar.');
+        return;
+    }
 
     const confirmTotalAmount = document.getElementById('confirmTotalAmount');
     const confirmUserBalance = document.getElementById('confirmUserBalance');
@@ -836,34 +627,6 @@ function confirmPurchase() {
     }
 }
 
-function showCardDetails(cardNumber) { 
-    const card = storage.cards.find(c => c.number === cardNumber);
-    if (card) {
-        const cardDetailsContent = document.getElementById('cardDetailsContent');
-        if (cardDetailsContent) {
-            cardDetailsContent.innerHTML = `
-                <p><strong>Número:</strong> ${card.number}</p>
-                <p><strong>CVV:</strong> ${card.cvv}</p>
-                <p><strong>Validade:</strong> ${card.expiry}</p>
-                <p><strong>Bandeira:</strong> ${card.brand}</p>
-                <p><strong>Banco:</strong> ${card.bank}</p>
-                <p><strong>País:</strong> ${card.country}</p>
-                <p><strong>Preço:</strong> R$ ${card.price.toFixed(2)}</p>
-                <p><strong>Estoque:</strong> ${card.stock}</p>
-                <p><strong>Tipo:</strong> ${card.type}</p>
-                <p><strong>Nome:</strong> ${card.name}</p>
-                <p><strong>CPF:</strong> ${card.cpf}</p>
-                <p><strong>Nível:</strong> ${card.level}</p>
-            `;
-            document.getElementById('cardDetailsModal').style.display = 'flex';
-        }
-    }
-}
-
-function closeCardDetailsModal() { 
-    document.getElementById('cardDetailsModal').style.display = 'none'; 
-}
-
 // === Inicialização ===
 document.addEventListener('DOMContentLoaded', () => {
     state.currentUser = localStorage.getItem('currentUser');
@@ -891,16 +654,5 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('userBalance').textContent = user.balance.toFixed(2);
     }
     if (document.getElementById('cardList')) ui.filterCards();
-
-    const cardNumberInput = document.getElementById('cardNumber');
-    const cardCvvInput = document.getElementById('cardCvv');
-    const cardExpiryInput = document.getElementById('cardExpiry');
-    const cardCpfInput = document.getElementById('cardCpf');
-
-    if (cardNumberInput) cardNumberInput.addEventListener('input', () => formatCardNumber(cardNumberInput));
-    if (cardCvvInput) cardCvvInput.addEventListener('input', () => restrictCvv(cardCvvInput));
-    if (cardExpiryInput) cardExpiryInput.addEventListener('input', () => formatExpiry(cardExpiryInput));
-    if (cardCpfInput) cardCpfInput.addEventListener('input', () => formatCpf(cardCpfInput));
-
-    if (document.getElementById('navbar')?.classList.contains('navbar')) ui.updateStats();
+    if (document.getElementById('totalUsers')) ui.updateStats();
 });
