@@ -3,61 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login e Registro</title>
+    <title>CardShop - Início</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
-    <div class="header">
-        <h1><i class="fas fa-lock"></i> Sistema de Cartões</h1>
-        <button onclick="toggleTheme()" id="themeToggle" aria-label="Alternar tema claro/escuro">Modo Claro</button>
+    <nav id="navbar" class="navbar">
+        <div class="navbar-brand">CardShop</div>
+        <div class="navbar-links">
+            <a href="shop.html"><i class="fas fa-shopping-cart"></i> Loja</a>
+            <button onclick="toggleTheme()"><i class="fas fa-adjust"></i> <span id="themeToggle">Modo Claro</span></button>
+            <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Formulário de Login -->
+        <div id="loginForm" class="form-container">
+            <h2>Login</h2>
+            <div class="form-group">
+                <label for="username">Usuário:</label>
+                <input type="text" id="username" placeholder="Digite seu usuário">
+                <span id="usernameError" class="error"></span>
+            </div>
+            <div class="form-group">
+                <label for="password">Senha:</label>
+                <input type="password" id="password" placeholder="Digite sua senha">
+                <span id="passwordError" class="error"></span>
+            </div>
+            <p id="loginAttempts"></p>
+            <button class="btn btn-primary" onclick="auth.login()">Entrar</button>
+            <div class="loader" id="loginLoader"></div>
+            <p>Não tem uma conta? <a href="#" onclick="ui.showRegisterForm()">Registre-se</a></p>
+            <p><a href="#" onclick="auth.forgotPassword()">Esqueceu sua senha?</a></p>
+        </div>
+
+        <!-- Formulário de Registro -->
+        <div id="registerForm" class="form-container" style="display: none;">
+            <h2>Registrar</h2>
+            <div class="form-group">
+                <label for="newUsername">Usuário:</label>
+                <input type="text" id="newUsername" placeholder="Digite um usuário">
+                <span id="newUsernameError" class="error"></span>
+            </div>
+            <div class="form-group">
+                <label for="newPassword">Senha:</label>
+                <input type="password" id="newPassword" placeholder="Digite uma senha">
+                <span id="newPasswordError" class="error"></span>
+            </div>
+            <button class="btn btn-primary" onclick="auth.register()">Registrar</button>
+            <p>Já tem uma conta? <a href="#" onclick="ui.showLoginForm()">Faça login</a></p>
+        </div>
+
+        <!-- Informações da Conta -->
+        <div id="accountInfo" class="account-info" style="display: none;">
+            <h2>Minha Conta</h2>
+            <p><strong>Usuário:</strong> <span id="userName"></span></p>
+            <p><strong>ID:</strong> <span id="userId"></span></p>
+            <p><strong>Saldo:</strong> R$ <span id="userBalanceAccount">0.00</span></p>
+            <button class="btn btn-secondary" onclick="ui.showAddBalanceForm()">Adicionar Saldo</button>
+            <h3>Histórico de Compras</h3>
+            <div id="purchaseHistory" class="purchase-history"></div>
+        </div>
     </div>
-    <div class="login-wrapper">
-        <div class="login-container">
-            <h1><i class="fas fa-sign-in-alt"></i> Bem-vindo ao Sistema</h1>
-            <div id="loginForm" class="login-box" style="display: flex;">
-                <div class="input-group">
-                    <input type="text" id="username" placeholder="Usuário" aria-label="Digite seu usuário">
-                    <div class="error" id="usernameError"></div>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="password" placeholder="Senha" aria-label="Digite sua senha">
-                    <div class="error" id="passwordError"></div>
-                </div>
-                <button id="loginButton" aria-label="Entrar no sistema">Entrar</button>
-                <a href="#" onclick="forgotPassword()">Esqueceu a Senha?</a>
-                <p>Não tem conta? <a href="#" onclick="showRegisterForm()">Registre-se</a></p>
-                <div class="loader" id="loginLoader"></div>
-                <div id="loginAttempts"></div>
-            </div>
-            <div id="registerForm" class="register-box" style="display: none;">
-                <div class="input-group">
-                    <input type="text" id="newUsername" placeholder="Usuário" aria-label="Digite um novo usuário">
-                    <div class="error" id="newUsernameError"></div>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="newPassword" placeholder="Senha" aria-label="Digite uma nova senha">
-                    <div class="error" id="newPasswordError"></div>
-                </div>
-                <button id="registerButton" aria-label="Criar nova conta">Criar Conta</button>
-                <button onclick="showLoginForm()" aria-label="Voltar para o login">Voltar</button>
-            </div>
-            <div id="accountInfo" class="account-info" style="display: none;">
-                <h2><i class="fas fa-user"></i> Informações da Conta</h2>
-                <p>Usuário: <span id="userName"></span></p>
-                <p>ID: <span id="userId"></span></p>
-                <p>Saldo: R$ <span id="userBalanceAccount">0,00</span></p>
-                <h3>Histórico de Compras</h3>
-                <div id="purchaseHistory"></div>
-                <button onclick="logout()" aria-label="Sair da conta">Sair</button>
+
+    <!-- Modal de Recarga -->
+    <div id="rechargeModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="ui.closeModal()">×</span>
+            <h2>Adicionar Saldo</h2>
+            <p>Escolha o valor da recarga (você receberá 50% de bônus):</p>
+            <div class="recharge-options">
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(40)">R$ 40</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(70)">R$ 70</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(150)">R$ 150</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(300)">R$ 300</button>
             </div>
         </div>
     </div>
-    <div id="navbar" class="navbar">
-        <a href="shop.html" id="storeLink" aria-label="Ir para a loja"><i class="fas fa-store"></i> Loja</a>
-        <a href="#" id="accountLink" onclick="showAccountInfo()" aria-label="Ver informações da conta"><i class="fas fa-user"></i> Ver Conta</a>
-        <a href="#" onclick="logout()" aria-label="Sair do sistema"><i class="fas fa-sign-out-alt"></i> Sair</a>
+
+    <!-- Pagamento via PIX -->
+    <div id="pixPayment" style="display: none;">
+        <div class="pix-payment">
+            <h2>Pagamento via PIX</h2>
+            <div class="loader" id="pixLoading"></div>
+            <p><strong>Chave PIX:</strong> <span id="pixKey">Carregando...</span></p>
+            <button class="btn btn-secondary" onclick="ui.copyPixKey()">Copiar Chave</button>
+            <p><strong>QR Code:</strong></p>
+            <img id="pixQRCode" src="https://via.placeholder.com/150" alt="QR Code">
+            <button class="btn btn-primary" onclick="ui.addBalance()">Confirmar Pagamento</button>
+        </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
