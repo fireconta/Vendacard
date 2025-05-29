@@ -8,19 +8,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
+    <div class="header">
+        <h1><i class="fas fa-lock"></i> Sistema de Cartões</h1>
+        <button onclick="toggleTheme()" id="themeToggle" aria-label="Alternar tema claro/escuro">Modo Claro</button>
+    </div>
     <div class="login-wrapper">
         <div class="login-container">
-            <h1><i class="fas fa-lock"></i> Bem-vindo ao Sistema</h1>
+            <h1><i class="fas fa-sign-in-alt"></i> Bem-vindo ao Sistema</h1>
             <div id="loginForm" class="login-box" style="display: flex;">
                 <div class="input-group">
-                    <input type="text" id="username" placeholder="Usuário">
+                    <input type="text" id="username" placeholder="Usuário" aria-label="Digite seu usuário">
                     <div class="error" id="usernameError"></div>
                 </div>
                 <div class="input-group">
-                    <input type="password" id="password" placeholder="Senha">
+                    <input type="password" id="password" placeholder="Senha" aria-label="Digite sua senha">
                     <div class="error" id="passwordError"></div>
                 </div>
-                <button id="loginButton" onclick="login()">Entrar</button>
+                <button id="loginButton" aria-label="Entrar no sistema">Entrar</button>
                 <a href="#" onclick="forgotPassword()">Esqueceu a Senha?</a>
                 <p>Não tem conta? <a href="#" onclick="showRegisterForm()">Registre-se</a></p>
                 <div class="loader" id="loginLoader"></div>
@@ -28,31 +32,31 @@
             </div>
             <div id="registerForm" class="register-box" style="display: none;">
                 <div class="input-group">
-                    <input type="text" id="newUsername" placeholder="Usuário">
+                    <input type="text" id="newUsername" placeholder="Usuário" aria-label="Digite um novo usuário">
                     <div class="error" id="newUsernameError"></div>
                 </div>
                 <div class="input-group">
-                    <input type="password" id="newPassword" placeholder="Senha">
+                    <input type="password" id="newPassword" placeholder="Senha" aria-label="Digite uma nova senha">
                     <div class="error" id="newPasswordError"></div>
                 </div>
-                <button onclick="register()">Criar Conta</button>
-                <button onclick="showLoginForm()">Voltar</button>
+                <button id="registerButton" aria-label="Criar nova conta">Criar Conta</button>
+                <button onclick="showLoginForm()" aria-label="Voltar para o login">Voltar</button>
             </div>
             <div id="accountInfo" class="account-info" style="display: none;">
                 <h2><i class="fas fa-user"></i> Informações da Conta</h2>
                 <p>Usuário: <span id="userName"></span></p>
                 <p>ID: <span id="userId"></span></p>
-                <p>Saldo: R$ <span id="userBalanceAccount"></span></p>
+                <p>Saldo: R$ <span id="userBalanceAccount">0,00</span></p>
                 <h3>Histórico de Compras</h3>
                 <div id="purchaseHistory"></div>
-                <button onclick="logout()">Sair</button>
-            </div>
-            <div id="navbar" class="navbar">
-                <a href="shop.html" id="storeLink"><i class="fas fa-store"></i> Loja</a>
-                <a href="#" id="accountLink" onclick="showAccountInfo()"><i class="fas fa-user"></i> Ver Conta</a>
-                <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                <button onclick="logout()" aria-label="Sair da conta">Sair</button>
             </div>
         </div>
+    </div>
+    <div id="navbar" class="navbar">
+        <a href="shop.html" id="storeLink" aria-label="Ir para a loja"><i class="fas fa-store"></i> Loja</a>
+        <a href="#" id="accountLink" onclick="showAccountInfo()" aria-label="Ver informações da conta"><i class="fas fa-user"></i> Ver Conta</a>
+        <a href="#" onclick="logout()" aria-label="Sair do sistema"><i class="fas fa-sign-out-alt"></i> Sair</a>
     </div>
     <script src="script.js"></script>
 </body>
