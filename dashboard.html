@@ -6,44 +6,110 @@
     <title>Painel Administrador</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="header">
         <h1><i class="fas fa-user-shield"></i> Painel Administrador</h1>
-        <button onclick="toggleTheme()" id="themeToggle" aria-label="Alternar tema claro/escuro">Modo Claro</button>
+        <div class="header-actions">
+            <input type="text" id="globalSearch" placeholder="Pesquisar..." aria-label="Pesquisar usuários, cartões ou compras">
+            <button onclick="toggleTheme()" id="themeToggle" aria-label="Alternar tema claro/escuro">Modo Claro</button>
+        </div>
     </div>
 
     <div class="dashboard-container">
-        <!-- Estatísticas -->
-        <div class="stats-section">
-            <h2><i class="fas fa-chart-line"></i> Estatísticas</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Total de Usuários</h3>
-                    <p id="totalUsers">0</p>
+        <!-- Navegação por Abas -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab('stats')"><i class="fas fa-chart-line"></i> Estatísticas</button>
+            <button class="tab-button" onclick="openTab('users')"><i class="fas fa-users"></i> Usuários</button>
+            <button class="tab-button" onclick="openTab('cards')"><i class="fas fa-credit-card"></i> Cartões</button>
+            <button class="tab-button" onclick="openTab('purchases')"><i class="fas fa-shopping-cart"></i> Compras</button>
+            <button class="tab-button" onclick="openTab('pix')"><i class="fas fa-qrcode"></i> PIX</button>
+            <button class="tab-button" onclick="openTab('logs')"><i class="fas fa-history"></i> Logs</button>
+        </div>
+
+        <!-- Notificações -->
+        <div class="notifications" id="notifications"></div>
+
+        <!-- Conteúdo das Abas -->
+        <div class="tab-content" id="stats">
+            <div class="stats-section">
+                <h2>Estatísticas Gerais</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3><i class="fas fa-users"></i> Total de Usuários</h3>
+                        <p id="totalUsers">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3><i class="fas fa-credit-card"></i> Total de Cartões</h3>
+                        <p id="totalCards">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3><i class="fas fa-money-bill-wave"></i> Saldo Total</h3>
+                        <p>R$ <span id="totalBalance">0,00</span></p>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <h3>Total de Cartões</h3>
-                    <p id="totalCards">0</p>
+                <div class="chart-container">
+                    <canvas id="balanceChart"></canvas>
                 </div>
-                <div class="stat-card">
-                    <h3>Saldo Total</h3>
-                    <p>R$ <span id="totalBalance">0,00</span></p>
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Lista de Usuários -->
-        <div class="form-container">
-            <h2><i class="fas fa-users"></i> Usuários Registrados</h2>
-            <div class="user-list" id="userList"></div>
+        <div class="tab-content" id="users" style="display: none;">
+            <div class="form-container">
+                <h2>Usuários Registrados</h2>
+                <button onclick="exportUsers()" aria-label="Exportar lista de usuários"><i class="fas fa-download"></i> Exportar Usuários (CSV)</button>
+                <div class="user-list" id="userList"></div>
+            </div>
         </div>
 
-        <!-- Lista de Cartões -->
-        <div class="form-container">
-            <h2><i class="fas fa-credit-card"></i> Cartões Disponíveis</h2>
-            <button onclick="showAddCardModal()" aria-label="Adicionar novo cartão">Adicionar Novo Cartão</button>
-            <div class="card-list" id="adminCardList"></div>
+        <div class="tab-content" id="cards" style="display: none;">
+            <div class="form-container">
+                <h2>Cartões Disponíveis</h2>
+                <div class="action-buttons">
+                    <button onclick="showAddCardModal()" aria-label="Adicionar novo cartão"><i class="fas fa-plus"></i> Adicionar Novo Cartão</button>
+                    <button onclick="exportCards()" aria-label="Exportar lista de cartões"><i class="fas fa-download"></i> Exportar Cartões (CSV)</button>
+                    <button onclick="showBulkEditModal()" aria-label="Editar em massa"><i class="fas fa-edit"></i> Editar em Massa</button>
+                </div>
+                <div class="card-list" id="adminCardList"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="purchases" style="display: none;">
+            <div class="form-container">
+                <h2>Histórico de Compras</h2>
+                <div class="filter-section">
+                    <label for="purchaseFilterUser">Filtrar por Usuário:</label>
+                    <select id="purchaseFilterUser" aria-label="Filtrar compras por usuário" onchange="ui.filterPurchases()">
+                        <option value="">Todos</option>
+                    </select>
+                    <label for="purchaseFilterDate">Filtrar por Data:</label>
+                    <input type="date" id="purchaseFilterDate" aria-label="Filtrar compras por data" onchange="ui.filterPurchases()">
+                    <label for="purchaseFilterValue">Filtrar por Valor:</label>
+                    <input type="number" id="purchaseFilterValue" placeholder="Valor (R$)" aria-label="Filtrar compras por valor" onchange="ui.filterPurchases()">
+                </div>
+                <div class="purchase-list" id="purchaseList"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="pix" style="display: none;">
+            <div class="form-container">
+                <h2>Gerenciamento de PIX</h2>
+                <button onclick="showAddPixModal()" aria-label="Adicionar nova configuração PIX"><i class="fas fa-plus"></i> Adicionar Nova Configuração</button>
+                <div class="pix-list" id="pixList"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="logs" style="display: none;">
+            <div class="form-container">
+                <h2>Logs de Atividades</h2>
+                <button onclick="exportLogs()" aria-label="Exportar logs"><i class="fas fa-download"></i> Exportar Logs (CSV)</button>
+                <button onclick="clearLogs()" aria-label="Limpar logs"><i class="fas fa-trash-alt"></i> Limpar Logs</button>
+                <div class="log-list" id="logList"></div>
+            </div>
         </div>
 
         <!-- Modal para Adicionar/Editar Cartão -->
@@ -95,8 +161,50 @@
                     </select>
                     <div class="error" id="cardTypeError"></div>
                 </div>
-                <button onclick="saveCard()" aria-label="Salvar cartão">Salvar</button>
-                <button onclick="closeCardModal()" aria-label="Fechar modal">Fechar</button>
+                <button onclick="saveCard()" aria-label="Salvar cartão"><i class="fas fa-save"></i> Salvar</button>
+                <button onclick="closeCardModal()" aria-label="Fechar modal"><i class="fas fa-times"></i> Fechar</button>
+            </div>
+        </div>
+
+        <!-- Modal para Adicionar/Editar PIX -->
+        <div class="modal" id="pixModal" style="display: none;">
+            <div class="modal-content">
+                <h3 id="pixModalTitle">Adicionar Nova Configuração PIX</h3>
+                <div class="input-group">
+                    <input type="number" id="pixAmount" placeholder="Valor (R$)" aria-label="Valor da recarga PIX">
+                    <div class="error" id="pixAmountError"></div>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="pixKey" placeholder="Chave PIX" aria-label="Chave PIX">
+                    <div class="error" id="pixKeyError"></div>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="pixQRCode" placeholder="URL do QR Code" aria-label="URL do QR Code">
+                    <div class="error" id="pixQRCodeError"></div>
+                </div>
+                <button onclick="savePix()" aria-label="Salvar configuração PIX"><i class="fas fa-save"></i> Salvar</button>
+                <button onclick="closePixModal()" aria-label="Fechar modal"><i class="fas fa-times"></i> Fechar</button>
+            </div>
+        </div>
+
+        <!-- Modal para Edição em Massa -->
+        <div class="modal" id="bulkEditModal" style="display: none;">
+            <div class="modal-content">
+                <h3>Editar Cartões em Massa</h3>
+                <div class="input-group">
+                    <select id="bulkEditField" aria-label="Campo a ser editado">
+                        <option value="">Selecione o Campo</option>
+                        <option value="price">Preço</option>
+                        <option value="stock">Estoque</option>
+                    </select>
+                    <div class="error" id="bulkEditFieldError"></div>
+                </div>
+                <div class="input-group">
+                    <input type="number" id="bulkEditValue" placeholder="Novo Valor" aria-label="Novo valor para edição em massa">
+                    <div class="error" id="bulkEditValueError"></div>
+                </div>
+                <button onclick="applyBulkEdit()" aria-label="Aplicar edição em massa"><i class="fas fa-check"></i> Aplicar</button>
+                <button onclick="closeBulkEditModal()" aria-label="Fechar modal"><i class="fas fa-times"></i> Fechar</button>
             </div>
         </div>
     </div>
