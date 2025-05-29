@@ -36,7 +36,9 @@ body.light .form-container,
 body.light .account-info,
 body.light .balance-section,
 body.light .modal-content,
-body.light .bonus-explanation {
+body.light .bonus-explanation,
+body.light .stats-section,
+body.light .stat-card {
     background: #ffffff;
     color: #2c3e50;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -99,7 +101,7 @@ body.light .recharge-options button {
     transform: scale(1.05);
 }
 
-.card-list {
+.card-list, .user-list {
     padding: 25px;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -158,6 +160,7 @@ body.light .recharge-options button {
     display: flex;
     justify-content: center;
     width: 100%;
+    gap: 10px;
 }
 
 .card-item button {
@@ -253,7 +256,8 @@ body.light .recharge-options button {
     text-align: left;
 }
 
-.input-group input {
+.input-group input,
+.input-group select {
     width: 100%;
     padding: 15px;
     border: 2px solid #2ecc71;
@@ -264,7 +268,8 @@ body.light .recharge-options button {
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.input-group input:focus {
+.input-group input:focus,
+.input-group select:focus {
     border-color: #3498db;
     box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
     outline: none;
@@ -277,7 +282,8 @@ body.light .recharge-options button {
     display: none;
 }
 
-.input-group.invalid input {
+.input-group.invalid input,
+.input-group.invalid select {
     border-color: #e74c3c;
 }
 
@@ -496,6 +502,52 @@ h2, h3 {
     50% { -moz-transform: translateY(-10px); }
 }
 
+/* Estilos para o Dashboard */
+.dashboard-container {
+    padding: 20px;
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.stats-section {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    background: linear-gradient(145deg, #34495e, #2c3e50);
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #2ecc71;
+}
+
+.stat-card p {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ecf0f1;
+}
+
+.form-container button {
+    margin-bottom: 20px;
+}
+
 @media (max-width: 600px) {
     .header {
         padding: 15px;
@@ -515,7 +567,7 @@ h2, h3 {
         padding: 20px;
         margin: 15px auto;
     }
-    .card-list {
+    .card-list, .user-list {
         grid-template-columns: 1fr;
         padding: 15px;
     }
@@ -537,5 +589,8 @@ h2, h3 {
     }
     .bonus-explanation {
         padding: 10px;
+    }
+    .stats-grid {
+        grid-template-columns: 1fr;
     }
 }
