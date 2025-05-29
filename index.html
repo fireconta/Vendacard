@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CardShop - Início</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
@@ -22,13 +23,13 @@
         <div id="loginForm" class="form-container">
             <h2>Login</h2>
             <div class="form-group">
-                <label for="username">Usuário:</label>
-                <input type="text" id="username" placeholder="Digite seu usuário">
+                <label for="username"><i class="fas fa-user"></i> Usuário:</label>
+                <input type="text" id="username" placeholder="Digite seu usuário" required>
                 <span id="usernameError" class="error"></span>
             </div>
             <div class="form-group">
-                <label for="password">Senha:</label>
-                <input type="password" id="password" placeholder="Digite sua senha">
+                <label for="password"><i class="fas fa-lock"></i> Senha:</label>
+                <input type="password" id="password" placeholder="Digite sua senha" required>
                 <span id="passwordError" class="error"></span>
             </div>
             <p id="loginAttempts"></p>
@@ -42,13 +43,13 @@
         <div id="registerForm" class="form-container" style="display: none;">
             <h2>Registrar</h2>
             <div class="form-group">
-                <label for="newUsername">Usuário:</label>
-                <input type="text" id="newUsername" placeholder="Digite um usuário">
+                <label for="newUsername"><i class="fas fa-user-plus"></i> Usuário:</label>
+                <input type="text" id="newUsername" placeholder="Digite um usuário" required>
                 <span id="newUsernameError" class="error"></span>
             </div>
             <div class="form-group">
-                <label for="newPassword">Senha:</label>
-                <input type="password" id="newPassword" placeholder="Digite uma senha">
+                <label for="newPassword"><i class="fas fa-lock"></i> Senha:</label>
+                <input type="password" id="newPassword" placeholder="Digite uma senha" required>
                 <span id="newPasswordError" class="error"></span>
             </div>
             <button class="btn btn-primary" onclick="auth.register()">Registrar</button>
@@ -61,7 +62,13 @@
             <p><strong>Usuário:</strong> <span id="userName"></span></p>
             <p><strong>ID:</strong> <span id="userId"></span></p>
             <p><strong>Saldo:</strong> R$ <span id="userBalanceAccount">0.00</span></p>
+            <div class="progress-bar">
+                <div id="progressFill"></div>
+                <span id="progressText">Faltam R$ 50 para um cartão grátis!</span>
+            </div>
             <button class="btn btn-secondary" onclick="ui.showAddBalanceForm()">Adicionar Saldo</button>
+            <h3>Conquistas</h3>
+            <div id="achievementsList" class="achievements"></div>
             <h3>Histórico de Compras</h3>
             <div id="purchaseHistory" class="purchase-history"></div>
         </div>
@@ -69,16 +76,23 @@
 
     <!-- Modal de Recarga -->
     <div id="rechargeModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content recharge-modal">
             <span class="close" onclick="ui.closeModal()">×</span>
             <h2>Adicionar Saldo</h2>
-            <p>Escolha o valor da recarga (você receberá 50% de bônus):</p>
+            <p>Escolha o valor da recarga ou insira um valor personalizado (com bônus progressivo!):</p>
             <div class="recharge-options">
-                <button class="btn btn-secondary" onclick="ui.selectRecharge(40)">R$ 40</button>
-                <button class="btn btn-secondary" onclick="ui.selectRecharge(70)">R$ 70</button>
-                <button class="btn btn-secondary" onclick="ui.selectRecharge(150)">R$ 150</button>
-                <button class="btn btn-secondary" onclick="ui.selectRecharge(300)">R$ 300</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(40)">R$ 40 + 50% bônus</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(70)">R$ 70 + 50% bônus</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(150)">R$ 150 + 60% bônus</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(300)">R$ 300 + 70% bônus</button>
             </div>
+            <div class="form-group custom-deposit">
+                <label for="customDeposit">Valor Personalizado (R$)</label>
+                <input type="number" id="customDeposit" placeholder="Ex.: 25" min="10" step="1">
+                <button class="btn btn-primary" onclick="ui.selectCustomRecharge()">Adicionar</button>
+                <p id="customBonusText" class="bonus-text">Bônus: Calculando...</p>
+            </div>
+            <p><small>Exemplo: R$ 200 + 60% = R$ 320 de saldo.</small></p>
         </div>
     </div>
 
@@ -94,6 +108,8 @@
             <button class="btn btn-primary" onclick="ui.addBalance()">Confirmar Pagamento</button>
         </div>
     </div>
+
+    <div id="notifications"></div>
 
     <script src="script.js"></script>
 </body>
