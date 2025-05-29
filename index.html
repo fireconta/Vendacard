@@ -58,19 +58,25 @@
 
         <!-- Informações da Conta -->
         <div id="accountInfo" class="account-info" style="display: none;">
-            <h2>Minha Conta</h2>
-            <p><strong>Usuário:</strong> <span id="userName"></span></p>
-            <p><strong>ID:</strong> <span id="userId"></span></p>
-            <p><strong>Saldo:</strong> R$ <span id="userBalanceAccount">0.00</span></p>
-            <div class="progress-bar">
-                <div id="progressFill"></div>
-                <span id="progressText">Faltam R$ 50 para um cartão grátis!</span>
+            <div class="account-header">
+                <h2>Minha Conta</h2>
+                <div class="balance-section">
+                    <p><strong>Saldo:</strong> R$ <span id="userBalanceAccount">0.00</span></p>
+                    <div class="progress-bar">
+                        <div id="progressFill"></div>
+                        <span id="progressText">Faltam R$ 50 para um cartão grátis!</span>
+                    </div>
+                    <button class="btn btn-secondary" onclick="ui.showAddBalanceForm()">Adicionar Saldo</button>
+                </div>
             </div>
-            <button class="btn btn-secondary" onclick="ui.showAddBalanceForm()">Adicionar Saldo</button>
-            <h3>Conquistas</h3>
-            <div id="achievementsList" class="achievements"></div>
-            <h3>Histórico de Compras</h3>
-            <div id="purchaseHistory" class="purchase-history"></div>
+            <div class="account-details">
+                <p><strong>Usuário:</strong> <span id="userName"></span></p>
+                <p><strong>ID:</strong> <span id="userId"></span></p>
+                <h3>Conquistas</h3>
+                <div id="achievementsList" class="achievements"></div>
+                <h3>Histórico de Compras</h3>
+                <div id="purchaseHistory" class="purchase-history"></div>
+            </div>
         </div>
     </div>
 
