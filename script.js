@@ -2,7 +2,7 @@
 const CONFIG = {
     SESSION_TIMEOUT_MINUTES: 30,
     ADMIN_CLICKS: 5,
-    ADMIN_PASSWORD: '2025',
+    ADMIN_PASSWORD: 'LOVEz',
     MIN_PASSWORD_LENGTH: 6,
     MAX_LOGIN_ATTEMPTS: 3,
     LOGIN_BLOCK_TIME: 60000 // 1 minuto em milissegundos
@@ -17,7 +17,8 @@ const state = {
     currentUser: null,
     loginAttempts: 0,
     loginBlockedUntil: 0,
-    selectedRechargeAmount: null
+    selectedRechargeAmount: null,
+    editingCardId: null // Para rastrear o cartão sendo editado
 };
 
 // === Gerenciamento de Armazenamento ===
@@ -286,6 +287,9 @@ const auth = {
                             storage.saveUsers();
                             alert('Acesso ao Painel Admin concedido!');
                             window.location.href = 'dashboard.html';
+                        } else {
+                            alert('Usuário não encontrado. Faça login novamente.');
+                            window.location.href = 'index.html';
                         }
                     } else {
                         alert('Senha incorreta!');
@@ -334,7 +338,7 @@ const cart = {
     },
 
     updateCartDisplay() {
-        const cartList = document.getElementById('cartList');
+        const cartList = document.getElementById('cardList');
         if (cartList) {
             cartList.innerHTML = state.cartItems.map(item => `
                 <div class="card-item" data-card-number="${item.cardNumber}">
@@ -591,6 +595,306 @@ const ui = {
         }
     },
 
+    // Funções do Dashboard
+    updateStats() {
+        const totalUsers = storage.users.length;
+        const totalCards = storage.cards.length;
+        const totalBalance = storage.users.reduce((sum, user) => sum + (user.balance || 0), 0);
+
+        const totalUsersElement = document.getElementById('totalUsers');
+        const totalCardsElement = document.getElementById('totalCards');
+        const totalBalanceElement = document.getElementById('totalBalance');
+
+        if (totalUsersElement) totalUsersElement.textContent = totalUsers;
+        if (totalCardsElement) totalCardsElement.textContent = totalCards;
+        if (totalBalanceElement) totalBalanceElement.textContent = totalBalance.toFixed(2);
+    },
+
+    displayUsers() {
+        const userList = document.getElementById('userList');
+        if (userList) {
+            userList.innerHTML = storage.users.map(user => `
+                <div class="card-item">
+                    <h2>${user.username}</h2>
+                    <p>ID: ${user.id}</p>
+                    <p>Saldo: R$ ${user.balance.toFixed(2)}</p>
+                    <p>Compras: ${user.purchases.length}</p>
+                    <div class="buttons">
+                        <button onclick="ui.editUser('${user.id}')">Editar</button>
+                        <button onclick="ui.deleteUser('${user.id}')">Excluir</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    },
+
+    displayAdminCards() {
+        const adminCardList = document.getElementById('adminCardList');
+        if (adminCardList) {
+            adminCardList.innerHTML = storage.cards.map(card => `
+                <div class="card-item" data-card-id="${card.id}">
+                    <h2>${card.number.slice(0, 6)} **** **** ****</h2>
+                    <p>Validade: ${card.expiry}</p>
+                    <p>${card.brand} - ${card.bank}</p>
+                    <p>${card.country}</p>
+                    <p>Tipo: ${card.type}</p>
+                    <p>Estoque: ${card.stock}</p>
+                    <div class="price">R$ ${card.price.toFixed(2)}</div>
+                    <div class="buttons">
+                        <button onclick="ui.editCard('${card.id}')">Editar</button>
+                        <button onclick="ui.deleteCard('${card.id}')">Excluir</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    },
+
+    showAddCardModal() {
+        state.editingCardId = null;
+        const modal = document.getElementById('cardModal');
+        const modalTitle = document.getElementById('modalTitle');
+        if (modal && modalTitle) {
+            modalTitle.textContent = 'Adicionar Novo Cartão';
+            document.getElementById('cardNumber').value = '';
+            document.getElementById('cardCvv').value = '';
+            document.getElementById('cardExpiry').value = '';
+            document.getElementById('cardBrand').value = '';
+            document.getElementById('cardBank').value = '';
+            document.getElementById('cardCountry').value = '';
+            document.getElementById('cardPrice').value = '';
+            document.getElementById('cardStock').value = '';
+            document.getElementById('cardType').value = '';
+            this.clearCardFormErrors();
+            modal.style.display = 'flex';
+        }
+    },
+
+    closeCardModal() {
+        const modal = document.getElementById('cardModal');
+        if (modal) {
+            modal.style.display = 'none';
+            state.editingCardId = null;
+        }
+    },
+
+    clearCardFormErrors() {
+        const errorFields = [
+            'cardNumberError', 'cardCvvError', 'cardExpiryError',
+            'cardBrandError', 'cardBankError', 'cardCountryError',
+            'cardPriceError', 'cardStockError', 'cardTypeError'
+        ];
+        errorFields.forEach(field => {
+            const element = document.getElementById(field);
+            if (element) {
+                element.textContent = '';
+                element.parentElement.classList.remove('invalid');
+            }
+        });
+    },
+
+    validateCardForm() {
+        const number = document.getElementById('cardNumber').value;
+        const cvv = document.getElementById('cardCvv').value;
+        const expiry = document.getElementById('cardExpiry').value;
+        const brand = document.getElementById('cardBrand').value;
+        const bank = document.getElementById('cardBank').value;
+        const country = document.getElementById('cardCountry').value;
+        const price = parseFloat(document.getElementById('cardPrice').value);
+        const stock = parseInt(document.getElementById('cardStock').value);
+        const type = document.getElementById('cardType').value;
+
+        let isValid = true;
+
+        // Validação do número do cartão
+        if (!number || !/^\d{16}$/.test(number)) {
+            document.getElementById('cardNumberError').textContent = 'Número do cartão deve ter 16 dígitos.';
+            document.getElementById('cardNumber').parentElement.classList.add('invalid');
+            isValid = false;
+        } else if (!state.editingCardId && storage.cards.some(c => c.number === number)) {
+            document.getElementById('cardNumberError').textContent = 'Número do cartão já existe.';
+            document.getElementById('cardNumber').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('cardNumberError').textContent = '';
+            document.getElementById('cardNumber').parentElement.classList.remove('invalid');
+        }
+
+        // Validação do CVV
+        if (!cvv || !/^\d{3}$/.test(cvv)) {
+            document.getElementById('cardCvvError').textContent = 'CVV deve ter 3 dígitos.';
+            document.getElementById('cardCvv').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('cardCvvError').textContent = '';
+            document.getElementById('cardCvv').parentElement.classList.remove('invalid');
+        }
+
+        // Validação da validade
+        if (!expiry || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) {
+            document.getElementById('cardExpiryError').textContent = 'Validade deve estar no formato MM/AA.';
+            document.getElementById('cardExpiry').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('cardExpiryError').textContent = '';
+            document.getElementById('cardExpiry').parentElement.classList.remove('invalid');
+        }
+
+        // Validação da bandeira
+        if (!brand) {
+            document.getElementById('cardBrandError').textContent = 'Selecione uma bandeira.';
+            document.getElementById('cardBrand').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('cardBrandError').textContent = '';
+            document.getElementById('cardBrand').parentElement.classList.remove('invalid');
+        }
+
+        // Validação do banco
+        if (!bank) {
+            document.getElementById('cardBankError').textContent = 'Banco é obrigatório.';
+            document.getElementById('cardBank').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('cardBankError').textContent = '';
+            document.getElementById('cardBank').parentElement.classList.remove('invalid');
+        }
+
+        // Validação do país
+        if (!country) {
+            document.getElementById('cardCountryError').textContent = 'País é obrigatório.';
+            document.getElementById('cardCountry').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('cardCountryError').textContent = '';
+            document.getElementById('cardCountry').parentElement.classList.remove('invalid');
+        }
+
+        // Validação do preço
+        if (!price || price <= 0) {
+            document.getElementById('cardPriceError').textContent = 'Preço deve ser maior que 0.';
+            document.getElementById('cardPrice').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('cardPriceError').textContent = '';
+            document.getElementById('cardPrice').parentElement.classList.remove('invalid');
+        }
+
+        // Validação do estoque
+        if (!stock || stock < 0) {
+            document.getElementById('cardStockError').textContent = 'Estoque deve ser 0 ou maior.';
+            document.getElementById('cardStock').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('cardStockError').textContent = '';
+            document.getElementById('cardStock').parentElement.classList.remove('invalid');
+        }
+
+        // Validação do tipo
+        if (!type) {
+            document.getElementById('cardTypeError').textContent = 'Selecione o tipo do cartão.';
+            document.getElementById('cardType').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('cardTypeError').textContent = '';
+            document.getElementById('cardType').parentElement.classList.remove('invalid');
+        }
+
+        return isValid;
+    },
+
+    saveCard() {
+        if (!this.validateCardForm()) return;
+
+        const card = {
+            id: state.editingCardId || auth.generateUniqueId(),
+            number: document.getElementById('cardNumber').value,
+            cvv: document.getElementById('cardCvv').value,
+            expiry: document.getElementById('cardExpiry').value,
+            brand: document.getElementById('cardBrand').value,
+            bank: document.getElementById('cardBank').value,
+            country: document.getElementById('cardCountry').value,
+            price: parseFloat(document.getElementById('cardPrice').value),
+            stock: parseInt(document.getElementById('cardStock').value),
+            type: document.getElementById('cardType').value
+        };
+
+        if (state.editingCardId) {
+            const index = storage.cards.findIndex(c => c.id === state.editingCardId);
+            storage.cards[index] = card;
+        } else {
+            storage.cards.push(card);
+        }
+
+        storage.saveCards();
+        this.displayAdminCards();
+        this.updateStats();
+        this.closeCardModal();
+        alert(state.editingCardId ? 'Cartão atualizado com sucesso!' : 'Cartão adicionado com sucesso!');
+    },
+
+    editCard(cardId) {
+        const card = storage.cards.find(c => c.id === cardId);
+        if (card) {
+            state.editingCardId = cardId;
+            const modal = document.getElementById('cardModal');
+            const modalTitle = document.getElementById('modalTitle');
+            if (modal && modalTitle) {
+                modalTitle.textContent = 'Editar Cartão';
+                document.getElementById('cardNumber').value = card.number;
+                document.getElementById('cardCvv').value = card.cvv;
+                document.getElementById('cardExpiry').value = card.expiry;
+                document.getElementById('cardBrand').value = card.brand;
+                document.getElementById('cardBank').value = card.bank;
+                document.getElementById('cardCountry').value = card.country;
+                document.getElementById('cardPrice').value = card.price;
+                document.getElementById('cardStock').value = card.stock;
+                document.getElementById('cardType').value = card.type;
+                this.clearCardFormErrors();
+                modal.style.display = 'flex';
+            }
+        }
+    },
+
+    deleteCard(cardId) {
+        if (confirm('Tem certeza que deseja excluir este cartão?')) {
+            storage.cards = storage.cards.filter(c => c.id !== cardId);
+            storage.saveCards();
+            this.displayAdminCards();
+            this.updateStats();
+            alert('Cartão excluído com sucesso!');
+        }
+    },
+
+    editUser(userId) {
+        const user = storage.users.find(u => u.id === userId);
+        if (user) {
+            const newBalance = prompt('Novo saldo do usuário:', user.balance);
+            if (newBalance !== null && !isNaN(newBalance) && newBalance >= 0) {
+                user.balance = parseFloat(newBalance);
+                storage.saveUsers();
+                this.displayUsers();
+                this.updateStats();
+                alert('Saldo do usuário atualizado com sucesso!');
+            } else {
+                alert('Por favor, insira um valor válido para o saldo.');
+            }
+        }
+    },
+
+    deleteUser(userId) {
+        if (userId === storage.users.find(u => u.username === state.currentUser)?.id) {
+            alert('Você não pode excluir sua própria conta.');
+            return;
+        }
+        if (confirm('Tem certeza que deseja excluir este usuário?')) {
+            storage.users = storage.users.filter(u => u.id !== userId);
+            storage.saveUsers();
+            this.displayUsers();
+            this.updateStats();
+            alert('Usuário excluído com sucesso!');
+        }
+    },
+
     checkOffline() {
         if (!navigator.onLine) {
             alert('Você está offline. Algumas funcionalidades podem estar limitadas.');
@@ -614,11 +918,13 @@ function initializeApp() {
                 if (user && userBalance) userBalance.textContent = user.balance.toFixed(2);
                 auth.checkAdminMode();
             } else if (window.location.pathname.includes('dashboard.html')) {
-                ui.filterCards();
                 const user = storage.users.find(u => u.username === state.currentUser);
                 if (user && user.isAdmin) {
-                    // Função searchUsers não implementada, mas mantida para compatibilidade futura
+                    ui.updateStats();
+                    ui.displayUsers();
+                    ui.displayAdminCards();
                 } else {
+                    alert('Acesso negado! Você não tem permissões de administrador.');
                     window.location.href = 'shop.html';
                 }
             }
@@ -681,3 +987,10 @@ window.forgotPassword = auth.forgotPassword;
 window.addToCart = cart.addToCart;
 window.removeFromCart = cart.removeFromCart;
 window.buyCard = cart.buyCard;
+window.showAddCardModal = ui.showAddCardModal;
+window.closeCardModal = ui.closeCardModal;
+window.saveCard = ui.saveCard;
+window.editCard = ui.editCard;
+window.deleteCard = ui.deleteCard;
+window.editUser = ui.editUser;
+window.deleteUser = ui.deleteUser;
