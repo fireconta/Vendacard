@@ -7,21 +7,20 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <nav id="navbar" class="navbar">
-        <div class="navbar-brand">CardShop - Admin</div>
+        <div class="navbar-brand">CardShop</div>
         <div class="navbar-links">
-            <a href="shop.html"><i class="fas fa-store"></i> Loja</a>
+            <a href="index.html"><i class="fas fa-user"></i> Minha Conta</a>
+            <a href="shop.html"><i class="fas fa-shopping-cart"></i> Loja</a>
             <button onclick="toggleTheme()"><i class="fas fa-adjust"></i> <span id="themeToggle">Modo Claro</span></button>
             <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
         </div>
     </nav>
 
     <div class="container">
-        <h2>Painel de Administração</h2>
-
+        <h2>Painel Admin</h2>
         <div class="stats">
             <div class="stat-item">
                 <h3>Total de Usuários</h3>
@@ -32,170 +31,15 @@
                 <p id="totalCards">0</p>
             </div>
             <div class="stat-item">
-                <h3>Saldo Total (R$)</h3>
-                <p id="totalBalance">0.00</p>
+                <h3>Saldo Total</h3>
+                <p>R$ <span id="totalBalance">0.00</span></p>
             </div>
         </div>
-
-        <div class="charts">
-            <div class="chart-item">
-                <canvas id="balanceChart"></canvas>
-            </div>
-            <div class="chart-item">
-                <canvas id="salesChart"></canvas>
-            </div>
-            <div class="chart-item">
-                <canvas id="salesByBrandChart"></canvas>
-            </div>
-            <div class="chart-item">
-                <canvas id="conversionRateChart"></canvas>
-            </div>
-        </div>
-
-        <div class="section">
-            <h3>Gerenciar Usuários</h3>
-            <input type="text" id="userSearch" placeholder="Pesquisar usuário por nome ou ID" oninput="ui.displayUsers(this.value)">
-            <div id="userList" class="card-list"></div>
-        </div>
-
-        <div class="section">
-            <h3>Gerenciar Cartões</h3>
-            <input type="text" id="cardSearch" placeholder="Pesquisar cartão por número, bandeira ou banco" oninput="ui.displayAdminCards(this.value)">
-            <button class="btn btn-primary" onclick="ui.showAddCardModal()">Adicionar Cartão</button>
-            <button class="btn btn-secondary" onclick="ui.showBulkEditModal()">Editar em Massa</button>
-            <button class="btn btn-secondary" onclick="ui.importCards()">Importar Cartões (CSV)</button>
-            <button class="btn btn-secondary" onclick="ui.exportCards()">Exportar Cartões (CSV)</button>
-            <div id="adminCardList" class="card-list"></div>
-            <div id="lowStockAlert" class="alert" style="display: none;"></div>
-        </div>
-
-        <div class="section">
-            <h3>Logs de Atividade</h3>
-            <button class="btn btn-secondary" onclick="ui.exportLogs('csv')">Exportar Logs (CSV)</button>
-            <button class="btn btn-secondary" onclick="ui.exportLogs('json')">Exportar Logs (JSON)</button>
-            <button class="btn btn-clear" onclick="ui.clearLogs()">Limpar Logs</button>
-            <div id="logList" class="card-list"></div>
-        </div>
-
-        <div id="cardModal" class="modal">
-            <div class="modal-content">
-                <span class="close" onclick="document.getElementById('cardModal').style.display='none'">×</span>
-                <h2 id="modalTitle">Adicionar Novo Cartão</h2>
-                <div class="form-group">
-                    <label for="cardNumber">Número do Cartão</label>
-                    <input type="text" id="cardNumber" placeholder="Ex.: 1234567890123456" oninput="formatCardNumber(this)">
-                    <span id="cardNumberError" class="error"></span>
-                </div>
-                <div class="form-group">
-                    <label for="cardCvv">CVV</label>
-                    <input type="text" id="cardCvv" placeholder="Ex.: 123" oninput="restrictCvv(this)">
-                    <span id="cardCvvError" class="error"></span>
-                </div>
-                <div class="form-group">
-                    <label for="cardExpiry">Validade</label>
-                    <input type="text" id="cardExpiry" placeholder="Ex.: 12/25" oninput="formatExpiry(this)">
-                    <span id="cardExpiryError" class="error"></span>
-                </div>
-                <div class="form-group">
-                    <label for="cardBrand">Bandeira</label>
-                    <select id="cardBrand">
-                        <option value="">Selecione</option>
-                        <option value="Visa">Visa</option>
-                        <option value="Mastercard">Mastercard</option>
-                        <option value="Amex">Amex</option>
-                        <option value="Elo">Elo</option>
-                    </select>
-                    <span id="cardBrandError" class="error"></span>
-                </div>
-                <div class="form-group">
-                    <label for="cardBank">Banco</label>
-                    <select id="cardBank">
-                        <option value="">Selecione</option>
-                        <option value="Banco do Brasil S.A.">Banco do Brasil</option>
-                        <option value="Banco Inter">Banco Inter</option>
-                        <option value="Nubank">Nubank</option>
-                    </select>
-                    <span id="cardBankError" class="error"></span>
-                </div>
-                <div class="form-group">
-                    <label for="cardCountry">País</label>
-                    <input type="text" id="cardCountry" placeholder="Ex.: Brasil">
-                    <span id="cardCountryError" class="error"></span>
-                </div>
-                <div class="form-group">
-                    <label for="cardPrice">Preço (R$)</label>
-                    <input type="number" id="cardPrice" placeholder="Ex.: 10.00" step="0.01">
-                    <span id="cardPriceError" class="error"></span>
-                </div>
-                <div class="form-group">
-                    <label for="cardStock">Estoque</label>
-                    <input type="number" id="cardStock" placeholder="Ex.: 10">
-                    <span id="cardStockError" class="error"></span>
-                </div>
-                <div class="form-group">
-                    <label for="cardType">Tipo</label>
-                    <select id="cardType">
-                        <option value="">Selecione</option>
-                        <option value="Crédito">Crédito</option>
-                        <option value="Débito">Débito</option>
-                    </select>
-                    <span id="cardTypeError" class="error"></span>
-                </div>
-                <div class="form-group">
-                    <label for="cardName">Nome</label>
-                    <input type="text" id="cardName" placeholder="Ex.: João Silva">
-                    <span id="cardNameError" class="error"></span>
-                </div>
-                <div class="form-group">
-                    <label for="cardCpf">CPF</label>
-                    <input type="text" id="cardCpf" placeholder="Ex.: 123.456.789-00" oninput="formatCpf(this)">
-                    <span id="cardCpfError" class="error"></span>
-                </div>
-                <div class="form-group">
-                    <label for="cardLevel">Nível</label>
-                    <select id="cardLevel">
-                        <option value="">Selecione</option>
-                        <option value="Padrão">Padrão</option>
-                        <option value="Gold">Gold</option>
-                        <option value="Platinum">Platinum</option>
-                    </select>
-                    <span id="cardLevelError" class="error"></span>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-cancel" onclick="document.getElementById('cardModal').style.display='none'">Cancelar</button>
-                    <button class="btn btn-confirm" onclick="ui.saveCard()">Salvar</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="bulkEditModal" class="modal">
-            <div class="modal-content">
-                <span class="close" onclick="document.getElementById('bulkEditModal').style.display='none'">×</span>
-                <h2>Editar Cartões em Massa</h2>
-                <div class="form-group">
-                    <label for="bulkEditField">Campo</label>
-                    <select id="bulkEditField">
-                        <option value="price">Preço</option>
-                        <option value="stock">Estoque</option>
-                        <option value="brand">Bandeira</option>
-                        <option value="bank">Banco</option>
-                    </select>
-                    <span id="bulkEditFieldError" class="error"></span>
-                </div>
-                <div class="form-group">
-                    <label for="bulkEditValue">Valor</label>
-                    <input type="text" id="bulkEditValue" placeholder="Ex.: 15.00 ou Visa">
-                    <span id="bulkEditValueError" class="error"></span>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-cancel" onclick="document.getElementById('bulkEditModal').style.display='none'">Cancelar</button>
-                    <button class="btn btn-confirm" onclick="ui.applyBulkEdit()">Aplicar</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="notifications"></div>
+        <h3>Logs de Atividades</h3>
+        <div id="logList" class="log-list"></div>
     </div>
+
+    <div id="notifications"></div>
 
     <script src="script.js"></script>
 </body>
