@@ -4,264 +4,197 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CardShop - Painel Admin</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <nav id="navbar" class="navbar">
-        <div class="navbar-brand">CardShop Admin</div>
+        <div class="navbar-brand">CardShop - Admin</div>
         <div class="navbar-links">
-            <a href="index.html"><i class="fas fa-user"></i> Minha Conta</a>
-            <a href="shop.html"><i class="fas fa-shopping-cart"></i> Loja</a>
+            <a href="shop.html"><i class="fas fa-store"></i> Loja</a>
             <button onclick="toggleTheme()"><i class="fas fa-adjust"></i> <span id="themeToggle">Modo Claro</span></button>
             <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
         </div>
     </nav>
 
     <div class="container">
-        <div class="dashboard-header">
-            <h2>Painel Administrativo</h2>
-            <div class="search-bar">
-                <input type="text" id="globalSearch" placeholder="Pesquisar...">
+        <h2>Painel de Administração</h2>
+
+        <div class="stats">
+            <div class="stat-item">
+                <h3>Total de Usuários</h3>
+                <p id="totalUsers">0</p>
+            </div>
+            <div class="stat-item">
+                <h3>Total de Cartões</h3>
+                <p id="totalCards">0</p>
+            </div>
+            <div class="stat-item">
+                <h3>Saldo Total (R$)</h3>
+                <p id="totalBalance">0.00</p>
             </div>
         </div>
 
-        <!-- Abas -->
-        <div class="tabs">
-            <button class="tab-button active" onclick="openTab('stats')"><i class="fas fa-chart-bar"></i> Estatísticas</button>
-            <button class="tab-button" onclick="openTab('users')"><i class="fas fa-users"></i> Usuários</button>
-            <button class="tab-button" onclick="openTab('cards')"><i class="fas fa-credit-card"></i> Cartões</button>
-            <button class="tab-button" onclick="openTab('purchases')"><i class="fas fa-shopping-cart"></i> Compras</button>
-            <button class="tab-button" onclick="openTab('pix')"><i class="fas fa-qrcode"></i> Configurações PIX</button>
-            <button class="tab-button" onclick="openTab('logs')"><i class="fas fa-history"></i> Logs</button>
-        </div>
-
-        <!-- Notificações -->
-        <div id="notifications"></div>
-
-        <!-- Aba de Estatísticas -->
-        <div id="stats" class="tab-content">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Total de Usuários</h3>
-                    <p id="totalUsers">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Total de Cartões</h3>
-                    <p id="totalCards">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Saldo Total</h3>
-                    <p>R$ <span id="totalBalance">0.00</span></p>
-                </div>
+        <div class="charts">
+            <div class="chart-item">
+                <canvas id="balanceChart"></canvas>
             </div>
-            <div class="charts">
-                <div class="chart-container">
-                    <h3>Saldo por Usuário</h3>
-                    <canvas id="balanceChart"></canvas>
-                </div>
-                <div class="chart-container">
-                    <h3>Vendas por Data</h3>
-                    <canvas id="salesChart"></canvas>
-                </div>
+            <div class="chart-item">
+                <canvas id="salesChart"></canvas>
+            </div>
+            <div class="chart-item">
+                <canvas id="salesByBrandChart"></canvas>
+            </div>
+            <div class="chart-item">
+                <canvas id="conversionRateChart"></canvas>
             </div>
         </div>
 
-        <!-- Aba de Usuários -->
-        <div id="users" class="tab-content" style="display: none;">
-            <div class="tab-actions">
-                <button class="btn btn-primary" onclick="exportUsers()">Exportar Usuários</button>
-            </div>
+        <div class="section">
+            <h3>Gerenciar Usuários</h3>
+            <input type="text" id="userSearch" placeholder="Pesquisar usuário por nome ou ID" oninput="ui.displayUsers(this.value)">
             <div id="userList" class="card-list"></div>
         </div>
 
-        <!-- Aba de Cartões -->
-        <div id="cards" class="tab-content" style="display: none;">
-            <div class="tab-actions">
-                <button class="btn btn-primary" onclick="showAddCardModal()">Adicionar Cartão</button>
-                <button class="btn btn-secondary" onclick="showBulkEditModal()">Edição em Massa</button>
-                <button class="btn btn-primary" onclick="exportCards()">Exportar Cartões</button>
-            </div>
+        <div class="section">
+            <h3>Gerenciar Cartões</h3>
+            <input type="text" id="cardSearch" placeholder="Pesquisar cartão por número, bandeira ou banco" oninput="ui.displayAdminCards(this.value)">
+            <button class="btn btn-primary" onclick="ui.showAddCardModal()">Adicionar Cartão</button>
+            <button class="btn btn-secondary" onclick="ui.showBulkEditModal()">Editar em Massa</button>
+            <button class="btn btn-secondary" onclick="ui.importCards()">Importar Cartões (CSV)</button>
+            <button class="btn btn-secondary" onclick="ui.exportCards()">Exportar Cartões (CSV)</button>
             <div id="adminCardList" class="card-list"></div>
+            <div id="lowStockAlert" class="alert" style="display: none;"></div>
         </div>
 
-        <!-- Aba de Compras -->
-        <div id="purchases" class="tab-content" style="display: none;">
-            <div class="filters">
-                <div class="filter-group">
-                    <label for="purchaseFilterUser">Usuário:</label>
-                    <select id="purchaseFilterUser" onchange="ui.filterPurchases()"></select>
-                </div>
-                <div class="filter-group">
-                    <label for="purchaseFilterDate">Data:</label>
-                    <input type="date" id="purchaseFilterDate" onchange="ui.filterPurchases()">
-                </div>
-                <div class="filter-group">
-                    <label for="purchaseFilterValue">Valor:</label>
-                    <input type="number" id="purchaseFilterValue" step="0.01" onchange="ui.filterPurchases()">
-                </div>
-            </div>
-            <div id="purchaseList" class="card-list"></div>
-        </div>
-
-        <!-- Aba de Configurações PIX -->
-        <div id="pix" class="tab-content" style="display: none;">
-            <div class="tab-actions">
-                <button class="btn btn-primary" onclick="showAddPixModal()">Adicionar Configuração PIX</button>
-            </div>
-            <div id="pixList" class="card-list"></div>
-        </div>
-
-        <!-- Aba de Logs -->
-        <div id="logs" class="tab-content" style="display: none;">
-            <div class="tab-actions">
-                <button class="btn btn-primary" onclick="exportLogs()">Exportar Logs</button>
-                <button class="btn btn-danger" onclick="clearLogs()">Limpar Logs</button>
-            </div>
+        <div class="section">
+            <h3>Logs de Atividade</h3>
+            <button class="btn btn-secondary" onclick="ui.exportLogs('csv')">Exportar Logs (CSV)</button>
+            <button class="btn btn-secondary" onclick="ui.exportLogs('json')">Exportar Logs (JSON)</button>
+            <button class="btn btn-clear" onclick="ui.clearLogs()">Limpar Logs</button>
             <div id="logList" class="card-list"></div>
         </div>
-    </div>
 
-    <!-- Modal para Adicionar/Editar Cartões -->
-    <div id="cardModal" class="modal">
-        <div class="modal-content card-modal-content">
-            <span class="close" onclick="closeCardModal()">×</span>
-            <h2 id="modalTitle">Adicionar Novo Cartão</h2>
-            <div class="modal-body">
-                <div class="form-section">
-                    <h3>Informações do Cartão</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="cardNumber">Número do Cartão</label>
-                            <input type="text" id="cardNumber" placeholder="1234567890123456" maxlength="16">
-                            <span id="cardNumberError" class="error"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="cardCvv">CVV</label>
-                            <input type="text" id="cardCvv" placeholder="123" maxlength="3">
-                            <span id="cardCvvError" class="error"></span>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="cardExpiry">Validade (MM/AA)</label>
-                            <input type="text" id="cardExpiry" placeholder="12/25">
-                            <span id="cardExpiryError" class="error"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="cardBrand">Bandeira</label>
-                            <select id="cardBrand">
-                                <option value="">Selecione</option>
-                                <option value="Visa">Visa</option>
-                                <option value="Mastercard">Mastercard</option>
-                                <option value="Amex">Amex</option>
-                                <option value="Elo">Elo</option>
-                            </select>
-                            <span id="cardBrandError" class="error"></span>
-                        </div>
-                    </div>
+        <div id="cardModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="document.getElementById('cardModal').style.display='none'">×</span>
+                <h2 id="modalTitle">Adicionar Novo Cartão</h2>
+                <div class="form-group">
+                    <label for="cardNumber">Número do Cartão</label>
+                    <input type="text" id="cardNumber" placeholder="Ex.: 1234567890123456" oninput="formatCardNumber(this)">
+                    <span id="cardNumberError" class="error"></span>
                 </div>
-                <div class="form-section">
-                    <h3>Detalhes Bancários</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="cardBank">Banco</label>
-                            <input type="text" id="cardBank" placeholder="Banco do Brasil S.A.">
-                            <span id="cardBankError" class="error"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="cardCountry">País</label>
-                            <input type="text" id="cardCountry" placeholder="Brasil">
-                            <span id="cardCountryError" class="error"></span>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label for="cardCvv">CVV</label>
+                    <input type="text" id="cardCvv" placeholder="Ex.: 123" oninput="restrictCvv(this)">
+                    <span id="cardCvvError" class="error"></span>
                 </div>
-                <div class="form-section">
-                    <h3>Informações de Venda</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="cardPrice">Preço (R$)</label>
-                            <input type="number" id="cardPrice" step="0.01" placeholder="10.00">
-                            <span id="cardPriceError" class="error"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="cardStock">Estoque</label>
-                            <input type="number" id="cardStock" placeholder="10">
-                            <span id="cardStockError" class="error"></span>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="cardType">Tipo</label>
-                            <select id="cardType">
-                                <option value="">Selecione</option>
-                                <option value="Crédito">Crédito</option>
-                                <option value="Débito">Débito</option>
-                            </select>
-                            <span id="cardTypeError" class="error"></span>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label for="cardExpiry">Validade</label>
+                    <input type="text" id="cardExpiry" placeholder="Ex.: 12/25" oninput="formatExpiry(this)">
+                    <span id="cardExpiryError" class="error"></span>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-cancel" onclick="closeCardModal()">Cancelar</button>
-                <button class="btn btn-save" onclick="saveCard()">Salvar</button>
+                <div class="form-group">
+                    <label for="cardBrand">Bandeira</label>
+                    <select id="cardBrand">
+                        <option value="">Selecione</option>
+                        <option value="Visa">Visa</option>
+                        <option value="Mastercard">Mastercard</option>
+                        <option value="Amex">Amex</option>
+                        <option value="Elo">Elo</option>
+                    </select>
+                    <span id="cardBrandError" class="error"></span>
+                </div>
+                <div class="form-group">
+                    <label for="cardBank">Banco</label>
+                    <select id="cardBank">
+                        <option value="">Selecione</option>
+                        <option value="Banco do Brasil S.A.">Banco do Brasil</option>
+                        <option value="Banco Inter">Banco Inter</option>
+                        <option value="Nubank">Nubank</option>
+                    </select>
+                    <span id="cardBankError" class="error"></span>
+                </div>
+                <div class="form-group">
+                    <label for="cardCountry">País</label>
+                    <input type="text" id="cardCountry" placeholder="Ex.: Brasil">
+                    <span id="cardCountryError" class="error"></span>
+                </div>
+                <div class="form-group">
+                    <label for="cardPrice">Preço (R$)</label>
+                    <input type="number" id="cardPrice" placeholder="Ex.: 10.00" step="0.01">
+                    <span id="cardPriceError" class="error"></span>
+                </div>
+                <div class="form-group">
+                    <label for="cardStock">Estoque</label>
+                    <input type="number" id="cardStock" placeholder="Ex.: 10">
+                    <span id="cardStockError" class="error"></span>
+                </div>
+                <div class="form-group">
+                    <label for="cardType">Tipo</label>
+                    <select id="cardType">
+                        <option value="">Selecione</option>
+                        <option value="Crédito">Crédito</option>
+                        <option value="Débito">Débito</option>
+                    </select>
+                    <span id="cardTypeError" class="error"></span>
+                </div>
+                <div class="form-group">
+                    <label for="cardName">Nome</label>
+                    <input type="text" id="cardName" placeholder="Ex.: João Silva">
+                    <span id="cardNameError" class="error"></span>
+                </div>
+                <div class="form-group">
+                    <label for="cardCpf">CPF</label>
+                    <input type="text" id="cardCpf" placeholder="Ex.: 123.456.789-00" oninput="formatCpf(this)">
+                    <span id="cardCpfError" class="error"></span>
+                </div>
+                <div class="form-group">
+                    <label for="cardLevel">Nível</label>
+                    <select id="cardLevel">
+                        <option value="">Selecione</option>
+                        <option value="Padrão">Padrão</option>
+                        <option value="Gold">Gold</option>
+                        <option value="Platinum">Platinum</option>
+                    </select>
+                    <span id="cardLevelError" class="error"></span>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-cancel" onclick="document.getElementById('cardModal').style.display='none'">Cancelar</button>
+                    <button class="btn btn-confirm" onclick="ui.saveCard()">Salvar</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Modal para Edição em Massa -->
-    <div id="bulkEditModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeBulkEditModal()">×</span>
-            <h2>Edição em Massa</h2>
-            <div class="form-group">
-                <label for="bulkEditField">Campo:</label>
-                <select id="bulkEditField">
-                    <option value="">Selecione</option>
-                    <option value="price">Preço</option>
-                    <option value="stock">Estoque</option>
-                </select>
-                <span id="bulkEditFieldError" class="error"></span>
-            </div>
-            <div class="form-group">
-                <label for="bulkEditValue">Novo Valor:</label>
-                <input type="number" id="bulkEditValue" step="0.01">
-                <span id="bulkEditValueError" class="error"></span>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-cancel" onclick="closeBulkEditModal()">Cancelar</button>
-                <button class="btn btn-save" onclick="applyBulkEdit()">Aplicar</button>
+        <div id="bulkEditModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="document.getElementById('bulkEditModal').style.display='none'">×</span>
+                <h2>Editar Cartões em Massa</h2>
+                <div class="form-group">
+                    <label for="bulkEditField">Campo</label>
+                    <select id="bulkEditField">
+                        <option value="price">Preço</option>
+                        <option value="stock">Estoque</option>
+                        <option value="brand">Bandeira</option>
+                        <option value="bank">Banco</option>
+                    </select>
+                    <span id="bulkEditFieldError" class="error"></span>
+                </div>
+                <div class="form-group">
+                    <label for="bulkEditValue">Valor</label>
+                    <input type="text" id="bulkEditValue" placeholder="Ex.: 15.00 ou Visa">
+                    <span id="bulkEditValueError" class="error"></span>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-cancel" onclick="document.getElementById('bulkEditModal').style.display='none'">Cancelar</button>
+                    <button class="btn btn-confirm" onclick="ui.applyBulkEdit()">Aplicar</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Modal para Configuração PIX -->
-    <div id="pixModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closePixModal()">×</span>
-            <h2 id="pixModalTitle">Adicionar Configuração PIX</h2>
-            <div class="form-group">
-                <label for="pixAmount">Valor (R$):</label>
-                <input type="number" id="pixAmount">
-                <span id="pixAmountError" class="error"></span>
-            </div>
-            <div class="form-group">
-                <label for="pixKey">Chave PIX:</label>
-                <input type="text" id="pixKey" placeholder="exemplo@dominio.com">
-                <span id="pixKeyError" class="error"></span>
-            </div>
-            <div class="form-group">
-                <label for="pixQRCode">URL do QR Code:</label>
-                <input type="text" id="pixQRCode" placeholder="https://exemplo.com/qrcode.png">
-                <span id="pixQRCodeError" class="error"></span>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-cancel" onclick="closePixModal()">Cancelar</button>
-                <button class="btn btn-save" onclick="savePix()">Salvar</button>
-            </div>
-        </div>
+        <div id="notifications"></div>
     </div>
 
     <script src="script.js"></script>
