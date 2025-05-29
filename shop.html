@@ -63,10 +63,11 @@
                     <option value="Padrão">Padrão</option>
                     <option value="Gold">Gold</option>
                     <option value="Platinum">Platinum</option>
+                    <option value="Black">Black</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="typeFilter"><i class="fas fa-filter"></i> Tipo</label>
+                <label for="typeFilter"><i class="fas fa-credit-card"></i> Tipo</label>
                 <select id="typeFilter" onchange="ui.filterCards()">
                     <option value="all">Todos</option>
                     <option value="Crédito">Crédito</option>
@@ -74,53 +75,63 @@
                 </select>
             </div>
             <div class="filter-group">
-                <label for="priceRangeFilter"><i class="fas fa-money-bill-wave"></i> Faixa de Preço (R$)</label>
+                <label for="priceRangeFilter"><i class="fas fa-money-bill"></i> Faixa de Preço</label>
                 <select id="priceRangeFilter" onchange="ui.filterCards()">
-                    <option value="all">Todos</option>
-                    <option value="0-10">0 - 10</option>
-                    <option value="10-20">10 - 20</option>
-                    <option value="20+">20+</option>
+                    <option value="all">Todas</option>
+                    <option value="0-10">R$ 0 - R$ 10</option>
+                    <option value="10-20">R$ 10 - R$ 20</option>
+                    <option value="20-50">R$ 20 - R$ 50</option>
+                    <option value="50+">R$ 50+</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="stockFilter"><i class="fas fa-box"></i> Disponibilidade</label>
+                <label for="stockFilter"><i class="fas fa-boxes"></i> Estoque</label>
                 <select id="stockFilter" onchange="ui.filterCards()">
                     <option value="all">Todos</option>
                     <option value="inStock">Em Estoque</option>
-                    <option value="outOfStock">Esgotado</option>
+                    <option value="outOfStock">Fora de Estoque</option>
                 </select>
             </div>
-            <button class="btn btn-clear" onclick="ui.clearFilters()"><i class="fas fa-times"></i> Limpar Filtros</button>
             <div class="filter-group">
-                <label for="viewMode"><i class="fas fa-th-list"></i> Visualização</label>
+                <label for="viewMode"><i class="fas fa-eye"></i> Visualização</label>
                 <select id="viewMode" onchange="ui.toggleViewMode()">
                     <option value="grid">Grade</option>
                     <option value="list">Lista</option>
                 </select>
             </div>
+            <button class="btn btn-clear" onclick="ui.clearFilters()">Limpar Filtros</button>
         </div>
 
         <div id="cardList" class="card-list card-list-grid"></div>
     </div>
 
+    <!-- Modal de Confirmação de Compra -->
     <div id="confirmPurchaseModal" class="modal">
-        <div class="modal-content confirm-modal-content">
+        <div class="modal-content">
             <span class="close" onclick="closeConfirmPurchaseModal()">×</span>
-            <h2>Confirmação de Compra</h2>
-            <div class="modal-body">
-                <p><strong>Aviso de Responsabilidade:</strong> O uso indevido das informações deste cartão pode ser considerado ilegal. O CardShop não se responsabiliza por ações realizadas com os dados adquiridos.</p>
-                <p><strong>Total:</strong> R$ <span id="confirmTotalAmount">0.00</span></p>
-                <p><strong>Seu Saldo Atual:</strong> R$ <span id="confirmUserBalance">0.00</span></p>
-                <h3>Pré-visualização do Cartão:</h3>
-                <div id="confirmCardDetails"></div>
-            </div>
-            <div class="modal-footer">
+            <h2>Confirmar Compra</h2>
+            <p><strong>Total:</strong> R$ <span id="confirmTotalAmount">0.00</span></p>
+            <p><strong>Seu Saldo:</strong> R$ <span id="confirmUserBalance">0.00</span></p>
+            <h3>Detalhes do Cartão:</h3>
+            <div id="confirmCardDetails"></div>
+            <div class="modal-buttons">
                 <button class="btn btn-cancel" onclick="closeConfirmPurchaseModal()">Cancelar</button>
-                <button class="btn btn-confirm" onclick="confirmPurchase()">Confirmar Compra</button>
+                <button class="btn btn-confirm" onclick="confirmPurchase()">Confirmar</button>
             </div>
         </div>
     </div>
 
+    <!-- Modal de Detalhes do Cartão -->
+    <div id="cardDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCardDetailsModal()">×</span>
+            <h2>Detalhes do Cartão</h2>
+            <div id="cardDetailsContent"></div>
+            <button class="btn btn-secondary" onclick="closeCardDetailsModal()">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Modal de Recarga -->
     <div id="rechargeModal" class="modal">
         <div class="modal-content recharge-modal">
             <span class="close" onclick="ui.closeModal()">×</span>
@@ -142,6 +153,7 @@
         </div>
     </div>
 
+    <!-- Pagamento via PIX -->
     <div id="pixPayment" style="display: none;">
         <div class="pix-payment">
             <h2>Pagamento via PIX</h2>
@@ -151,14 +163,6 @@
             <p><strong>QR Code:</strong></p>
             <img id="pixQRCode" src="https://via.placeholder.com/150" alt="QR Code">
             <button class="btn btn-primary" onclick="ui.addBalance()">Confirmar Pagamento</button>
-        </div>
-    </div>
-
-    <div id="cardDetailsModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeCardDetailsModal()">×</span>
-            <h2>Detalhes do Cartão</h2>
-            <div id="cardDetailsContent" class="modal-body"></div>
         </div>
     </div>
 
