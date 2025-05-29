@@ -5,7 +5,9 @@ const CONFIG = {
     ADMIN_PASSWORD: 'LOVEz',
     MIN_PASSWORD_LENGTH: 6,
     MAX_LOGIN_ATTEMPTS: 3,
-    LOGIN_BLOCK_TIME: 60000 // 1 minuto em milissegundos
+    LOGIN_BLOCK_TIME: 60000,
+    LOW_STOCK_THRESHOLD: 3,
+    NOTIFICATION_TIMEOUT: 5000
 };
 
 // === Estado Global ===
@@ -18,7 +20,9 @@ const state = {
     loginAttempts: 0,
     loginBlockedUntil: 0,
     selectedRechargeAmount: null,
-    editingCardId: null // Para rastrear o cartão sendo editado
+    editingCardId: null,
+    editingPixAmount: null,
+    logs: JSON.parse(localStorage.getItem('logs')) || []
 };
 
 // === Gerenciamento de Armazenamento ===
@@ -57,6 +61,14 @@ const storage = {
         } catch (error) {
             console.error('Erro ao guardar pixDetails:', error);
         }
+    },
+
+    saveLogs() {
+        try {
+            localStorage.setItem('logs', JSON.stringify(state.logs));
+        } catch (error) {
+            console.error('Erro ao guardar logs:', error);
+        }
     }
 };
 
@@ -81,7 +93,6 @@ const auth = {
         } catch (error) {
             console.warn('Web Crypto API não disponível, usando fallback MD5');
         }
-        // Fallback MD5 (simplificado para compatibilidade)
         function md5(str) {
             function rotateLeft(lValue, iShiftBits) {
                 return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits));
@@ -383,7 +394,7 @@ const cart = {
         state.cartItems = [];
         state.cartTotal = 0;
         const cartTotalAmount = document.getElementById('cartTotalAmount');
-        const cartList = document.getElementById('cartList');
+        const cartList = document.getElementById('cardList');
         const cartContainer = document.getElementById('cartContainer');
         const userBalance = document.getElementById('userBalance');
         const userBalanceAccount = document.getElementById('userBalanceAccount');
@@ -608,31 +619,108 @@ const ui = {
         if (totalUsersElement) totalUsersElement.textContent = totalUsers;
         if (totalCardsElement) totalCardsElement.textContent = totalCards;
         if (totalBalanceElement) totalBalanceElement.textContent = totalBalance.toFixed(2);
+
+        this.updateBalanceChart();
+        this.updateSalesChart();
     },
 
-    displayUsers() {
+    updateBalanceChart() {
+        const ctx = document.getElementById('balanceChart').getContext('2d');
+        if (window.balanceChart) window.balanceChart.destroy();
+        const userBalances = storage.users.map(user => ({ username: user.username, balance: user.balance || 0 }));
+        window.balanceChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: userBalances.map(u => u.username),
+                datasets: [{
+                    label: 'Saldo (R$)',
+                    data: userBalances.map(u => u.balance),
+                    backgroundColor: '#2ecc71',
+                    borderColor: '#27ae60',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Saldo (R$)' } },
+                    x: { title: { display: true, text: 'Usuários' } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: true }
+                }
+            }
+        });
+    },
+
+    updateSalesChart() {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        if (window.salesChart) window.salesChart.destroy();
+        const allPurchases = storage.users.flatMap(user => user.purchases);
+        const salesByDate = {};
+        allPurchases.forEach(p => {
+            const date = new Date(p.date).toLocaleDateString();
+            salesByDate[date] = (salesByDate[date] || 0) + p.price;
+        });
+        window.salesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Object.keys(salesByDate),
+                datasets: [{
+                    label: 'Vendas (R$)',
+                    data: Object.values(salesByDate),
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Vendas (R$)' } },
+                    x: { title: { display: true, text: 'Data' } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: true }
+                }
+            }
+        });
+    },
+
+    displayUsers(searchTerm = '') {
         const userList = document.getElementById('userList');
         if (userList) {
-            userList.innerHTML = storage.users.map(user => `
-                <div class="card-item">
+            const filteredUsers = storage.users.filter(user => 
+                user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                user.id.includes(searchTerm)
+            );
+            userList.innerHTML = filteredUsers.map(user => `
+                <div class="card-item ${user.balance < 0 ? 'low-balance' : ''}">
                     <h2>${user.username}</h2>
                     <p>ID: ${user.id}</p>
                     <p>Saldo: R$ ${user.balance.toFixed(2)}</p>
                     <p>Compras: ${user.purchases.length}</p>
                     <div class="buttons">
-                        <button onclick="ui.editUser('${user.id}')">Editar</button>
-                        <button onclick="ui.deleteUser('${user.id}')">Excluir</button>
+                        <button onclick="ui.editUser('${user.id}')"><i class="fas fa-edit"></i> Editar</button>
+                        <button onclick="ui.deleteUser('${user.id}')"><i class="fas fa-trash-alt"></i> Excluir</button>
                     </div>
                 </div>
             `).join('');
         }
     },
 
-    displayAdminCards() {
+    displayAdminCards(searchTerm = '') {
         const adminCardList = document.getElementById('adminCardList');
         if (adminCardList) {
-            adminCardList.innerHTML = storage.cards.map(card => `
-                <div class="card-item" data-card-id="${card.id}">
+            const filteredCards = storage.cards.filter(card => 
+                card.number.includes(searchTerm) ||
+                card.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                card.bank.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            adminCardList.innerHTML = filteredCards.map(card => `
+                <div class="card-item ${card.stock <= CONFIG.LOW_STOCK_THRESHOLD ? 'low-stock' : ''}" data-card-id="${card.id}">
                     <h2>${card.number.slice(0, 6)} **** **** ****</h2>
                     <p>Validade: ${card.expiry}</p>
                     <p>${card.brand} - ${card.bank}</p>
@@ -641,12 +729,78 @@ const ui = {
                     <p>Estoque: ${card.stock}</p>
                     <div class="price">R$ ${card.price.toFixed(2)}</div>
                     <div class="buttons">
-                        <button onclick="ui.editCard('${card.id}')">Editar</button>
-                        <button onclick="ui.deleteCard('${card.id}')">Excluir</button>
+                        <button onclick="ui.editCard('${card.id}')"><i class="fas fa-edit"></i> Editar</button>
+                        <button onclick="ui.deleteCard('${card.id}')"><i class="fas fa-trash-alt"></i> Excluir</button>
                     </div>
                 </div>
             `).join('');
+            this.checkLowStockAlerts();
         }
+    },
+
+    checkLowStockAlerts() {
+        const lowStockCards = storage.cards.filter(card => card.stock <= CONFIG.LOW_STOCK_THRESHOLD);
+        if (lowStockCards.length > 0) {
+            this.showNotification(`Atenção: ${lowStockCards.length} cartão(s) com estoque baixo (${CONFIG.LOW_STOCK_THRESHOLD} ou menos).`);
+        }
+    },
+
+    showNotification(message) {
+        const notifications = document.getElementById('notifications');
+        if (notifications) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            notifications.appendChild(notification);
+            setTimeout(() => notification.remove(), CONFIG.NOTIFICATION_TIMEOUT);
+        }
+    },
+
+    addLog(action) {
+        const log = {
+            timestamp: new Date().toISOString(),
+            action: action,
+            user: state.currentUser
+        };
+        state.logs.push(log);
+        storage.saveLogs();
+        this.displayLogs();
+    },
+
+    displayLogs() {
+        const logList = document.getElementById('logList');
+        if (logList) {
+            logList.innerHTML = state.logs.map(log => `
+                <div class="card-item">
+                    <p><strong>Data:</strong> ${new Date(log.timestamp).toLocaleString()}</p>
+                    <p><strong>Usuário:</strong> ${log.user}</p>
+                    <p><strong>Ação:</strong> ${log.action}</p>
+                </div>
+            `).join('');
+        }
+    },
+
+    clearLogs() {
+        if (confirm('Tem certeza que deseja limpar todos os logs?')) {
+            state.logs = [];
+            storage.saveLogs();
+            this.displayLogs();
+            this.showNotification('Logs limpos com sucesso!');
+        }
+    },
+
+    exportLogs() {
+        const csv = [
+            'Data,Usuário,Ação',
+            ...state.logs.map(log => `${new Date(log.timestamp).toLocaleString()},${log.user},${log.action}`)
+        ].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'logs.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
     },
 
     showAddCardModal() {
@@ -705,7 +859,6 @@ const ui = {
 
         let isValid = true;
 
-        // Validação do número do cartão
         if (!number || !/^\d{16}$/.test(number)) {
             document.getElementById('cardNumberError').textContent = 'Número do cartão deve ter 16 dígitos.';
             document.getElementById('cardNumber').parentElement.classList.add('invalid');
@@ -719,7 +872,6 @@ const ui = {
             document.getElementById('cardNumber').parentElement.classList.remove('invalid');
         }
 
-        // Validação do CVV
         if (!cvv || !/^\d{3}$/.test(cvv)) {
             document.getElementById('cardCvvError').textContent = 'CVV deve ter 3 dígitos.';
             document.getElementById('cardCvv').parentElement.classList.add('invalid');
@@ -729,7 +881,6 @@ const ui = {
             document.getElementById('cardCvv').parentElement.classList.remove('invalid');
         }
 
-        // Validação da validade
         if (!expiry || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) {
             document.getElementById('cardExpiryError').textContent = 'Validade deve estar no formato MM/AA.';
             document.getElementById('cardExpiry').parentElement.classList.add('invalid');
@@ -739,7 +890,6 @@ const ui = {
             document.getElementById('cardExpiry').parentElement.classList.remove('invalid');
         }
 
-        // Validação da bandeira
         if (!brand) {
             document.getElementById('cardBrandError').textContent = 'Selecione uma bandeira.';
             document.getElementById('cardBrand').parentElement.classList.add('invalid');
@@ -749,7 +899,6 @@ const ui = {
             document.getElementById('cardBrand').parentElement.classList.remove('invalid');
         }
 
-        // Validação do banco
         if (!bank) {
             document.getElementById('cardBankError').textContent = 'Banco é obrigatório.';
             document.getElementById('cardBank').parentElement.classList.add('invalid');
@@ -759,7 +908,6 @@ const ui = {
             document.getElementById('cardBank').parentElement.classList.remove('invalid');
         }
 
-        // Validação do país
         if (!country) {
             document.getElementById('cardCountryError').textContent = 'País é obrigatório.';
             document.getElementById('cardCountry').parentElement.classList.add('invalid');
@@ -769,7 +917,6 @@ const ui = {
             document.getElementById('cardCountry').parentElement.classList.remove('invalid');
         }
 
-        // Validação do preço
         if (!price || price <= 0) {
             document.getElementById('cardPriceError').textContent = 'Preço deve ser maior que 0.';
             document.getElementById('cardPrice').parentElement.classList.add('invalid');
@@ -779,7 +926,6 @@ const ui = {
             document.getElementById('cardPrice').parentElement.classList.remove('invalid');
         }
 
-        // Validação do estoque
         if (!stock || stock < 0) {
             document.getElementById('cardStockError').textContent = 'Estoque deve ser 0 ou maior.';
             document.getElementById('cardStock').parentElement.classList.add('invalid');
@@ -789,7 +935,6 @@ const ui = {
             document.getElementById('cardStock').parentElement.classList.remove('invalid');
         }
 
-        // Validação do tipo
         if (!type) {
             document.getElementById('cardTypeError').textContent = 'Selecione o tipo do cartão.';
             document.getElementById('cardType').parentElement.classList.add('invalid');
@@ -821,15 +966,17 @@ const ui = {
         if (state.editingCardId) {
             const index = storage.cards.findIndex(c => c.id === state.editingCardId);
             storage.cards[index] = card;
+            this.addLog(`Cartão ${card.number} atualizado`);
         } else {
             storage.cards.push(card);
+            this.addLog(`Cartão ${card.number} adicionado`);
         }
 
         storage.saveCards();
         this.displayAdminCards();
         this.updateStats();
         this.closeCardModal();
-        alert(state.editingCardId ? 'Cartão atualizado com sucesso!' : 'Cartão adicionado com sucesso!');
+        this.showNotification(state.editingCardId ? 'Cartão atualizado com sucesso!' : 'Cartão adicionado com sucesso!');
     },
 
     editCard(cardId) {
@@ -856,13 +1003,89 @@ const ui = {
     },
 
     deleteCard(cardId) {
+        const card = storage.cards.find(c => c.id === cardId);
         if (confirm('Tem certeza que deseja excluir este cartão?')) {
             storage.cards = storage.cards.filter(c => c.id !== cardId);
             storage.saveCards();
             this.displayAdminCards();
             this.updateStats();
-            alert('Cartão excluído com sucesso!');
+            this.addLog(`Cartão ${card.number} excluído`);
+            this.showNotification('Cartão excluído com sucesso!');
         }
+    },
+
+    showBulkEditModal() {
+        const modal = document.getElementById('bulkEditModal');
+        if (modal) {
+            document.getElementById('bulkEditField').value = '';
+            document.getElementById('bulkEditValue').value = '';
+            this.clearBulkEditFormErrors();
+            modal.style.display = 'flex';
+        }
+    },
+
+    closeBulkEditModal() {
+        const modal = document.getElementById('bulkEditModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    },
+
+    clearBulkEditFormErrors() {
+        const errorFields = ['bulkEditFieldError', 'bulkEditValueError'];
+        errorFields.forEach(field => {
+            const element = document.getElementById(field);
+            if (element) {
+                element.textContent = '';
+                element.parentElement.classList.remove('invalid');
+            }
+        });
+    },
+
+    validateBulkEditForm() {
+        const field = document.getElementById('bulkEditField').value;
+        const value = parseFloat(document.getElementById('bulkEditValue').value);
+
+        let isValid = true;
+
+        if (!field) {
+            document.getElementById('bulkEditFieldError').textContent = 'Selecione um campo.';
+            document.getElementById('bulkEditField').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('bulkEditFieldError').textContent = '';
+            document.getElementById('bulkEditField').parentElement.classList.remove('invalid');
+        }
+
+        if (!value || value < 0) {
+            document.getElementById('bulkEditValueError').textContent = 'Insira um valor válido (0 ou maior).';
+            document.getElementById('bulkEditValue').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('bulkEditValueError').textContent = '';
+            document.getElementById('bulkEditValue').parentElement.classList.remove('invalid');
+        }
+
+        return isValid;
+    },
+
+    applyBulkEdit() {
+        if (!this.validateBulkEditForm()) return;
+
+        const field = document.getElementById('bulkEditField').value;
+        const value = parseFloat(document.getElementById('bulkEditValue').value);
+
+        storage.cards.forEach(card => {
+            if (field === 'price') card.price = value;
+            else if (field === 'stock') card.stock = Math.round(value);
+        });
+
+        storage.saveCards();
+        this.displayAdminCards();
+        this.updateStats();
+        this.closeBulkEditModal();
+        this.addLog(`Edição em massa aplicada: ${field} alterado para ${value}`);
+        this.showNotification('Edição em massa aplicada com sucesso!');
     },
 
     editUser(userId) {
@@ -874,7 +1097,8 @@ const ui = {
                 storage.saveUsers();
                 this.displayUsers();
                 this.updateStats();
-                alert('Saldo do usuário atualizado com sucesso!');
+                this.addLog(`Saldo do usuário ${user.username} atualizado para R$ ${user.balance}`);
+                this.showNotification('Saldo do usuário atualizado com sucesso!');
             } else {
                 alert('Por favor, insira um valor válido para o saldo.');
             }
@@ -886,21 +1110,244 @@ const ui = {
             alert('Você não pode excluir sua própria conta.');
             return;
         }
+        const user = storage.users.find(u => u.id === userId);
         if (confirm('Tem certeza que deseja excluir este usuário?')) {
             storage.users = storage.users.filter(u => u.id !== userId);
             storage.saveUsers();
             this.displayUsers();
             this.updateStats();
-            alert('Usuário excluído com sucesso!');
+            this.addLog(`Usuário ${user.username} excluído`);
+            this.showNotification('Usuário excluído com sucesso!');
         }
+    },
+
+    showAddPixModal() {
+        state.editingPixAmount = null;
+        const modal = document.getElementById('pixModal');
+        const modalTitle = document.getElementById('pixModalTitle');
+        if (modal && modalTitle) {
+            modalTitle.textContent = 'Adicionar Nova Configuração PIX';
+            document.getElementById('pixAmount').value = '';
+            document.getElementById('pixKey').value = '';
+            document.getElementById('pixQRCode').value = '';
+            this.clearPixFormErrors();
+            modal.style.display = 'flex';
+        }
+    },
+
+    closePixModal() {
+        const modal = document.getElementById('pixModal');
+        if (modal) {
+            modal.style.display = 'none';
+            state.editingPixAmount = null;
+        }
+    },
+
+    clearPixFormErrors() {
+        const errorFields = ['pixAmountError', 'pixKeyError', 'pixQRCodeError'];
+        errorFields.forEach(field => {
+            const element = document.getElementById(field);
+            if (element) {
+                element.textContent = '';
+                element.parentElement.classList.remove('invalid');
+            }
+        });
+    },
+
+    validatePixForm() {
+        const amount = parseInt(document.getElementById('pixAmount').value);
+        const key = document.getElementById('pixKey').value;
+        const qrCode = document.getElementById('pixQRCode').value;
+
+        let isValid = true;
+
+        if (!amount || amount <= 0 || (storage.pixDetails[amount] && !state.editingPixAmount)) {
+            document.getElementById('pixAmountError').textContent = 'Insira um valor válido e único.';
+            document.getElementById('pixAmount').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('pixAmountError').textContent = '';
+            document.getElementById('pixAmount').parentElement.classList.remove('invalid');
+        }
+
+        if (!key) {
+            document.getElementById('pixKeyError').textContent = 'Chave PIX é obrigatória.';
+            document.getElementById('pixKey').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('pixKeyError').textContent = '';
+            document.getElementById('pixKey').parentElement.classList.remove('invalid');
+        }
+
+        if (!qrCode || !qrCode.startsWith('http')) {
+            document.getElementById('pixQRCodeError').textContent = 'Insira uma URL válida para o QR Code.';
+            document.getElementById('pixQRCode').parentElement.classList.add('invalid');
+            isValid = false;
+        } else {
+            document.getElementById('pixQRCodeError').textContent = '';
+            document.getElementById('pixQRCode').parentElement.classList.remove('invalid');
+        }
+
+        return isValid;
+    },
+
+    savePix() {
+        if (!this.validatePixForm()) return;
+
+        const amount = parseInt(document.getElementById('pixAmount').value);
+        const pix = {
+            key: document.getElementById('pixKey').value,
+            qrCode: document.getElementById('pixQRCode').value
+        };
+
+        if (state.editingPixAmount !== null) {
+            storage.pixDetails[state.editingPixAmount] = pix;
+            this.addLog(`Configuração PIX para R$ ${state.editingPixAmount} atualizada`);
+        } else {
+            storage.pixDetails[amount] = pix;
+            this.addLog(`Configuração PIX para R$ ${amount} adicionada`);
+        }
+
+        storage.savePixDetails();
+        this.displayPixDetails();
+        this.closePixModal();
+        this.showNotification(state.editingPixAmount ? 'Configuração PIX atualizada com sucesso!' : 'Configuração PIX adicionada com sucesso!');
+    },
+
+    editPix(amount) {
+        const pix = storage.pixDetails[amount];
+        if (pix) {
+            state.editingPixAmount = amount;
+            const modal = document.getElementById('pixModal');
+            const modalTitle = document.getElementById('pixModalTitle');
+            if (modal && modalTitle) {
+                modalTitle.textContent = 'Editar Configuração PIX';
+                document.getElementById('pixAmount').value = amount;
+                document.getElementById('pixAmount').disabled = true;
+                document.getElementById('pixKey').value = pix.key;
+                document.getElementById('pixQRCode').value = pix.qrCode;
+                this.clearPixFormErrors();
+                modal.style.display = 'flex';
+            }
+        }
+    },
+
+    deletePix(amount) {
+        if (confirm('Tem certeza que deseja excluir esta configuração PIX?')) {
+            delete storage.pixDetails[amount];
+            storage.savePixDetails();
+            this.displayPixDetails();
+            this.addLog(`Configuração PIX para R$ ${amount} excluída`);
+            this.showNotification('Configuração PIX excluída com sucesso!');
+        }
+    },
+
+    displayPixDetails(searchTerm = '') {
+        const pixList = document.getElementById('pixList');
+        if (pixList) {
+            const filteredPix = Object.entries(storage.pixDetails).filter(([amount, pix]) => 
+                amount.includes(searchTerm) || pix.key.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            pixList.innerHTML = filteredPix.map(([amount, pix]) => `
+                <div class="card-item">
+                    <h2>Valor: R$ ${amount}</h2>
+                    <p>Chave: ${pix.key}</p>
+                    <p>QR Code: <a href="${pix.qrCode}" target="_blank">${pix.qrCode}</a></p>
+                    <div class="buttons">
+                        <button onclick="ui.editPix(${amount})"><i class="fas fa-edit"></i> Editar</button>
+                        <button onclick="ui.deletePix(${amount})"><i class="fas fa-trash-alt"></i> Excluir</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    },
+
+    filterPurchases(searchTerm = '') {
+        const userFilter = document.getElementById('purchaseFilterUser').value;
+        const dateFilter = document.getElementById('purchaseFilterDate').value;
+        const valueFilter = document.getElementById('purchaseFilterValue').value;
+        const purchaseList = document.getElementById('purchaseList');
+        if (purchaseList) {
+            const allPurchases = storage.users.flatMap(user => user.purchases.map(p => ({ ...p, username: user.username })));
+            const filteredPurchases = allPurchases.filter(p => 
+                (!userFilter || p.username === userFilter) &&
+                (!dateFilter || new Date(p.date).toISOString().split('T')[0] === dateFilter) &&
+                (!valueFilter || p.price === parseFloat(valueFilter)) &&
+                (p.username.toLowerCase().includes(searchTerm.toLowerCase()) || p.cardNumber.includes(searchTerm))
+            );
+            purchaseList.innerHTML = filteredPurchases.length > 0
+                ? filteredPurchases.map(p => `
+                    <div class="card-item">
+                        <h2>${p.username}</h2>
+                        <p>Cartão: ${p.cardNumber.slice(0, 6)} **** **** ****</p>
+                        <p>Valor: R$ ${p.price.toFixed(2)}</p>
+                        <p>Data: ${new Date(p.date).toLocaleDateString()}</p>
+                    </div>
+                `).join('')
+                : '<p>Nenhuma compra encontrada.</p>';
+        }
+    },
+
+    globalSearch() {
+        const searchTerm = document.getElementById('globalSearch').value;
+        const activeTab = document.querySelector('.tab-content[style*="block"]')?.id;
+        if (activeTab === 'users') this.displayUsers(searchTerm);
+        else if (activeTab === 'cards') this.displayAdminCards(searchTerm);
+        else if (activeTab === 'purchases') this.filterPurchases(searchTerm);
+        else if (activeTab === 'pix') this.displayPixDetails(searchTerm);
+    },
+
+    exportUsers() {
+        const csv = [
+            'ID,Usuário,Saldo,Compras',
+            ...storage.users.map(user => `${user.id},${user.username},${user.balance.toFixed(2)},${user.purchases.length}`)
+        ].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'users.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.addLog('Exportação de usuários realizada');
+    },
+
+    exportCards() {
+        const csv = [
+            'ID,Número,CVV,Validade,Bandeira,Banco,País,Preço,Estoque,Tipo',
+            ...storage.cards.map(card => `${card.id},${card.number},${card.cvv},${card.expiry},${card.brand},${card.bank},${card.country},${card.price.toFixed(2)},${card.stock},${card.type}`)
+        ].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'cards.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.addLog('Exportação de cartões realizada');
     },
 
     checkOffline() {
         if (!navigator.onLine) {
-            alert('Você está offline. Algumas funcionalidades podem estar limitadas.');
+            this.showNotification('Você está offline. Algumas funcionalidades podem estar limitadas.');
         }
     }
 };
+
+// === Funções de Navegação por Abas ===
+function openTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(tabName).style.display = 'block';
+    document.querySelector(`.tab-button[onclick="openTab('${tabName}')"]`).classList.add('active');
+    if (tabName === 'stats') ui.updateStats();
+    else if (tabName === 'users') ui.displayUsers();
+    else if (tabName === 'cards') ui.displayAdminCards();
+    else if (tabName === 'purchases') ui.filterPurchases();
+    else if (tabName === 'pix') ui.displayPixDetails();
+    else if (tabName === 'logs') ui.displayLogs();
+    ui.globalSearch(); // Aplica o filtro de busca ao mudar de aba
+}
 
 // === Inicialização ===
 function initializeApp() {
@@ -920,77 +1367,117 @@ function initializeApp() {
             } else if (window.location.pathname.includes('dashboard.html')) {
                 const user = storage.users.find(u => u.username === state.currentUser);
                 if (user && user.isAdmin) {
-                    ui.updateStats();
-                    ui.displayUsers();
-                    ui.displayAdminCards();
+                    // Inicializar a aba de estatísticas por padrão
+                    openTab('stats');
+                    
+                    // Preencher o filtro de usuários na aba de compras
+                    const purchaseFilterUser = document.getElementById('purchaseFilterUser');
+                    if (purchaseFilterUser) {
+                        purchaseFilterUser.innerHTML = '<option value="">Todos</option>' +
+                            storage.users.map(user => `<option value="${user.username}">${user.username}</option>`).join('');
+                    }
+
+                    // Adicionar evento para a barra de pesquisa global
+                    const globalSearch = document.getElementById('globalSearch');
+                    if (globalSearch) {
+                        globalSearch.addEventListener('input', () => ui.globalSearch());
+                    }
+
+                    // Verificar se está offline
+                    ui.checkOffline();
+                    window.addEventListener('online', () => ui.showNotification('Conexão restaurada!'));
+                    window.addEventListener('offline', () => ui.checkOffline());
+
+                    // Carregar tema salvo
+                    if (localStorage.getItem('theme') === 'light') {
+                        document.body.classList.add('light');
+                        const themeToggle = document.getElementById('themeToggle');
+                        if (themeToggle) themeToggle.textContent = 'Modo Escuro';
+                    }
+
+                    // Configurar o tema
+                    const themeToggle = document.getElementById('themeToggle');
+                    if (themeToggle) {
+                        themeToggle.addEventListener('click', () => {
+                            localStorage.setItem('theme', document.body.classList.contains('light') ? 'dark' : 'light');
+                        });
+                    }
+
+                    // Adicionar log de acesso ao painel
+                    ui.addLog('Acessou o painel administrativo');
                 } else {
-                    alert('Acesso negado! Você não tem permissões de administrador.');
-                    window.location.href = 'shop.html';
+                    alert('Acesso não autorizado! Você precisa ser administrador.');
+                    window.location.href = 'index.html';
                 }
             }
-        } else if (!window.location.pathname.includes('index.html')) {
-            window.location.href = 'index.html';
+        } else {
+            if (window.location.pathname.includes('dashboard.html') || window.location.pathname.includes('shop.html')) {
+                window.location.href = 'index.html';
+            }
         }
-
-        // Associa eventos de validação em tempo real
-        const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
-        const newUsernameInput = document.getElementById('newUsername');
-        const newPasswordInput = document.getElementById('newPassword');
-        if (usernameInput) usernameInput.addEventListener('input', auth.validateLogin);
-        if (passwordInput) passwordInput.addEventListener('input', auth.validateLogin);
-        if (newUsernameInput) newUsernameInput.addEventListener('input', auth.validateRegister);
-        if (newPasswordInput) newPasswordInput.addEventListener('input', auth.validateRegister);
-
-        // Associa eventos de login e registro
-        document.getElementById('loginButton')?.addEventListener('click', () => auth.login());
-        document.getElementById('registerButton')?.addEventListener('click', () => auth.register());
-
-        // Associa Enter para login e registro
-        const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
-        if (loginForm) {
-            loginForm.querySelectorAll('input').forEach(input => {
-                input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') auth.login();
-                });
-            });
-        }
-        if (registerForm) {
-            registerForm.querySelectorAll('input').forEach(input => {
-                input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') auth.register();
-                });
-            });
-        }
-
-        ui.checkOffline();
     });
 }
 
-document.addEventListener('DOMContentLoaded', initializeApp);
+// === Funções Globais ===
+function toggleTheme() {
+    ui.toggleTheme();
+}
 
-// Expondo funções globais necessárias
-window.toggleTheme = ui.toggleTheme;
-window.showRegisterForm = ui.showRegisterForm;
-window.showLoginForm = ui.showLoginForm;
-window.showAccountInfo = ui.showAccountInfo;
-window.logout = auth.logout;
-window.showAddBalanceForm = ui.showAddBalanceForm;
-window.closeModal = ui.closeModal;
-window.selectRecharge = ui.selectRecharge;
-window.copyPixKey = ui.copyPixKey;
-window.addBalance = ui.addBalance;
-window.filterCards = ui.filterCards;
-window.finalizePurchase = cart.finalizePurchase;
-window.forgotPassword = auth.forgotPassword;
-window.addToCart = cart.addToCart;
-window.removeFromCart = cart.removeFromCart;
-window.buyCard = cart.buyCard;
-window.showAddCardModal = ui.showAddCardModal;
-window.closeCardModal = ui.closeCardModal;
-window.saveCard = ui.saveCard;
-window.editCard = ui.editCard;
-window.deleteCard = ui.deleteCard;
-window.editUser = ui.editUser;
-window.deleteUser = ui.deleteUser;
+function showAddCardModal() {
+    ui.showAddCardModal();
+}
+
+function closeCardModal() {
+    ui.closeCardModal();
+}
+
+function saveCard() {
+    ui.saveCard();
+}
+
+function showAddPixModal() {
+    ui.showAddPixModal();
+}
+
+function closePixModal() {
+    ui.closePixModal();
+}
+
+function savePix() {
+    ui.savePix();
+}
+
+function showBulkEditModal() {
+    ui.showBulkEditModal();
+}
+
+function closeBulkEditModal() {
+    ui.closeBulkEditModal();
+}
+
+function applyBulkEdit() {
+    ui.applyBulkEdit();
+}
+
+function exportUsers() {
+    ui.exportUsers();
+}
+
+function exportCards() {
+    ui.exportCards();
+}
+
+function exportLogs() {
+    ui.exportLogs();
+}
+
+function clearLogs() {
+    ui.clearLogs();
+}
+
+function logout() {
+    auth.logout();
+}
+
+// === Inicializar a Aplicação ===
+document.addEventListener('DOMContentLoaded', initializeApp);
