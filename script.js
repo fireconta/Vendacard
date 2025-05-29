@@ -36,7 +36,7 @@ const storage = {
     users: JSON.parse(localStorage.getItem('users')) || [],
     cards: JSON.parse(localStorage.getItem('cards')) || [
         { id: '1', number: '1234567890123456', cvv: '123', expiry: '12/25', brand: 'Visa', bank: 'Banco do Brasil S.A.', country: 'Brasil', price: 10.00, stock: 10, type: 'Crédito', name: 'João Silva', cpf: '123.456.789-00', level: 'Padrão' },
-        { id: '2', number: '9876543210987654', cvv: '456', expiry: '11/26', brand: 'Mastercard', bank: 'Banco Inter', country: 'Brasil', price: 15.00, stock: 5, type: 'Débito', name: 'Maria Oliveira', cpf: '987.654.321-00', level: 'Gold' }
+        { id: '2', number: '9876543210987654', cvv: '456', expiry: '11/26', brand: 'Mastercard', bank: 'Banco Inter', country: 'Brasil', price: '15.00', stock: 5, type: 'Débito', name: 'Maria Oliveira', cpf: '987.654.321-00', level: 'Gold' }
     ],
     pixDetails: JSON.parse(localStorage.getItem('pixDetails')) || {
         40: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" },
@@ -44,7 +44,6 @@ const storage = {
         150: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" },
         300: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" }
     },
-
     saveUsers() { localStorage.setItem('users', JSON.stringify(this.users)); },
     saveCards() { localStorage.setItem('cards', JSON.stringify(this.cards)); },
     savePixDetails() { localStorage.setItem('pixDetails', JSON.stringify(this.pixDetails)); },
@@ -61,38 +60,229 @@ function formatCpf(input) { let value = input.value.replace(/\D/g, ''); if (valu
 // === Autenticação ===
 const auth = {
     generateUniqueId() { let id; do { id = Math.floor(100000 + Math.random() * 900000).toString(); } while (storage.users.some(u => u.id === id)); return id; },
-    async hashPassword(password) { if (window.crypto && window.crypto.subtle) { const encoder = new TextEncoder(); const data = encoder.encode(password); const hash = await window.crypto.subtle.digest('SHA-256', data); return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join(''); } function md5(str) { /* Placeholder MD5 implementation */ return str; } return md5(password); },
-    validateLogin() { /* Placeholder validation */ return true; },
-    validateRegister() { /* Placeholder validation */ return true; },
-    async initializeData() { if (!storage.users.some(u => u.username === 'LVz')) { const defaultPassword = '123456'; const passwordHash = await this.hashPassword(defaultPassword); storage.users.push({ id: this.generateUniqueId(), username: 'LVz', password: passwordHash, balance: 0, purchases: [], isAdmin: false }); storage.saveUsers(); } if (storage.cards.length === 0) { storage.cards = [/* Initial cards */]; storage.saveCards(); } ui.updateNavbarVisibility(); },
-    async login() { /* Placeholder login */ },
-    async register() { /* Placeholder register */ },
+    async hashPassword(password) { 
+        if (window.crypto && window.crypto.subtle) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hash = await window.crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        function md5(str) { return str; }
+        return md5(password);
+    },
+    validateLogin(username, password) {
+        if (!username || !password) {
+            document.getElementById('usernameError').textContent = !username ? 'Usuário é obrigatório.' : '';
+            document.getElementById('passwordError').textContent = !password ? 'Senha é obrigatória.' : '';
+            return false;
+        }
+        const user = storage.users.find(u => u.username === username);
+        if (!user) {
+            document.getElementById('usernameError').textContent = 'Usuário não encontrado.';
+            return false;
+        }
+        return user;
+    },
+    validateRegister(username, password) {
+        if (!username || !password) {
+            document.getElementById('newUsernameError').textContent = !username ? 'Usuário é obrigatório.' : '';
+            document.getElementById('newPasswordError').textContent = !password ? 'Senha é obrigatória.' : '';
+            return false;
+        }
+        if (username.length < 3) {
+            document.getElementById('newUsernameError').textContent = 'Usuário deve ter pelo menos 3 caracteres.';
+            return false;
+        }
+        if (password.length < CONFIG.MIN_PASSWORD_LENGTH) {
+            document.getElementById('newPasswordError').textContent = `Senha deve ter pelo menos ${CONFIG.MIN_PASSWORD_LENGTH} caracteres.`;
+            return false;
+        }
+        if (storage.users.some(u => u.username === username)) {
+            document.getElementById('newUsernameError').textContent = 'Usuário já existe.';
+            return false;
+        }
+        return true;
+    },
+    async initializeData() {
+        if (!storage.users.some(u => u.username === 'LVz')) {
+            const defaultPassword = '123456';
+            const passwordHash = await this.hashPassword(defaultPassword);
+            storage.users.push({ id: this.generateUniqueId(), username: 'LVz', password: passwordHash, balance: 0, purchases: [], isAdmin: false });
+            storage.saveUsers();
+        }
+        if (storage.cards.length === 0) {
+            storage.cards = [
+                { id: '1', number: '1234567890123456', cvv: '123', expiry: '12/25', brand: 'Visa', bank: 'Banco do Brasil S.A.', country: 'Brasil', price: 10.00, stock: 10, type: 'Crédito', name: 'João Silva', cpf: '123.456.789-00', level: 'Padrão' },
+                { id: '2', number: '9876543210987654', cvv: '456', expiry: '11/26', brand: 'Mastercard', bank: 'Banco Inter', country: 'Brasil', price: 15.00, stock: 5, type: 'Débito', name: 'Maria Oliveira', cpf: '987.654.321-00', level: 'Gold' }
+            ];
+            storage.saveCards();
+        }
+        ui.updateNavbarVisibility();
+        ui.showAccountInfo();
+    },
+    async login() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const loginLoader = document.getElementById('loginLoader');
+        const loginAttemptsDisplay = document.getElementById('loginAttempts');
+
+        if (state.loginBlockedUntil > Date.now()) {
+            const remainingTime = Math.ceil((state.loginBlockedUntil - Date.now()) / 1000);
+            loginAttemptsDisplay.textContent = `Muitas tentativas. Tente novamente em ${remainingTime} segundos.`;
+            return;
+        }
+
+        const user = this.validateLogin(username, password);
+        if (!user) {
+            state.loginAttempts++;
+            if (state.loginAttempts >= CONFIG.MAX_LOGIN_ATTEMPTS) {
+                state.loginBlockedUntil = Date.now() + CONFIG.LOGIN_BLOCK_TIME;
+                state.loginAttempts = 0;
+                loginAttemptsDisplay.textContent = `Muitas tentativas. Tente novamente em ${CONFIG.LOGIN_BLOCK_TIME / 1000} segundos.`;
+            } else {
+                loginAttemptsDisplay.textContent = `Tentativas restantes: ${CONFIG.MAX_LOGIN_ATTEMPTS - state.loginAttempts}`;
+            }
+            return;
+        }
+
+        loginLoader.style.display = 'block';
+        const hashedPassword = await this.hashPassword(password);
+        if (hashedPassword === user.password) {
+            state.currentUser = username;
+            localStorage.setItem('loggedIn', 'true');
+            localStorage.setItem('currentUser', username);
+            state.loginAttempts = 0;
+            loginAttemptsDisplay.textContent = '';
+            ui.showAccountInfo();
+            ui.addLog(`Login bem-sucedido para ${username}`);
+            ui.showNotification('Login bem-sucedido!');
+        } else {
+            document.getElementById('passwordError').textContent = 'Senha incorreta.';
+            state.loginAttempts++;
+            if (state.loginAttempts >= CONFIG.MAX_LOGIN_ATTEMPTS) {
+                state.loginBlockedUntil = Date.now() + CONFIG.LOGIN_BLOCK_TIME;
+                state.loginAttempts = 0;
+                loginAttemptsDisplay.textContent = `Muitas tentativas. Tente novamente em ${CONFIG.LOGIN_BLOCK_TIME / 1000} segundos.`;
+            } else {
+                loginAttemptsDisplay.textContent = `Tentativas restantes: ${CONFIG.MAX_LOGIN_ATTEMPTS - state.loginAttempts}`;
+            }
+        }
+        loginLoader.style.display = 'none';
+    },
+    async register() {
+        const username = document.getElementById('newUsername').value.trim();
+        const password = document.getElementById('newPassword').value.trim();
+
+        if (!this.validateRegister(username, password)) return;
+
+        const hashedPassword = await this.hashPassword(password);
+        const newUser = {
+            id: this.generateUniqueId(),
+            username: username,
+            password: hashedPassword,
+            balance: 0,
+            purchases: [],
+            isAdmin: false
+        };
+        storage.users.push(newUser);
+        storage.saveUsers();
+        state.currentUser = username;
+        localStorage.setItem('loggedIn', 'true');
+        localStorage.setItem('currentUser', username);
+        ui.showAccountInfo();
+        ui.addLog(`Novo usuário registrado: ${username}`);
+        ui.showNotification('Registro bem-sucedido! Bem-vindo ao CardShop!');
+    },
     forgotPassword() { alert('Funcionalidade de recuperação de senha não implementada. Contate o suporte.'); },
-    logout() { localStorage.removeItem('loggedIn'); localStorage.removeItem('currentUser'); state.currentUser = null; window.location.href = 'index.html'; },
-    checkAdminMode() { const cartIcon = document.getElementById('cartIcon'); if (cartIcon) cartIcon.addEventListener('click', () => { state.clickCount++; if (state.clickCount >= CONFIG.ADMIN_CLICKS) { const password = prompt('Insira a senha para acessar o Painel Admin:'); if (password === CONFIG.ADMIN_PASSWORD) { const adminUser = storage.users.find(u => u.username === state.currentUser); if (adminUser) { adminUser.isAdmin = true; storage.saveUsers(); alert('Acesso ao Painel Admin concedido!'); window.location.href = 'dashboard.html'; } else { alert('Usuário não encontrado. Faça login novamente.'); window.location.href = 'index.html'; } } else { alert('Senha incorreta!'); state.clickCount = 0; } } }); }
+    logout() { 
+        localStorage.removeItem('loggedIn'); 
+        localStorage.removeItem('currentUser'); 
+        state.currentUser = null; 
+        ui.addLog('Logout realizado');
+        window.location.href = 'index.html'; 
+    },
+    checkAdminMode() { 
+        const cartIcon = document.getElementById('cartIcon'); 
+        if (cartIcon) cartIcon.addEventListener('click', () => { 
+            state.clickCount++; 
+            if (state.clickCount >= CONFIG.ADMIN_CLICKS) { 
+                const password = prompt('Insira a senha para acessar o Painel Admin:'); 
+                if (password === CONFIG.ADMIN_PASSWORD) { 
+                    const adminUser = storage.users.find(u => u.username === state.currentUser); 
+                    if (adminUser) { 
+                        adminUser.isAdmin = true; 
+                        storage.saveUsers(); 
+                        alert('Acesso ao Painel Admin concedido!'); 
+                        window.location.href = 'dashboard.html'; 
+                    } else { 
+                        alert('Usuário não encontrado. Faça login novamente.'); 
+                        window.location.href = 'index.html'; 
+                    } 
+                } else { 
+                    alert('Senha incorreta!'); 
+                    state.clickCount = 0; 
+                } 
+            } 
+        }); 
+    }
 };
 
 // === Interface do Usuário ===
 const ui = {
-    toggleTheme() { document.body.classList.toggle('dark'); const themeToggle = document.getElementById('themeToggle'); if (themeToggle) themeToggle.textContent = document.body.classList.contains('dark') ? 'Modo Claro' : 'Modo Escuro'; },
-    updateNavbarVisibility() { const navbar = document.getElementById('navbar'); if (navbar && localStorage.getItem('loggedIn')) navbar.style.display = 'flex'; else if (navbar) navbar.style.display = 'none'; },
-    showRegisterForm() { /* Placeholder */ },
-    showLoginForm() { /* Placeholder */ },
+    toggleTheme() { 
+        document.body.classList.toggle('dark'); 
+        const themeToggle = document.getElementById('themeToggle'); 
+        if (themeToggle) themeToggle.textContent = document.body.classList.contains('dark') ? 'Modo Claro' : 'Modo Escuro'; 
+        localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    },
+    updateNavbarVisibility() { 
+        const navbar = document.getElementById('navbar'); 
+        if (navbar && localStorage.getItem('loggedIn')) navbar.style.display = 'flex'; 
+        else if (navbar) navbar.style.display = 'none'; 
+    },
+    showRegisterForm() { 
+        document.getElementById('loginForm').style.display = 'none'; 
+        document.getElementById('registerForm').style.display = 'block'; 
+        document.getElementById('accountInfo').style.display = 'none'; 
+        document.getElementById('usernameError').textContent = '';
+        document.getElementById('passwordError').textContent = '';
+    },
+    showLoginForm() { 
+        document.getElementById('loginForm').style.display = 'block'; 
+        document.getElementById('registerForm').style.display = 'none'; 
+        document.getElementById('accountInfo').style.display = 'none'; 
+        document.getElementById('newUsernameError').textContent = '';
+        document.getElementById('newPasswordError').textContent = '';
+    },
     showAccountInfo() {
-        const accountInfo = document.getElementById('accountInfo');
-        if (accountInfo) {
-            const user = storage.users.find(u => u.username === state.currentUser);
-            if (user) {
-                accountInfo.innerHTML = `
-                    <h2>Minha Conta</h2>
-                    <p>Usuário: ${user.username}</p>
-                    <p>Saldo: R$ ${user.balance.toFixed(2)}</p>
-                    <h3>Conquistas</h3>
-                    <div id="achievementsList" class="achievements"></div>
-                `;
-                this.updateAchievements();
-            }
+        const user = storage.users.find(u => u.username === state.currentUser);
+        if (!user) return;
+
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('accountInfo').style.display = 'block';
+
+        document.getElementById('userName').textContent = user.username;
+        document.getElementById('userId').textContent = user.id;
+        document.getElementById('userBalanceAccount').textContent = user.balance.toFixed(2);
+
+        const purchaseHistory = document.getElementById('purchaseHistory');
+        if (purchaseHistory) {
+            purchaseHistory.innerHTML = user.purchases.length > 0 
+                ? user.purchases.map(p => `
+                    <div class="purchase-item">
+                        <p><strong>Cartão:</strong> ${p.cardNumber.slice(0, 6)} **** **** ****</p>
+                        <p><strong>Bandeira:</strong> ${p.brand}</p>
+                        <p><strong>Preço:</strong> R$ ${p.price.toFixed(2)}</p>
+                        <p><strong>Data:</strong> ${new Date(p.date).toLocaleString()}</p>
+                    </div>
+                `).join('')
+                : '<p>Sem compras realizadas.</p>';
         }
+
+        this.updateAchievements();
+        this.updateProgressBar();
+        ui.updateNavbarVisibility();
     },
     updateAchievements() {
         const user = storage.users.find(u => u.username === state.currentUser);
@@ -105,8 +295,14 @@ const ui = {
                 }).join('');
         }
     },
-    showAddBalanceForm() { const rechargeModal = document.getElementById('rechargeModal'); if (rechargeModal) rechargeModal.style.display = 'flex'; },
-    closeModal() { const rechargeModal = document.getElementById('rechargeModal'); if (rechargeModal) rechargeModal.style.display = 'none'; },
+    showAddBalanceForm() { 
+        const rechargeModal = document.getElementById('rechargeModal'); 
+        if (rechargeModal) rechargeModal.style.display = 'flex'; 
+    },
+    closeModal() { 
+        const rechargeModal = document.getElementById('rechargeModal'); 
+        if (rechargeModal) rechargeModal.style.display = 'none'; 
+    },
     selectRecharge(amount) {
         state.selectedRechargeAmount = amount;
         let bonusRate = 0.5;
@@ -139,8 +335,23 @@ const ui = {
         document.getElementById('customBonusText').textContent = `Bônus: R$ ${bonus.toFixed(2)} (${(bonusRate * 100)}%)`;
         this.selectRecharge(amount);
     },
-    copyPixKey() { const pixKey = document.getElementById('pixKey')?.textContent; if (pixKey && pixKey !== 'Carregando...') { navigator.clipboard.writeText(pixKey).then(() => alert('Chave Pix copiada para a área de transferência!')); } else alert('Chave Pix não disponível.'); },
-    updatePixDetailsDisplay() { const pixKeySpan = document.getElementById('pixKey'); const pixQRCodeImg = document.getElementById('pixQRCode'); if (state.selectedRechargeAmount && storage.pixDetails[state.selectedRechargeAmount]) { if (pixKeySpan) pixKeySpan.textContent = storage.pixDetails[state.selectedRechargeAmount].key; if (pixQRCodeImg) pixQRCodeImg.src = storage.pixDetails[state.selectedRechargeAmount].qrCode; } else { if (pixKeySpan) pixKeySpan.textContent = 'Chave não configurada'; if (pixQRCodeImg) pixQRCodeImg.src = 'https://via.placeholder.com/150'; } },
+    copyPixKey() { 
+        const pixKey = document.getElementById('pixKey')?.textContent; 
+        if (pixKey && pixKey !== 'Carregando...') { 
+            navigator.clipboard.writeText(pixKey).then(() => alert('Chave Pix copiada para a área de transferência!')); 
+        } else alert('Chave Pix não disponível.'); 
+    },
+    updatePixDetailsDisplay() { 
+        const pixKeySpan = document.getElementById('pixKey'); 
+        const pixQRCodeImg = document.getElementById('pixQRCode'); 
+        if (state.selectedRechargeAmount && storage.pixDetails[state.selectedRechargeAmount]) { 
+            if (pixKeySpan) pixKeySpan.textContent = storage.pixDetails[state.selectedRechargeAmount].key; 
+            if (pixQRCodeImg) pixQRCodeImg.src = storage.pixDetails[state.selectedRechargeAmount].qrCode; 
+        } else { 
+            if (pixKeySpan) pixKeySpan.textContent = 'Chave não configurada'; 
+            if (pixQRCodeImg) pixQRCodeImg.src = 'https://via.placeholder.com/150'; 
+        } 
+    },
     addBalance(amount, bonus) {
         const user = storage.users.find(u => u.username === state.currentUser);
         if (user) {
@@ -148,13 +359,16 @@ const ui = {
             user.balance += totalCredit;
             storage.saveUsers();
             const userBalance = document.getElementById('userBalance');
+            const userBalanceAccount = document.getElementById('userBalanceAccount');
             if (userBalance) userBalance.textContent = user.balance.toFixed(2);
+            if (userBalanceAccount) userBalanceAccount.textContent = user.balance.toFixed(2);
             const pixPayment = document.getElementById('pixPayment');
             if (pixPayment) pixPayment.style.display = 'none';
             alert(`Saldo adicionado com sucesso! Você recarregou R$ ${amount.toFixed(2)} e recebeu R$ ${totalCredit.toFixed(2)} (incluindo bônus de R$ ${bonus.toFixed(2)}).`);
             this.showNotification('Saldo atualizado!');
             this.checkAchievements(amount);
             this.updateProgressBar();
+            this.showAccountInfo();
         }
     },
     checkAchievements(amount) {
@@ -189,8 +403,10 @@ const ui = {
                 if (progress === 100) {
                     user.balance -= target;
                     storage.saveUsers();
-                    document.getElementById('userBalance').textContent = user.balance.toFixed(2);
+                    if (document.getElementById('userBalance')) document.getElementById('userBalance').textContent = user.balance.toFixed(2);
+                    if (document.getElementById('userBalanceAccount')) document.getElementById('userBalanceAccount').textContent = user.balance.toFixed(2);
                     this.showNotification('Cartão grátis creditado!');
+                    this.updateProgressBar();
                 }
             }
         }
@@ -280,9 +496,13 @@ const ui = {
         const totalCards = storage.cards.length;
         const totalBalance = storage.users.reduce((sum, user) => sum + (user.balance || 0), 0);
 
-        document.getElementById('totalUsers').textContent = totalUsers;
-        document.getElementById('totalCards').textContent = totalCards;
-        document.getElementById('totalBalance').textContent = totalBalance.toFixed(2);
+        const totalUsersElement = document.getElementById('totalUsers');
+        const totalCardsElement = document.getElementById('totalCards');
+        const totalBalanceElement = document.getElementById('totalBalance');
+
+        if (totalUsersElement) totalUsersElement.textContent = totalUsers;
+        if (totalCardsElement) totalCardsElement.textContent = totalCards;
+        if (totalBalanceElement) totalBalanceElement.textContent = totalBalance.toFixed(2);
 
         this.updateBalanceChart();
         this.updateSalesChart();
@@ -337,7 +557,7 @@ const ui = {
         const log = {
             timestamp: new Date().toISOString(),
             action: action,
-            user: state.currentUser,
+            user: state.currentUser || 'Anônimo',
             ip: ip,
             details: details,
             type: action.includes('Exclu') ? 'delete' : action.includes('Edit') ? 'edit' : action.includes('Adicion') ? 'create' : 'other'
@@ -363,7 +583,14 @@ const ui = {
             `).join('');
         }
     },
-    clearLogs() { if (confirm('Tem certeza que deseja limpar todos os logs?')) { state.logs = []; storage.saveLogs(); this.displayLogs(); this.showNotification('Logs limpos com sucesso!'); } },
+    clearLogs() { 
+        if (confirm('Tem certeza que deseja limpar todos os logs?')) { 
+            state.logs = []; 
+            storage.saveLogs(); 
+            this.displayLogs(); 
+            this.showNotification('Logs limpos com sucesso!'); 
+        } 
+    },
     exportLogs(format) {
         const data = state.logs.map(log => ({
             timestamp: new Date(log.timestamp).toLocaleString(),
@@ -412,16 +639,130 @@ const ui = {
         };
         input.click();
     },
-    showAddCardModal() { state.editingCardId = null; document.getElementById('modalTitle').textContent = 'Adicionar Novo Cartão'; /* Clear form */ document.getElementById('cardModal').style.display = 'flex'; },
-    showBulkEditModal() { document.getElementById('bulkEditField').value = ''; document.getElementById('bulkEditValue').value = ''; document.getElementById('bulkEditModal').style.display = 'flex'; },
-    showAddPixModal() { state.editingPixAmount = null; document.getElementById('pixModalTitle').textContent = 'Adicionar Configuração PIX'; /* Clear form */ document.getElementById('pixModal').style.display = 'flex'; },
-    editUser(userId) { const user = storage.users.find(u => u.id === userId); if (user) { user.balance = parseFloat(prompt(`Novo saldo para ${user.username} (R$):`, user.balance)) || user.balance; storage.saveUsers(); this.displayUsers(); this.addLog(`Editado saldo do usuário ${user.username}`, { newBalance: user.balance }); } },
-    deleteUser(userId) { if (confirm('Tem certeza que deseja excluir este usuário?')) { const userIndex = storage.users.findIndex(u => u.id === userId); if (userIndex !== -1) { storage.users.splice(userIndex, 1); storage.saveUsers(); this.displayUsers(); this.addLog(`Excluído usuário com ID ${userId}`); } } },
-    editCard(cardId) { const card = storage.cards.find(c => c.id === cardId); if (card) { state.editingCardId = cardId; document.getElementById('modalTitle').textContent = 'Editar Cartão'; /* Fill form */ document.getElementById('cardModal').style.display = 'flex'; } },
-    deleteCard(cardId) { if (confirm('Tem certeza que deseja excluir este cartão?')) { const cardIndex = storage.cards.findIndex(c => c.id === cardId); if (cardIndex !== -1) { storage.cards.splice(cardIndex, 1); storage.saveCards(); this.displayAdminCards(); this.addLog(`Excluído cartão com ID ${cardId}`); } } },
-    saveCard() { const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, ''); /* Placeholder validation */ const cardData = { id: state.editingCardId || Math.random().toString(36).substr(2, 9), number: cardNumber, /* Other fields */ }; if (state.editingCardId) { const cardIndex = storage.cards.findIndex(c => c.id === state.editingCardId); if (cardIndex !== -1) { storage.cards[cardIndex] = cardData; this.addLog(`Editado cartão com ID ${state.editingCardId}`, { changes: cardData }); } } else { storage.cards.push(cardData); this.addLog(`Adicionado novo cartão com ID ${cardData.id}`, { card: cardData }); } storage.saveCards(); document.getElementById('cardModal').style.display = 'none'; this.clearCardFormErrors(); },
-    clearCardFormErrors() { /* Placeholder clear errors */ },
-    applyBulkEdit() { const field = document.getElementById('bulkEditField').value; const value = document.getElementById('bulkEditValue').value; if (!field || !value) { document.getElementById('bulkEditFieldError').textContent = 'Selecione um campo e insira um valor.'; return; } const numericFields = ['price', 'stock']; const newValue = numericFields.includes(field) ? parseFloat(value) : value; if (isNaN(newValue) && numericFields.includes(field)) { document.getElementById('bulkEditValueError').textContent = 'Valor deve ser numérico.'; return; } storage.cards.forEach(card => card[field] = newValue); storage.saveCards(); document.getElementById('bulkEditModal').style.display = 'none'; this.displayAdminCards(); this.addLog(`Edição em massa aplicada no campo ${field} com valor ${value}`, { field, value }); },
+    showAddCardModal() { 
+        state.editingCardId = null; 
+        document.getElementById('modalTitle').textContent = 'Adicionar Novo Cartão'; 
+        document.getElementById('cardModal').style.display = 'flex'; 
+    },
+    showBulkEditModal() { 
+        document.getElementById('bulkEditField').value = ''; 
+        document.getElementById('bulkEditValue').value = ''; 
+        document.getElementById('bulkEditModal').style.display = 'flex'; 
+    },
+    showAddPixModal() { 
+        state.editingPixAmount = null; 
+        document.getElementById('pixModalTitle').textContent = 'Adicionar Configuração PIX'; 
+        document.getElementById('pixModal').style.display = 'flex'; 
+    },
+    editUser(userId) { 
+        const user = storage.users.find(u => u.id === userId); 
+        if (user) { 
+            user.balance = parseFloat(prompt(`Novo saldo para ${user.username} (R$):`, user.balance)) || user.balance; 
+            storage.saveUsers(); 
+            this.displayUsers(); 
+            this.addLog(`Editado saldo do usuário ${user.username}`, { newBalance: user.balance }); 
+        } 
+    },
+    deleteUser(userId) { 
+        if (confirm('Tem certeza que deseja excluir este usuário?')) { 
+            const userIndex = storage.users.findIndex(u => u.id === userId); 
+            if (userIndex !== -1) { 
+                storage.users.splice(userIndex, 1); 
+                storage.saveUsers(); 
+                this.displayUsers(); 
+                this.addLog(`Excluído usuário com ID ${userId}`); 
+            } 
+        } 
+    },
+    editCard(cardId) { 
+        const card = storage.cards.find(c => c.id === cardId); 
+        if (card) { 
+            state.editingCardId = cardId; 
+            document.getElementById('modalTitle').textContent = 'Editar Cartão'; 
+            document.getElementById('cardModal').style.display = 'flex'; 
+        } 
+    },
+    deleteCard(cardId) { 
+        if (confirm('Tem certeza que deseja excluir este cartão?')) { 
+            const cardIndex = storage.cards.findIndex(c => c.id === cardId); 
+            if (cardIndex !== -1) { 
+                storage.cards.splice(cardIndex, 1); 
+                storage.saveCards(); 
+                this.displayAdminCards(); 
+                this.addLog(`Excluído cartão com ID ${cardId}`); 
+            } 
+        } 
+    },
+    saveCard() { 
+        const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, ''); 
+        const cardCvv = document.getElementById('cardCvv').value;
+        const cardExpiry = document.getElementById('cardExpiry').value;
+        const cardBrand = document.getElementById('cardBrand').value;
+        const cardBank = document.getElementById('cardBank').value;
+        const cardCountry = document.getElementById('cardCountry').value;
+        const cardPrice = parseFloat(document.getElementById('cardPrice').value);
+        const cardStock = parseInt(document.getElementById('cardStock').value);
+        const cardType = document.getElementById('cardType').value;
+        const cardName = document.getElementById('cardName').value;
+        const cardCpf = document.getElementById('cardCpf').value;
+        const cardLevel = document.getElementById('cardLevel').value;
+
+        const cardData = { 
+            id: state.editingCardId || Math.random().toString(36).substr(2, 9), 
+            number: cardNumber, 
+            cvv: cardCvv, 
+            expiry: cardExpiry, 
+            brand: cardBrand, 
+            bank: cardBank, 
+            country: cardCountry, 
+            price: cardPrice, 
+            stock: cardStock, 
+            type: cardType, 
+            name: cardName, 
+            cpf: cardCpf, 
+            level: cardLevel 
+        };
+
+        if (state.editingCardId) {
+            const cardIndex = storage.cards.findIndex(c => c.id === state.editingCardId);
+            if (cardIndex !== -1) {
+                storage.cards[cardIndex] = cardData;
+                this.addLog(`Editado cartão com ID ${state.editingCardId}`, { changes: cardData });
+            }
+        } else {
+            storage.cards.push(cardData);
+            this.addLog(`Adicionado novo cartão com ID ${cardData.id}`, { card: cardData });
+        }
+        storage.saveCards();
+        document.getElementById('cardModal').style.display = 'none';
+        this.clearCardFormErrors();
+    },
+    clearCardFormErrors() { 
+        const errorFields = ['cardNumberError', 'cardCvvError', 'cardExpiryError', 'cardBrandError', 'cardBankError', 'cardCountryError', 'cardPriceError', 'cardStockError', 'cardTypeError', 'cardNameError', 'cardCpfError', 'cardLevelError'];
+        errorFields.forEach(field => {
+            const element = document.getElementById(field);
+            if (element) element.textContent = '';
+        });
+    },
+    applyBulkEdit() { 
+        const field = document.getElementById('bulkEditField').value; 
+        const value = document.getElementById('bulkEditValue').value; 
+        if (!field || !value) { 
+            document.getElementById('bulkEditFieldError').textContent = 'Selecione um campo e insira um valor.'; 
+            return; 
+        } 
+        const numericFields = ['price', 'stock']; 
+        const newValue = numericFields.includes(field) ? parseFloat(value) : value; 
+        if (isNaN(newValue) && numericFields.includes(field)) { 
+            document.getElementById('bulkEditValueError').textContent = 'Valor deve ser numérico.'; 
+            return; 
+        } 
+        storage.cards.forEach(card => card[field] = newValue); 
+        storage.saveCards(); 
+        document.getElementById('bulkEditModal').style.display = 'none'; 
+        this.displayAdminCards(); 
+        this.addLog(`Edição em massa aplicada no campo ${field} com valor ${value}`, { field, value }); 
+    },
     savePix() { /* Placeholder save pix */ },
     editPix(amount) { /* Placeholder edit pix */ },
     displayPixConfigs() { /* Placeholder display pix configs */ },
@@ -455,7 +796,10 @@ function buyCard(cardNumber) {
     }
 }
 
-function closeConfirmPurchaseModal() { document.getElementById('confirmPurchaseModal').style.display = 'none'; }
+function closeConfirmPurchaseModal() { 
+    document.getElementById('confirmPurchaseModal').style.display = 'none'; 
+}
+
 function confirmPurchase() {
     const cardNumber = document.querySelector('#confirmCardDetails .card-item h2')?.textContent.replace(/\s/g, '');
     const card = storage.cards.find(c => c.number === cardNumber);
@@ -464,32 +808,89 @@ function confirmPurchase() {
     if (card && user && user.balance >= card.price && card.stock > 0) {
         user.balance -= card.price;
         card.stock--;
-        user.purchases.push({ cardNumber: card.number, expiry: card.expiry, brand: card.brand, bank: card.bank, country: card.country, type: card.type, price: card.price, date: new Date().toISOString(), name: card.name, cpf: card.cpf, level: card.level });
+        user.purchases.push({ 
+            cardNumber: card.number, 
+            expiry: card.expiry, 
+            brand: card.brand, 
+            bank: card.bank, 
+            country: card.country, 
+            type: card.type, 
+            price: card.price, 
+            date: new Date().toISOString(), 
+            name: card.name, 
+            cpf: card.cpf, 
+            level: card.level 
+        });
         storage.saveUsers();
         storage.saveCards();
         document.getElementById('userBalance').textContent = user.balance.toFixed(2);
+        if (document.getElementById('userBalanceAccount')) document.getElementById('userBalanceAccount').textContent = user.balance.toFixed(2);
         closeConfirmPurchaseModal();
         alert('Compra realizada com sucesso!');
         ui.filterCards();
         ui.addLog(`Compra realizada por ${user.username} do cartão ${card.number}`, { price: card.price, stock: card.stock });
         ui.showNotification('Compra confirmada!');
+        ui.showAccountInfo();
     } else {
         alert('Saldo insuficiente ou cartão fora de estoque.');
     }
 }
 
-function showCardDetails(cardNumber) { /* Placeholder show card details */ }
-function closeCardDetailsModal() { document.getElementById('cardDetailsModal').style.display = 'none'; }
+function showCardDetails(cardNumber) { 
+    const card = storage.cards.find(c => c.number === cardNumber);
+    if (card) {
+        const cardDetailsContent = document.getElementById('cardDetailsContent');
+        if (cardDetailsContent) {
+            cardDetailsContent.innerHTML = `
+                <p><strong>Número:</strong> ${card.number}</p>
+                <p><strong>CVV:</strong> ${card.cvv}</p>
+                <p><strong>Validade:</strong> ${card.expiry}</p>
+                <p><strong>Bandeira:</strong> ${card.brand}</p>
+                <p><strong>Banco:</strong> ${card.bank}</p>
+                <p><strong>País:</strong> ${card.country}</p>
+                <p><strong>Preço:</strong> R$ ${card.price.toFixed(2)}</p>
+                <p><strong>Estoque:</strong> ${card.stock}</p>
+                <p><strong>Tipo:</strong> ${card.type}</p>
+                <p><strong>Nome:</strong> ${card.name}</p>
+                <p><strong>CPF:</strong> ${card.cpf}</p>
+                <p><strong>Nível:</strong> ${card.level}</p>
+            `;
+            document.getElementById('cardDetailsModal').style.display = 'flex';
+        }
+    }
+}
+
+function closeCardDetailsModal() { 
+    document.getElementById('cardDetailsModal').style.display = 'none'; 
+}
 
 // === Inicialização ===
 document.addEventListener('DOMContentLoaded', () => {
     state.currentUser = localStorage.getItem('currentUser');
-    if (!state.currentUser || !localStorage.getItem('loggedIn')) window.location.href = 'index.html';
+    const isLoggedIn = localStorage.getItem('loggedIn');
+
+    if (document.getElementById('themeToggle')) {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark');
+            document.getElementById('themeToggle').textContent = 'Modo Claro';
+        }
+    }
+
+    if (isLoggedIn && state.currentUser) {
+        ui.showAccountInfo();
+    } else {
+        ui.showLoginForm();
+    }
+
     auth.initializeData();
     auth.checkAdminMode();
+
     const user = storage.users.find(u => u.username === state.currentUser);
-    if (user) document.getElementById('userBalance').textContent = user.balance.toFixed(2);
-    ui.filterCards();
+    if (user && document.getElementById('userBalance')) {
+        document.getElementById('userBalance').textContent = user.balance.toFixed(2);
+    }
+    if (document.getElementById('cardList')) ui.filterCards();
 
     const cardNumberInput = document.getElementById('cardNumber');
     const cardCvvInput = document.getElementById('cardCvv');
