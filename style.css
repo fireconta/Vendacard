@@ -25,27 +25,21 @@ body.light {
     color: #2c3e50;
 }
 
-body.light .header {
+body.light .header,
+body.light .navbar {
     background: linear-gradient(90deg, #2ecc71, #3498db);
 }
 
 body.light .card-item,
 body.light .login-container,
-body.light .register-container,
 body.light .form-container,
 body.light .account-info,
 body.light .balance-section,
-body.light .user-item,
 body.light .modal-content,
 body.light .bonus-explanation {
     background: #ffffff;
     color: #2c3e50;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-body.light .navbar {
-    background-color: #ecf0f1;
-    border-top: 1px solid #bdc3c7;
 }
 
 body.light .navbar a {
@@ -56,16 +50,12 @@ body.light .navbar a.active {
     color: #2ecc71;
 }
 
-body.light #themeToggle {
-    border: 1px solid #2c3e50;
-    color: #2c3e50;
-}
-
+body.light #themeToggle,
 body.light .filter-section select,
 body.light input,
-body.light select,
 body.light .recharge-options button {
-    border: 1px solid #bdc3c7;
+    border: 1px solid #2c3e50;
+    color: #2c3e50;
 }
 
 .header {
@@ -110,7 +100,6 @@ body.light .recharge-options button {
 }
 
 .card-list {
-    flex: 1;
     padding: 25px;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -187,42 +176,6 @@ body.light .recharge-options button {
     transform: translateY(-3px);
 }
 
-.user-item {
-    background: linear-gradient(145deg, #34495e, #2c3e50);
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 15px;
-    transition: transform 0.3s ease;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-}
-
-.user-item:hover {
-    transform: translateY(-10px);
-}
-
-.user-item .buttons {
-    display: flex;
-    gap: 15px;
-}
-
-.user-item button {
-    padding: 12px;
-    border: none;
-    border-radius: 25px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-.user-item .edit-balance {
-    background-color: #2ecc71;
-    color: #fff;
-}
-
-.user-item .edit-balance:hover {
-    background-color: #27ae60;
-    transform: translateY(-3px);
-}
-
 .navbar {
     background: linear-gradient(90deg, #2c3e50, #34495e);
     padding: 20px;
@@ -265,6 +218,7 @@ body.light .recharge-options button {
     justify-content: center;
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
 }
 
 .login-container {
@@ -379,6 +333,7 @@ a:hover {
 .account-info, .balance-section {
     width: 90%;
     max-width: 650px;
+    margin: 0 auto;
 }
 
 @keyframes fadeIn {
@@ -404,10 +359,6 @@ a:hover {
 
 .loading {
     opacity: 0.6;
-}
-
-.user-list {
-    margin-top: 15px;
 }
 
 #cartContainer {
@@ -451,30 +402,6 @@ h2, h3 {
     gap: 15px;
     color: #2ecc71;
     font-weight: 700;
-}
-
-.brand-select, .type-select {
-    margin: 15px 0;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.brand-select i {
-    font-size: 28px;
-    cursor: pointer;
-    color: #bdc3c7;
-    transition: color 0.3s ease, transform 0.2s ease;
-}
-
-.brand-select i:hover {
-    color: #2ecc71;
-    transform: scale(1.2);
-}
-
-.brand-select #selectedBrand {
-    color: #bdc3c7;
-    font-weight: 600;
 }
 
 .bonus-explanation {
@@ -533,6 +460,8 @@ h2, h3 {
     display: flex;
     justify-content: space-around;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .recharge-options button {
@@ -568,6 +497,11 @@ h2, h3 {
 }
 
 @media (max-width: 600px) {
+    .header {
+        padding: 15px;
+        flex-direction: column;
+        gap: 10px;
+    }
     .header h1 {
         font-size: 22px;
     }
@@ -577,18 +511,13 @@ h2, h3 {
     .navbar a i {
         font-size: 20px;
     }
-    .login-container, .register-container, .form-container, .account-info, .balance-section, .modal-content {
+    .login-container, .form-container, .account-info, .balance-section, .modal-content {
         padding: 20px;
         margin: 15px auto;
     }
     .card-list {
         grid-template-columns: 1fr;
         padding: 15px;
-    }
-    .header {
-        padding: 15px;
-        flex-direction: column;
-        gap: 10px;
     }
     .card-item {
         padding: 15px;
