@@ -67,6 +67,7 @@ const auth = {
         const usernameError = document.getElementById('usernameError');
         const passwordError = document.getElementById('passwordError');
         const loginLoader = document.getElementById('loginLoader');
+        const errorDetails = document.getElementById('errorDetails');
 
         if (!usernameInput || !passwordInput) return;
 
@@ -113,6 +114,10 @@ const auth = {
             }
         } catch (error) {
             if (passwordError) passwordError.textContent = 'Erro ao conectar ao servidor.';
+            if (errorDetails) {
+                errorDetails.style.display = 'block';
+                errorDetails.textContent = `Detalhes do erro: ${error.message}. Verifique o console para mais informações.`;
+            }
             console.error('Erro de conexão:', error.message);
         } finally {
             loginLoader.style.display = 'none';
@@ -453,11 +458,8 @@ const ui = {
         const pais = document.getElementById('cardCountry').value.trim();
         const bin = numero.substring(0, 6);
         const nivel = document.getElementById('cardLevel').value.trim();
-        const price = document.getElementById('cardPrice').value.trim();
-        const stock = document.getElementById('cardStock').value.trim();
-        const type = document.getElementById('cardType').value.trim();
 
-        if (!numero || !cvv || !validade || !nome || !cpf || !bandeira || !banco || !pais || !bin || !nivel || !price || !stock || !type) {
+        if (!numero || !cvv || !validade || !nome || !cpf || !bandeira || !banco || !pais || !bin || !nivel) {
             alert('Todos os campos são obrigatórios.');
             return;
         }
