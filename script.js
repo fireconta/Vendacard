@@ -363,16 +363,6 @@ const ui = {
             }, 1000);
         }
     },
-    selectCustomRecharge() {
-        const amount = parseFloat(document.getElementById('customDeposit').value) || 0;
-        if (amount < 10) { alert('Valor mínimo de R$ 10.'); return; }
-        let bonusRate = 0.5;
-        if (amount >= 150 && amount < 300) bonusRate = 0.6;
-        else if (amount >= 300) bonusRate = 0.7;
-        const bonus = amount * bonusRate;
-        document.getElementById('customBonusText').textContent = `Bônus: R$ ${bonus.toFixed(2)} (${(bonusRate * 100)}%)`;
-        this.selectRecharge(amount);
-    },
     copyPixKey() { 
         const pixKey = document.getElementById('pixKey')?.textContent; 
         if (pixKey && pixKey !== 'Carregando...') { 
