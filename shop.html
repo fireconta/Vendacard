@@ -8,14 +8,14 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
-<body>
+<body class="dark">
     <nav id="navbar" class="navbar">
         <div class="navbar-brand">CardShop</div>
         <div class="navbar-links">
-            <a href="index.html"><i class="fas fa-user"></i> Minha Conta</a>
-            <a href="#" id="cartIcon"><i class="fas fa-tools"></i> Admin</a>
-            <button onclick="toggleTheme()"><i class="fas fa-adjust"></i> <span id="themeToggle">Modo Claro</span></button>
-            <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+            <a href="index.html" aria-label="Ir para minha conta"><i class="fas fa-user"></i> Minha Conta</a>
+            <a href="#" id="cartIcon" aria-label="Acessar painel admin"><i class="fas fa-tools"></i> Admin</a>
+            <button onclick="toggleTheme()" aria-label="Alternar tema"><i class="fas fa-adjust"></i> <span id="themeToggle">Modo Claro</span></button>
+            <button onclick="logout()" aria-label="Sair da conta"><i class="fas fa-sign-out-alt"></i> Sair</button>
         </div>
     </nav>
 
@@ -24,18 +24,18 @@
             <h2>Loja de Cartões</h2>
             <div class="balance-section">
                 <p>Seu Saldo: R$ <span id="userBalance">0.00</span></p>
-                <button class="btn btn-secondary" onclick="ui.showAddBalanceForm()">Adicionar Saldo</button>
+                <button class="btn btn-secondary" onclick="ui.showAddBalanceForm()" aria-label="Adicionar saldo">Adicionar Saldo</button>
             </div>
         </div>
 
         <div class="filters">
             <div class="filter-group">
                 <label for="binFilter"><i class="fas fa-search"></i> BIN</label>
-                <input type="text" id="binFilter" placeholder="Ex.: 123456" maxlength="6" onchange="ui.filterCards()">
+                <input type="text" id="binFilter" placeholder="Ex.: 123456" maxlength="6" onchange="ui.filterCards()" aria-label="Filtrar por BIN">
             </div>
             <div class="filter-group">
                 <label for="brandFilter"><i class="fas fa-credit-card"></i> Bandeira</label>
-                <select id="brandFilter" onchange="ui.filterCards()">
+                <select id="brandFilter" onchange="ui.filterCards()" aria-label="Filtrar por bandeira">
                     <option value="all">Todas</option>
                     <option value="Visa">Visa</option>
                     <option value="Mastercard">Mastercard</option>
@@ -45,7 +45,7 @@
             </div>
             <div class="filter-group">
                 <label for="bankFilter"><i class="fas fa-university"></i> Banco</label>
-                <select id="bankFilter" onchange="ui.filterCards()">
+                <select id="bankFilter" onchange="ui.filterCards()" aria-label="Filtrar por banco">
                     <option value="all">Todos</option>
                     <option value="Banco do Brasil S.A.">Banco do Brasil</option>
                     <option value="Banco Inter">Banco Inter</option>
@@ -54,7 +54,7 @@
             </div>
             <div class="filter-group">
                 <label for="levelFilter"><i class="fas fa-star"></i> Nível</label>
-                <select id="levelFilter" onchange="ui.filterCards()">
+                <select id="levelFilter" onchange="ui.filterCards()" aria-label="Filtrar por nível">
                     <option value="all">Todos</option>
                     <option value="Padrão">Padrão</option>
                     <option value="Gold">Gold</option>
@@ -63,7 +63,7 @@
             </div>
             <div class="filter-group">
                 <label for="typeFilter"><i class="fas fa-filter"></i> Tipo</label>
-                <select id="typeFilter" onchange="ui.filterCards()">
+                <select id="typeFilter" onchange="ui.filterCards()" aria-label="Filtrar por tipo">
                     <option value="all">Todos</option>
                     <option value="Crédito">Crédito</option>
                     <option value="Débito">Débito</option>
@@ -71,7 +71,7 @@
             </div>
             <div class="filter-group">
                 <label for="priceRangeFilter"><i class="fas fa-money-bill-wave"></i> Faixa de Preço (R$)</label>
-                <select id="priceRangeFilter" onchange="ui.filterCards()">
+                <select id="priceRangeFilter" onchange="ui.filterCards()" aria-label="Filtrar por faixa de preço">
                     <option value="all">Todos</option>
                     <option value="0-10">0 - 10</option>
                     <option value="10-20">10 - 20</option>
@@ -80,16 +80,16 @@
             </div>
             <div class="filter-group">
                 <label for="stockFilter"><i class="fas fa-box"></i> Disponibilidade</label>
-                <select id="stockFilter" onchange="ui.filterCards()">
+                <select id="stockFilter" onchange="ui.filterCards()" aria-label="Filtrar por disponibilidade">
                     <option value="all">Todos</option>
                     <option value="inStock">Em Estoque</option>
                     <option value="outOfStock">Esgotado</option>
                 </select>
             </div>
-            <button class="btn btn-clear" onclick="ui.clearFilters()"><i class="fas fa-times"></i> Limpar Filtros</button>
+            <button class="btn btn-clear" onclick="ui.clearFilters()" aria-label="Limpar filtros"><i class="fas fa-times"></i> Limpar Filtros</button>
             <div class="filter-group">
                 <label for="viewMode"><i class="fas fa-th-list"></i> Visualização</label>
-                <select id="viewMode" onchange="ui.toggleViewMode()">
+                <select id="viewMode" onchange="ui.toggleViewMode()" aria-label="Alterar modo de visualização">
                     <option value="grid">Grade</option>
                     <option value="list">Lista</option>
                 </select>
@@ -101,7 +101,7 @@
 
     <div id="confirmPurchaseModal" class="modal">
         <div class="modal-content confirm-modal-content">
-            <span class="close" onclick="closeConfirmPurchaseModal()">×</span>
+            <span class="close" onclick="closeConfirmPurchaseModal()" aria-label="Fechar modal">×</span>
             <h2>Confirmação de Compra</h2>
             <div class="modal-body">
                 <p><strong>Aviso de Responsabilidade:</strong> O uso indevido das informações deste cartão pode ser considerado ilegal. O CardShop não se responsabiliza por ações realizadas com os dados adquiridos.</p>
@@ -111,22 +111,22 @@
                 <div id="confirmCardDetails"></div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-cancel" onclick="closeConfirmPurchaseModal()">Cancelar</button>
-                <button class="btn btn-confirm" onclick="confirmPurchase()">Confirmar Compra</button>
+                <button class="btn btn-cancel" onclick="closeConfirmPurchaseModal()" aria-label="Cancelar compra">Cancelar</button>
+                <button class="btn btn-confirm" onclick="confirmPurchase()" aria-label="Confirmar compra">Confirmar Compra</button>
             </div>
         </div>
     </div>
 
     <div id="rechargeModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="ui.closeModal()">×</span>
+            <span class="close" onclick="ui.closeModal()" aria-label="Fechar modal">×</span>
             <h2>Adicionar Saldo</h2>
             <p>Escolha o valor da recarga (você receberá 50% de bônus):</p>
             <div class="recharge-options">
-                <button class="btn btn-secondary" onclick="ui.selectRecharge(40)">R$ 40</button>
-                <button class="btn btn-secondary" onclick="ui.selectRecharge(70)">R$ 70</button>
-                <button class="btn btn-secondary" onclick="ui.selectRecharge(150)">R$ 150</button>
-                <button class="btn btn-secondary" onclick="ui.selectRecharge(300)">R$ 300</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(40)" aria-label="Recarregar R$ 40">R$ 40</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(70)" aria-label="Recarregar R$ 70">R$ 70</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(150)" aria-label="Recarregar R$ 150">R$ 150</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(300)" aria-label="Recarregar R$ 300">R$ 300</button>
             </div>
         </div>
     </div>
@@ -136,16 +136,16 @@
             <h2>Pagamento via PIX</h2>
             <div class="loader" id="pixLoading"></div>
             <p><strong>Chave PIX:</strong> <span id="pixKey">Carregando...</span></p>
-            <button class="btn btn-secondary" onclick="ui.copyPixKey()">Copiar Chave</button>
+            <button class="btn btn-secondary" onclick="ui.copyPixKey()" aria-label="Copiar chave PIX">Copiar Chave</button>
             <p><strong>QR Code:</strong></p>
             <img id="pixQRCode" src="https://via.placeholder.com/150" alt="QR Code">
-            <button class="btn btn-primary" onclick="ui.addBalance()">Confirmar Pagamento</button>
+            <button class="btn btn-primary" onclick="ui.addBalance()" aria-label="Confirmar pagamento">Confirmar Pagamento</button>
         </div>
     </div>
 
     <div id="cardDetailsModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeCardDetailsModal()">×</span>
+            <span class="close" onclick="closeCardDetailsModal()" aria-label="Fechar modal">×</span>
             <h2>Detalhes do Cartão</h2>
             <div id="cardDetailsContent" class="modal-body"></div>
         </div>
