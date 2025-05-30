@@ -3,44 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CardShop - Painel Admin</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
+    <title>Painel de Administração</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
-    <nav id="navbar" class="navbar">
-        <div class="navbar-brand">CardShop</div>
-        <div class="navbar-links">
-            <a href="index.html"><i class="fas fa-user"></i> Minha Conta</a>
-            <a href="shop.html"><i class="fas fa-shopping-cart"></i> Loja</a>
-            <button onclick="toggleTheme()"><i class="fas fa-adjust"></i> <span id="themeToggle">Modo Claro</span></button>
-            <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+    <div class="admin-container">
+        <h1>Painel de Administração</h1>
+        <h2>Configurar Chaves PIX</h2>
+        <div class="pix-config">
+            <h3>R$ 40</h3>
+            <input type="text" id="pixKey40" placeholder="Chave PIX">
+            <input type="text" id="pixQRCode40" placeholder="URL do QR Code">
+            <button class="btn btn-primary" onclick="admin.savePixConfig(40)">Salvar</button>
         </div>
-    </nav>
-
-    <div class="container">
-        <h2>Painel Admin</h2>
-        <div class="stats">
-            <div class="stat-item">
-                <h3>Total de Usuários</h3>
-                <p id="totalUsers">0</p>
-            </div>
-            <div class="stat-item">
-                <h3>Total de Cartões</h3>
-                <p id="totalCards">0</p>
-            </div>
-            <div class="stat-item">
-                <h3>Saldo Total</h3>
-                <p>R$ <span id="totalBalance">0.00</span></p>
-            </div>
+        <div class="pix-config">
+            <h3>R$ 70</h3>
+            <input type="text" id="pixKey70" placeholder="Chave PIX">
+            <input type="text" id="pixQRCode70" placeholder="URL do QR Code">
+            <button class="btn btn-primary" onclick="admin.savePixConfig(70)">Salvar</button>
         </div>
-        <h3>Logs de Atividades</h3>
-        <div id="logList" class="log-list"></div>
+        <div class="pix-config">
+            <h3>R$ 150</h3>
+            <input type="text" id="pixKey150" placeholder="Chave PIX">
+            <input type="text" id="pixQRCode150" placeholder="URL do QR Code">
+            <button class="btn btn-primary" onclick="admin.savePixConfig(150)">Salvar</button>
+        </div>
+        <div class="pix-config">
+            <h3>R$ 300</h3>
+            <input type="text" id="pixKey300" placeholder="Chave PIX">
+            <input type="text" id="pixQRCode300" placeholder="URL do QR Code">
+            <button class="btn btn-primary" onclick="admin.savePixConfig(300)">Salvar</button>
+        </div>
+        <h2>Depósitos Pendentes</h2>
+        <div id="pendingDeposits" class="pending-deposits"></div>
     </div>
-
-    <div id="notifications"></div>
-
     <script src="script.js"></script>
 </body>
 </html>
