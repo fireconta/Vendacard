@@ -54,7 +54,8 @@
 
         <div class="section">
             <h3>Gerenciar Usuários</h3>
-            <input type="text" id="userSearch" placeholder="Pesquisar usuário por nome ou ID" oninput="ui.displayUsers(this.value)" aria-label="Pesquisar usuário">
+            <input type="text" id="userSearch" placeholder="Pesquisar usuário por nome" oninput="ui.displayUsers(this.value)" aria-label="Pesquisar usuário">
+            <button class="btn btn-primary" onclick="ui.showAddUserModal()" aria-label="Adicionar novo usuário">Adicionar Usuário</button>
             <div id="userList" class="card-list"></div>
         </div>
 
@@ -75,6 +76,32 @@
             <button class="btn btn-secondary" onclick="ui.exportLogs('json')" aria-label="Exportar logs em JSON">Exportar Logs (JSON)</button>
             <button class="btn btn-clear" onclick="ui.clearLogs()" aria-label="Limpar logs">Limpar Logs</button>
             <div id="logList" class="card-list"></div>
+        </div>
+
+        <div id="addUserModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="document.getElementById('addUserModal').style.display='none'" aria-label="Fechar modal">×</span>
+                <h2>Adicionar Novo Usuário</h2>
+                <div class="form-group">
+                    <label for="newUsername">Usuário:</label>
+                    <input type="text" id="newUsername" placeholder="Digite um usuário" required aria-required="true">
+                    <span id="newUsernameError" class="error"></span>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">Senha:</label>
+                    <input type="password" id="newPassword" placeholder="Digite uma senha" required aria-required="true">
+                    <span id="newPasswordError" class="error"></span>
+                </div>
+                <div class="form-group">
+                    <label for="newBalance">Saldo Inicial:</label>
+                    <input type="number" id="newBalance" placeholder="0.00" step="0.01" aria-required="true">
+                    <span id="newBalanceError" class="error"></span>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-cancel" onclick="document.getElementById('addUserModal').style.display='none'" aria-label="Cancelar">Cancelar</button>
+                    <button class="btn btn-confirm" onclick="ui.addUser()" aria-label="Salvar usuário">Salvar</button>
+                </div>
+            </div>
         </div>
 
         <div id="cardModal" class="modal">
