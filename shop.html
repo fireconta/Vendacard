@@ -20,7 +20,6 @@
     </nav>
 
     <div class="container">
-        <!-- Informações da Conta -->
         <div id="accountInfo" class="account-info" style="display: none;">
             <div class="account-header">
                 <h2>Carteira</h2>
@@ -28,44 +27,7 @@
                     <p><strong>Saldo:</strong> R$ <span id="userBalanceAccount">0.00</span></p>
                 </div>
             </div>
-            <div class="card-list">
-                <div class="card-item">
-                    <p><strong>Banco Bilbao Vizcaya Argentaria S.A. (BBVA)</strong></p>
-                    <p>Brasil</p>
-                    <p>R$ 0.00</p>
-                    <div class="card-buttons">
-                        <button class="btn btn-secondary" aria-label="Adicionar crédito">Crédito</button>
-                        <button class="btn btn-secondary" aria-label="Ver detalhes">Detalhes</button>
-                    </div>
-                </div>
-                <div class="card-item">
-                    <p><strong>Mastercard - Banco Inter</strong></p>
-                    <p>Brasil</p>
-                    <p>R$ 0.00</p>
-                    <div class="card-buttons">
-                        <button class="btn btn-secondary" aria-label="Adicionar crédito">Crédito</button>
-                        <button class="btn btn-secondary" aria-label="Ver detalhes">Detalhes</button>
-                    </div>
-                </div>
-                <div class="card-item">
-                    <p><strong>Visa - Banco do Brasil S.A.</strong></p>
-                    <p>Brasil</p>
-                    <p>R$ 0.00</p>
-                    <div class="card-buttons">
-                        <button class="btn btn-secondary" aria-label="Adicionar crédito">Crédito</button>
-                        <button class="btn btn-secondary" aria-label="Ver detalhes">Detalhes</button>
-                    </div>
-                </div>
-                <div class="card-item">
-                    <p><strong>Mastercard</strong></p>
-                    <p>Brasil</p>
-                    <p>R$ 0.00</p>
-                    <div class="card-buttons">
-                        <button class="btn btn-secondary" aria-label="Adicionar crédito">Crédito</button>
-                        <button class="btn btn-secondary" aria-label="Ver detalhes">Detalhes</button>
-                    </div>
-                </div>
-            </div>
+            <div id="userCards" class="card-list"></div>
             <button class="btn btn-primary" onclick="ui.showAddBalanceForm()" aria-label="Adicionar saldo">Adicionar Saldo</button>
         </div>
 
