@@ -9,7 +9,7 @@ const CONFIG = {
     LOW_STOCK_THRESHOLD: 3,
     NOTIFICATION_TIMEOUT: 5000,
     LOG_RETENTION_DAYS: 30,
-    API_URL: 'https://script.google.com/macros/s/AKfycbxsl_dcM9iZMPYynmzsKmkMD8IkgTuQTsYD_4WnZFKMGlAESElubZqxIz5DTlsY_gQi/exec'
+    API_URL: 'https://script.google.com/macros/s/AKfycbwKlJO3JFEs9_mOuwKddAHLbX3tIbdk3vmBfCx3XlDVe6Qo26XprIqEh3yFLiUwfih9/exec'
 };
 
 // === Estado Global ===
@@ -117,6 +117,10 @@ const auth = {
             if (errorDetails) {
                 errorDetails.style.display = 'block';
                 errorDetails.textContent = `Detalhes do erro: ${error.message}. Verifique o console para mais informações.`;
+                setTimeout(() => {
+                    errorDetails.style.display = 'none';
+                    errorDetails.textContent = '';
+                }, 5000); // Esconde após 5 segundos
             }
             console.error('Erro de conexão:', error.message);
         } finally {
