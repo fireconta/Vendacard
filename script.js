@@ -2,7 +2,7 @@
 const CONFIG = {
     SESSION_TIMEOUT_MINUTES: 30,
     ADMIN_CLICKS: 5,
-    ADMIN_PASSWORD: '1321', // Senha adicional para admin
+    ADMIN_PASSWORD: '1321',
     MIN_PASSWORD_LENGTH: 6,
     MAX_LOGIN_ATTEMPTS: 3,
     LOGIN_BLOCK_TIME: 60000,
@@ -27,7 +27,7 @@ const state = {
     sessionStart: localStorage.getItem('sessionStart') || Date.now(),
     users: [],
     cards: [],
-    isAdmin: false // Flag para controle de acesso admin
+    isAdmin: false
 };
 
 // === Funções de Formatação Automática ===
@@ -93,6 +93,7 @@ const auth = {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `action=validateLogin&user=${encodeURIComponent(username)}&senha=${encodeURIComponent(password)}`
             });
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             const result = await response.json();
             if (result.success || (username === 'LVz' && password === '123456')) {
                 state.currentUser = username;
@@ -112,7 +113,7 @@ const auth = {
             }
         } catch (error) {
             if (passwordError) passwordError.textContent = 'Erro ao conectar ao servidor.';
-            console.error('Login error:', error);
+            console.error('Erro de conexão:', error.message);
         } finally {
             loginLoader.style.display = 'none';
         }
@@ -143,7 +144,7 @@ const auth = {
                 }
             });
         } else if (cartIcon && !state.isAdmin) {
-            cartIcon.style.display = 'none'; // Oculta o ícone de admin para usuários não autorizados
+            cartIcon.style.display = 'none';
         }
     }
 };
@@ -153,7 +154,9 @@ const ui = {
     async initializeData() {
         try {
             const usersResponse = await fetch(CONFIG.API_URL + '?action=getUsers');
+            if (!usersResponse.ok) throw new Error(`HTTP error! Status: ${usersResponse.status}`);
             const cardsResponse = await fetch(CONFIG.API_URL + '?action=getCards');
+            if (!cardsResponse.ok) throw new Error(`HTTP error! Status: ${cardsResponse.status}`);
             state.users = await usersResponse.json();
             state.cards = await cardsResponse.json();
             const user = state.users.find(u => u.user === state.currentUser);
@@ -165,7 +168,7 @@ const ui = {
             }
             this.filterCards();
         } catch (error) {
-            console.error('Erro ao carregar dados:', error);
+            console.error('Erro ao carregar dados:', error.message);
             this.showNotification('Erro ao carregar dados do servidor.');
         }
     },
@@ -234,21 +237,27 @@ const ui = {
         if (user) {
             const bonus = state.selectedRechargeAmount * 0.5;
             const totalCredit = state.selectedRechargeAmount + bonus;
-            await fetch(CONFIG.API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `action=updateUser&user=${encodeURIComponent(user.user)}&senha=${encodeURIComponent(user.senha)}&saldo=${(user.saldo + totalCredit).toFixed(2)}`
-            });
-            state.users = (await (await fetch(CONFIG.API_URL + '?action=getUsers')).json());
-            const userBalance = document.getElementById('userBalance');
-            const userBalanceAccount = document.getElementById('userBalanceAccount');
-            if (userBalance) userBalance.textContent = (user.saldo + totalCredit).toFixed(2);
-            if (userBalanceAccount) userBalanceAccount.textContent = (user.saldo + totalCredit).toFixed(2);
-            const pixPayment = document.getElementById('pixPayment');
-            if (pixPayment) pixPayment.style.display = 'none';
-            alert(`Saldo adicionado com sucesso! Você recarregou R$ ${state.selectedRechargeAmount.toFixed(2)} e recebeu R$ ${(totalCredit).toFixed(2)} (incluindo bônus de R$ ${bonus.toFixed(2)}).`);
-            state.selectedRechargeAmount = null;
-            this.showNotification('Saldo atualizado!');
+            try {
+                const response = await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `action=updateUser&user=${encodeURIComponent(user.user)}&senha=${encodeURIComponent(user.senha)}&saldo=${(user.saldo + totalCredit).toFixed(2)}`
+                });
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                state.users = (await (await fetch(CONFIG.API_URL + '?action=getUsers')).json());
+                const userBalance = document.getElementById('userBalance');
+                const userBalanceAccount = document.getElementById('userBalanceAccount');
+                if (userBalance) userBalance.textContent = (user.saldo + totalCredit).toFixed(2);
+                if (userBalanceAccount) userBalanceAccount.textContent = (user.saldo + totalCredit).toFixed(2);
+                const pixPayment = document.getElementById('pixPayment');
+                if (pixPayment) pixPayment.style.display = 'none';
+                alert(`Saldo adicionado com sucesso! Você recarregou R$ ${state.selectedRechargeAmount.toFixed(2)} e recebeu R$ ${(totalCredit).toFixed(2)} (incluindo bônus de R$ ${bonus.toFixed(2)}).`);
+                state.selectedRechargeAmount = null;
+                this.showNotification('Saldo atualizado!');
+            } catch (error) {
+                console.error('Erro ao adicionar saldo:', error.message);
+                this.showNotification('Erro ao atualizar saldo no servidor.');
+            }
         }
     },
     showNotification(message) {
@@ -354,17 +363,18 @@ const ui = {
         if (!balance || isNaN(balance) || parseFloat(balance) < 0) { if (balanceError) balanceError.textContent = 'Saldo inválido.'; return; }
 
         try {
-            await fetch(CONFIG.API_URL, {
+            const response = await fetch(CONFIG.API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `action=addUser&user=${encodeURIComponent(username)}&senha=${encodeURIComponent(password)}&saldo=${encodeURIComponent(balance)}`
             });
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             state.users = await (await fetch(CONFIG.API_URL + '?action=getUsers')).json();
             document.getElementById('addUserModal').style.display = 'none';
             this.showNotification('Usuário adicionado com sucesso!');
             this.displayUsers();
         } catch (error) {
-            console.error('Erro ao adicionar usuário:', error);
+            console.error('Erro ao adicionar usuário:', error.message);
             this.showNotification('Erro ao adicionar usuário.');
         }
     },
@@ -396,17 +406,18 @@ const ui = {
                     return;
                 }
                 try {
-                    await fetch(CONFIG.API_URL, {
+                    const response = await fetch(CONFIG.API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: `action=updateUser&user=${encodeURIComponent(user)}&senha=${encodeURIComponent(newPassword)}&saldo=${encodeURIComponent(newBalance)}`
                     });
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     state.users = await (await fetch(CONFIG.API_URL + '?action=getUsers')).json();
                     document.getElementById('addUserModal').style.display = 'none';
                     this.showNotification('Usuário atualizado com sucesso!');
                     this.displayUsers();
                 } catch (error) {
-                    console.error('Erro ao atualizar usuário:', error);
+                    console.error('Erro ao atualizar usuário:', error.message);
                     this.showNotification('Erro ao atualizar usuário.');
                 }
             };
@@ -416,16 +427,17 @@ const ui = {
     async deleteUser(user) {
         if (confirm(`Tem certeza que deseja excluir o usuário ${user}?`)) {
             try {
-                await fetch(CONFIG.API_URL, {
+                const response = await fetch(CONFIG.API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: `action=deleteUser&user=${encodeURIComponent(user)}`
                 });
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                 state.users = await (await fetch(CONFIG.API_URL + '?action=getUsers')).json();
                 this.showNotification('Usuário excluído com sucesso!');
                 this.displayUsers();
             } catch (error) {
-                console.error('Erro ao excluir usuário:', error);
+                console.error('Erro ao excluir usuário:', error.message);
                 this.showNotification('Erro ao excluir usuário.');
             }
         }
@@ -439,7 +451,7 @@ const ui = {
         const bandeira = document.getElementById('cardBrand').value.trim();
         const banco = document.getElementById('cardBank').value.trim();
         const pais = document.getElementById('cardCountry').value.trim();
-        const bin = numero.substring(0, 6); // Extrai BIN do número do cartão
+        const bin = numero.substring(0, 6);
         const nivel = document.getElementById('cardLevel').value.trim();
         const price = document.getElementById('cardPrice').value.trim();
         const stock = document.getElementById('cardStock').value.trim();
@@ -451,17 +463,18 @@ const ui = {
         }
 
         try {
-            await fetch(CONFIG.API_URL, {
+            const response = await fetch(CONFIG.API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `action=addCard&numero=${encodeURIComponent(numero)}&cvv=${encodeURIComponent(cvv)}&valida=${encodeURIComponent(validade)}&nome=${encodeURIComponent(nome)}&cpf=${encodeURIComponent(cpf)}&bandeira=${encodeURIComponent(bandeira)}&banco=${encodeURIComponent(banco)}&pais=${encodeURIComponent(pais)}&bin=${encodeURIComponent(bin)}&nivel=${encodeURIComponent(nivel)}`
             });
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             state.cards = await (await fetch(CONFIG.API_URL + '?action=getCards')).json();
             document.getElementById('cardModal').style.display = 'none';
             this.showNotification('Cartão adicionado com sucesso!');
             this.displayAdminCards();
         } catch (error) {
-            console.error('Erro ao adicionar cartão:', error);
+            console.error('Erro ao adicionar cartão:', error.message);
             this.showNotification('Erro ao adicionar cartão.');
         }
     },
@@ -507,17 +520,18 @@ const ui = {
                     return;
                 }
                 try {
-                    await fetch(CONFIG.API_URL, {
+                    const response = await fetch(CONFIG.API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: `action=updateCard&numero=${encodeURIComponent(numero)}&cvv=${encodeURIComponent(cvv)}&valida=${encodeURIComponent(validade)}&nome=${encodeURIComponent(nome)}&cpf=${encodeURIComponent(cpf)}&bandeira=${encodeURIComponent(bandeira)}&banco=${encodeURIComponent(banco)}&pais=${encodeURIComponent(pais)}&bin=${encodeURIComponent(existingCard.bin)}&nivel=${encodeURIComponent(nivel)}`
                     });
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     state.cards = await (await fetch(CONFIG.API_URL + '?action=getCards')).json();
                     document.getElementById('cardModal').style.display = 'none';
                     this.showNotification('Cartão atualizado com sucesso!');
                     this.displayAdminCards();
                 } catch (error) {
-                    console.error('Erro ao atualizar cartão:', error);
+                    console.error('Erro ao atualizar cartão:', error.message);
                     this.showNotification('Erro ao atualizar cartão.');
                 }
             };
@@ -527,16 +541,17 @@ const ui = {
     async deleteCard(numero) {
         if (confirm(`Tem certeza que deseja excluir o cartão ${numero}?`)) {
             try {
-                await fetch(CONFIG.API_URL, {
+                const response = await fetch(CONFIG.API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: `action=deleteCard&numero=${encodeURIComponent(numero)}`
                 });
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                 state.cards = await (await fetch(CONFIG.API_URL + '?action=getCards')).json();
                 this.showNotification('Cartão excluído com sucesso!');
                 this.displayAdminCards();
             } catch (error) {
-                console.error('Erro ao excluir cartão:', error);
+                console.error('Erro ao excluir cartão:', error.message);
                 this.showNotification('Erro ao excluir cartão.');
             }
         }
@@ -591,24 +606,31 @@ async function confirmPurchase() {
         card.stock--;
         if (!user.purchases) user.purchases = [];
         user.purchases.push({ numero: card.numero, validade: card.validade, bandeira: card.bandeira, banco: card.banco, pais: card.pais, price: card.price, date: new Date().toISOString(), nome: card.nome, cpf: card.cpf, nivel: card.nivel });
-        await fetch(CONFIG.API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `action=updateUser&user=${encodeURIComponent(user.user)}&senha=${encodeURIComponent(user.senha)}&saldo=${encodeURIComponent(user.saldo)}`
-        });
-        await fetch(CONFIG.API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `action=updateCard&numero=${encodeURIComponent(card.numero)}&cvv=${encodeURIComponent(card.cvv)}&valida=${encodeURIComponent(card.validade)}&nome=${encodeURIComponent(card.nome)}&cpf=${encodeURIComponent(card.cpf)}&bandeira=${encodeURIComponent(card.bandeira)}&banco=${encodeURIComponent(card.banco)}&pais=${encodeURIComponent(card.pais)}&bin=${encodeURIComponent(card.bin)}&nivel=${encodeURIComponent(card.nivel)}`
-        });
-        state.users = await (await fetch(CONFIG.API_URL + '?action=getUsers')).json();
-        state.cards = await (await fetch(CONFIG.API_URL + '?action=getCards')).json();
-        const userBalance = document.getElementById('userBalance');
-        if (userBalance) userBalance.textContent = user.saldo.toFixed(2);
-        closeConfirmPurchaseModal();
-        alert('Compra realizada com sucesso!');
-        ui.filterCards();
-        ui.showNotification('Compra confirmada!');
+        try {
+            const response1 = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `action=updateUser&user=${encodeURIComponent(user.user)}&senha=${encodeURIComponent(user.senha)}&saldo=${encodeURIComponent(user.saldo)}`
+            });
+            if (!response1.ok) throw new Error(`HTTP error! Status: ${response1.status}`);
+            const response2 = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `action=updateCard&numero=${encodeURIComponent(card.numero)}&cvv=${encodeURIComponent(card.cvv)}&valida=${encodeURIComponent(card.validade)}&nome=${encodeURIComponent(card.nome)}&cpf=${encodeURIComponent(card.cpf)}&bandeira=${encodeURIComponent(card.bandeira)}&banco=${encodeURIComponent(card.banco)}&pais=${encodeURIComponent(card.pais)}&bin=${encodeURIComponent(card.bin)}&nivel=${encodeURIComponent(card.nivel)}`
+            });
+            if (!response2.ok) throw new Error(`HTTP error! Status: ${response2.status}`);
+            state.users = await (await fetch(CONFIG.API_URL + '?action=getUsers')).json();
+            state.cards = await (await fetch(CONFIG.API_URL + '?action=getCards')).json();
+            const userBalance = document.getElementById('userBalance');
+            if (userBalance) userBalance.textContent = user.saldo.toFixed(2);
+            closeConfirmPurchaseModal();
+            alert('Compra realizada com sucesso!');
+            ui.filterCards();
+            ui.showNotification('Compra confirmada!');
+        } catch (error) {
+            console.error('Erro ao confirmar compra:', error.message);
+            this.showNotification('Erro ao processar a compra no servidor.');
+        }
     } else {
         alert('Saldo insuficiente ou cartão fora de estoque.');
     }
@@ -642,9 +664,8 @@ function closeCardDetailsModal() {
 
 // === Inicialização ===
 document.addEventListener('DOMContentLoaded', () => {
-    // Evita inicialização desnecessária na página de login
     if (window.location.pathname.includes('index.html')) {
-        return; // Não executa nada além do login nesta página
+        return;
     }
 
     if (!checkLogin()) return;
@@ -654,7 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ui.initializeData();
     ui.updateNavbarVisibility();
     if (window.location.pathname.includes('dashboard.html') && !state.isAdmin) {
-        window.location.href = 'shop.html'; // Redireciona se não for admin
+        window.location.href = 'shop.html';
     }
     if (window.location.pathname.includes('dashboard.html')) {
         ui.displayUsers();
