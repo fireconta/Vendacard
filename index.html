@@ -8,13 +8,13 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
-<body>
+<body class="dark">
     <nav id="navbar" class="navbar">
         <div class="navbar-brand">CardShop</div>
         <div class="navbar-links">
-            <a href="shop.html"><i class="fas fa-shopping-cart"></i> Loja</a>
-            <button onclick="toggleTheme()"><i class="fas fa-adjust"></i> <span id="themeToggle">Modo Claro</span></button>
-            <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+            <a href="shop.html" aria-label="Ir para a loja"><i class="fas fa-shopping-cart"></i> Loja</a>
+            <button onclick="toggleTheme()" aria-label="Alternar tema"><i class="fas fa-adjust"></i> <span id="themeToggle">Modo Claro</span></button>
+            <button onclick="logout()" aria-label="Sair da conta"><i class="fas fa-sign-out-alt"></i> Sair</button>
         </div>
     </nav>
 
@@ -24,81 +24,83 @@
             <h2>Login</h2>
             <div class="form-group">
                 <label for="username"><i class="fas fa-user"></i> Usuário:</label>
-                <input type="text" id="username" placeholder="Digite seu usuário" required>
+                <input type="text" id="username" placeholder="Digite seu usuário" required aria-required="true">
                 <span id="usernameError" class="error"></span>
             </div>
             <div class="form-group">
                 <label for="password"><i class="fas fa-lock"></i> Senha:</label>
-                <input type="password" id="password" placeholder="Digite sua senha" required>
+                <input type="password" id="password" placeholder="Digite sua senha" required aria-required="true">
                 <span id="passwordError" class="error"></span>
             </div>
             <p id="loginAttempts"></p>
-            <button class="btn btn-primary" onclick="auth.login()">Entrar</button>
+            <button class="btn btn-primary" onclick="auth.login()" aria-label="Entrar">Entrar</button>
             <div class="loader" id="loginLoader"></div>
             <p>Não tem uma conta? <a href="#" onclick="ui.showRegisterForm()">Registre-se</a></p>
             <p><a href="#" onclick="auth.forgotPassword()">Esqueceu sua senha?</a></p>
         </div>
 
-        <!-- Formulário de Registro -->
-        <div id="registerForm" class="form-container" style="display: none;">
-            <h2>Registrar</h2>
-            <div class="form-group">
-                <label for="newUsername"><i class="fas fa-user-plus"></i> Usuário:</label>
-                <input type="text" id="newUsername" placeholder="Digite um usuário" required>
-                <span id="newUsernameError" class="error"></span>
-            </div>
-            <div class="form-group">
-                <label for="newPassword"><i class="fas fa-lock"></i> Senha:</label>
-                <input type="password" id="newPassword" placeholder="Digite uma senha" required>
-                <span id="newPasswordError" class="error"></span>
-            </div>
-            <button class="btn btn-primary" onclick="auth.register()">Registrar</button>
-            <p>Já tem uma conta? <a href="#" onclick="ui.showLoginForm()">Faça login</a></p>
-        </div>
-
         <!-- Informações da Conta -->
-        <div id="accountInfo" class="account-info" style="display: none;">
+        <div id="accountInfo" class="account-info">
             <div class="account-header">
-                <h2>Minha Conta</h2>
+                <h2>Carteira</h2>
                 <div class="balance-section">
                     <p><strong>Saldo:</strong> R$ <span id="userBalanceAccount">0.00</span></p>
-                    <div class="progress-bar">
-                        <div id="progressFill"></div>
-                        <span id="progressText">Faltam R$ 50 para um cartão grátis!</span>
-                    </div>
-                    <button class="btn btn-secondary" onclick="ui.showAddBalanceForm()">Adicionar Saldo</button>
                 </div>
             </div>
-            <div class="account-details">
-                <p><strong>Usuário:</strong> <span id="userName"></span></p>
-                <p><strong>ID:</strong> <span id="userId"></span></p>
-                <h3>Conquistas</h3>
-                <div id="achievementsList" class="achievements"></div>
-                <h3>Histórico de Compras</h3>
-                <div id="purchaseHistory" class="purchase-history"></div>
+            <div class="card-list">
+                <div class="card-item">
+                    <p><strong>Banco Bilbao Vizcaya Argentaria S.A. (BBVA)</strong></p>
+                    <p>Brasil</p>
+                    <p>R$ 0.00</p>
+                    <div class="card-buttons">
+                        <button class="btn btn-secondary" aria-label="Adicionar crédito">Crédito</button>
+                        <button class="btn btn-secondary" aria-label="Ver detalhes">Detalhes</button>
+                    </div>
+                </div>
+                <div class="card-item">
+                    <p><strong>Mastercard - Banco Inter</strong></p>
+                    <p>Brasil</p>
+                    <p>R$ 0.00</p>
+                    <div class="card-buttons">
+                        <button class="btn btn-secondary" aria-label="Adicionar crédito">Crédito</button>
+                        <button class="btn btn-secondary" aria-label="Ver detalhes">Detalhes</button>
+                    </div>
+                </div>
+                <div class="card-item">
+                    <p><strong>Visa - Banco do Brasil S.A.</strong></p>
+                    <p>Brasil</p>
+                    <p>R$ 0.00</p>
+                    <div class="card-buttons">
+                        <button class="btn btn-secondary" aria-label="Adicionar crédito">Crédito</button>
+                        <button class="btn btn-secondary" aria-label="Ver detalhes">Detalhes</button>
+                    </div>
+                </div>
+                <div class="card-item">
+                    <p><strong>Mastercard</strong></p>
+                    <p>Brasil</p>
+                    <p>R$ 0.00</p>
+                    <div class="card-buttons">
+                        <button class="btn btn-secondary" aria-label="Adicionar crédito">Crédito</button>
+                        <button class="btn btn-secondary" aria-label="Ver detalhes">Detalhes</button>
+                    </div>
+                </div>
             </div>
+            <button class="btn btn-primary" onclick="ui.showAddBalanceForm()" aria-label="Adicionar saldo">Adicionar Saldo</button>
         </div>
     </div>
 
     <!-- Modal de Recarga -->
     <div id="rechargeModal" class="modal">
         <div class="modal-content recharge-modal">
-            <span class="close" onclick="ui.closeModal()">×</span>
+            <span class="close" onclick="ui.closeModal()" aria-label="Fechar modal">×</span>
             <h2>Adicionar Saldo</h2>
-            <p>Escolha o valor da recarga ou insira um valor personalizado (com bônus progressivo!):</p>
+            <p>Escolha o valor da recarga:</p>
             <div class="recharge-options">
-                <button class="btn btn-secondary" onclick="ui.selectRecharge(40)">R$ 40 + 50% bônus</button>
-                <button class="btn btn-secondary" onclick="ui.selectRecharge(70)">R$ 70 + 50% bônus</button>
-                <button class="btn btn-secondary" onclick="ui.selectRecharge(150)">R$ 150 + 60% bônus</button>
-                <button class="btn btn-secondary" onclick="ui.selectRecharge(300)">R$ 300 + 70% bônus</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(40)" aria-label="Recarregar R$ 40">R$ 40 + 50% bônus</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(70)" aria-label="Recarregar R$ 70">R$ 70 + 50% bônus</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(150)" aria-label="Recarregar R$ 150">R$ 150 + 60% bônus</button>
+                <button class="btn btn-secondary" onclick="ui.selectRecharge(300)" aria-label="Recarregar R$ 300">R$ 300 + 70% bônus</button>
             </div>
-            <div class="form-group custom-deposit">
-                <label for="customDeposit">Valor Personalizado (R$)</label>
-                <input type="number" id="customDeposit" placeholder="Ex.: 25" min="10" step="1">
-                <button class="btn btn-primary" onclick="ui.selectCustomRecharge()">Adicionar</button>
-                <p id="customBonusText" class="bonus-text">Bônus: Calculando...</p>
-            </div>
-            <p><small>Exemplo: R$ 200 + 60% = R$ 320 de saldo.</small></p>
         </div>
     </div>
 
@@ -108,10 +110,10 @@
             <h2>Pagamento via PIX</h2>
             <div class="loader" id="pixLoading"></div>
             <p><strong>Chave PIX:</strong> <span id="pixKey">Carregando...</span></p>
-            <button class="btn btn-secondary" onclick="ui.copyPixKey()">Copiar Chave</button>
+            <button class="btn btn-secondary" onclick="ui.copyPixKey()" aria-label="Copiar chave PIX">Copiar Chave</button>
             <p><strong>QR Code:</strong></p>
             <img id="pixQRCode" src="https://via.placeholder.com/150" alt="QR Code">
-            <button class="btn btn-primary" onclick="ui.addBalance()">Confirmar Pagamento</button>
+            <button class="btn btn-primary" onclick="ui.addBalance()" aria-label="Confirmar pagamento">Confirmar Pagamento</button>
         </div>
     </div>
 
