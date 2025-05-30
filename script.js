@@ -138,12 +138,7 @@ const auth = {
             localStorage.setItem('currentUser', username);
             localStorage.setItem('loggedIn', 'true');
             localStorage.setItem('sessionStart', Date.now().toString());
-            const loginForm = document.getElementById('loginForm');
-            const accountInfo = document.getElementById('accountInfo');
-            if (loginForm) loginForm.style.display = 'none';
-            if (accountInfo) accountInfo.style.display = 'block';
-            ui.updateNavbarVisibility();
-            ui.showNotification('Login realizado com sucesso!');
+            window.location.href = 'shop.html'; // Redireciona para a loja após login
         } else {
             const passwordError = document.getElementById('passwordError');
             if (passwordError) passwordError.textContent = 'Usuário ou senha inválidos.';
@@ -331,162 +326,14 @@ const ui = {
     showRegisterForm() {
         alert('Funcionalidade de registro não implementada. Contate o suporte.');
     },
+    showAccountInfo() {
+        const accountInfo = document.getElementById('accountInfo');
+        if (accountInfo) accountInfo.style.display = accountInfo.style.display === 'none' ? 'block' : 'none';
+    },
     addLog(message, details = {}) {
         const logEntry = { message, details, timestamp: new Date().toISOString() };
         state.logs.push(logEntry);
         storage.saveLogs();
-    },
-    // Funções do Admin (lazy loading)
-    displayUsers: (searchTerm) => {
-        const userList = document.getElementById('userList');
-        if (!userList) return;
-        const filteredUsers = storage.users.filter(user => 
-            user.username.toLowerCase().includes(searchTerm.toLowerCase()) || 
-            user.id.includes(searchTerm)
-        );
-        userList.innerHTML = filteredUsers.map(user => `
-            <div class="card-item">
-                <p><strong>ID:</strong> ${user.id}</p>
-                <p><strong>Usuário:</strong> ${user.username}</p>
-                <p><strong>Saldo:</strong> R$ ${user.balance.toFixed(2)}</p>
-                <p><strong>Compras:</strong> ${user.purchases.length}</p>
-            </div>
-        `).join('');
-    },
-    displayAdminCards: (searchTerm) => {
-        const adminCardList = document.getElementById('adminCardList');
-        if (!adminCardList) return;
-        const filteredCards = storage.cards.filter(card => 
-            card.number.includes(searchTerm) || 
-            card.brand.toLowerCase().includes(searchTerm.toLowerCase()) || 
-            card.bank.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        adminCardList.innerHTML = filteredCards.map(card => `
-            <div class="card-item">
-                <h2>${card.number}</h2>
-                <p><strong>Validade:</strong> ${card.expiry}</p>
-                <p><strong>Bandeira:</strong> ${card.brand}</p>
-                <p><strong>Banco:</strong> ${card.bank}</p>
-                <p><strong>Preço:</strong> R$ ${card.price.toFixed(2)}</p>
-                <p><strong>Estoque:</strong> ${card.stock}</p>
-                <button class="btn btn-secondary" onclick="ui.editCard('${card.id}')">Editar</button>
-                <button class="btn btn-clear" onclick="ui.deleteCard('${card.id}')">Excluir</button>
-            </div>
-        `).join('');
-    },
-    showAddCardModal() {
-        const modal = document.getElementById('cardModal');
-        if (modal) {
-            document.getElementById('modalTitle').textContent = 'Adicionar Novo Cartão';
-            state.editingCardId = null;
-            modal.style.display = 'flex';
-        }
-    },
-    saveCard() {
-        const card = {
-            id: state.editingCardId || auth.generateUniqueId(),
-            number: document.getElementById('cardNumber').value,
-            cvv: document.getElementById('cardCvv').value,
-            expiry: document.getElementById('cardExpiry').value,
-            brand: document.getElementById('cardBrand').value,
-            bank: document.getElementById('cardBank').value,
-            country: document.getElementById('cardCountry').value,
-            price: parseFloat(document.getElementById('cardPrice').value),
-            stock: parseInt(document.getElementById('cardStock').value),
-            type: document.getElementById('cardType').value,
-            name: document.getElementById('cardName').value,
-            cpf: document.getElementById('cardCpf').value,
-            level: document.getElementById('cardLevel').value
-        };
-
-        if (!card.number || !card.cvv || !card.expiry || !card.brand || !card.bank || !card.country || !card.price || !card.stock || !card.type || !card.name || !card.cpf || !card.level) {
-            alert('Por favor, preencha todos os campos.');
-            return;
-        }
-
-        if (state.editingCardId) {
-            const index = storage.cards.findIndex(c => c.id === state.editingCardId);
-            storage.cards[index] = card;
-        } else {
-            storage.cards.push(card);
-        }
-        storage.saveCards();
-        document.getElementById('cardModal').style.display = 'none';
-        ui.displayAdminCards('');
-    },
-    editCard(cardId) {
-        const card = storage.cards.find(c => c.id === cardId);
-        if (card) {
-            state.editingCardId = cardId;
-            document.getElementById('cardNumber').value = card.number;
-            document.getElementById('cardCvv').value = card.cvv;
-            document.getElementById('cardExpiry').value = card.expiry;
-            document.getElementById('cardBrand').value = card.brand;
-            document.getElementById('cardBank').value = card.bank;
-            document.getElementById('cardCountry').value = card.country;
-            document.getElementById('cardPrice').value = card.price;
-            document.getElementById('cardStock').value = card.stock;
-            document.getElementById('cardType').value = card.type;
-            document.getElementById('cardName').value = card.name;
-            document.getElementById('cardCpf').value = card.cpf;
-            document.getElementById('cardLevel').value = card.level;
-            document.getElementById('modalTitle').textContent = 'Editar Cartão';
-            document.getElementById('cardModal').style.display = 'flex';
-        }
-    },
-    deleteCard(cardId) {
-        storage.cards = storage.cards.filter(c => c.id !== cardId);
-        storage.saveCards();
-        ui.displayAdminCards('');
-    },
-    showBulkEditModal() {
-        document.getElementById('bulkEditModal').style.display = 'flex';
-    },
-    applyBulkEdit() {
-        const field = document.getElementById('bulkEditField').value;
-        const value = document.getElementById('bulkEditValue').value;
-        if (!field || !value) {
-            alert('Por favor, preencha todos os campos.');
-            return;
-        }
-        storage.cards.forEach(card => {
-            if (field === 'price') card.price = parseFloat(value);
-            if (field === 'stock') card.stock = parseInt(value);
-            if (field === 'brand') card.brand = value;
-            if (field === 'bank') card.bank = value;
-        });
-        storage.saveCards();
-        document.getElementById('bulkEditModal').style.display = 'none';
-        ui.displayAdminCards('');
-    },
-    importCards() {
-        alert('Funcionalidade de importação de cartões não implementada.');
-    },
-    exportCards() {
-        const csv = storage.cards.map(card => Object.values(card).join(',')).join('\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'cards.csv';
-        a.click();
-        window.URL.revokeObjectURL(url);
-    },
-    exportLogs(format) {
-        const data = format === 'csv' ? state.logs.map(log => `${log.message},${log.timestamp}`).join('\n') : JSON.stringify(state.logs);
-        const blob = new Blob([data], { type: format === 'csv' ? 'text/csv' : 'application/json' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `logs.${format}`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-    },
-    clearLogs() {
-        state.logs = [];
-        storage.saveLogs();
-        const logList = document.getElementById('logList');
-        if (logList) logList.innerHTML = '';
     }
 };
 
@@ -552,6 +399,7 @@ function confirmPurchase() {
 }
 
 function showCardDetails(cardNumber) {
+    if (!checkLogin()) return;
     const card = storage.cards.find(c => c.number === cardNumber);
     if (card) {
         const cardDetailsContent = document.getElementById('cardDetailsContent');
