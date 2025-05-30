@@ -56,9 +56,53 @@
                     <option value="Nubank">Nubank</option>
                 </select>
             </div>
+            <div class="filter-group">
+                <label for="levelFilter"><i class="fas fa-star"></i> Nível</label>
+                <select id="levelFilter" onchange="ui.filterCards()">
+                    <option value="all">Todos</option>
+                    <option value="Padrão">Padrão</option>
+                    <option value="Gold">Gold</option>
+                    <option value="Platinum">Platinum</option>
+                    <option value="Black">Black</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="typeFilter"><i class="fas fa-credit-card"></i> Tipo</label>
+                <select id="typeFilter" onchange="ui.filterCards()">
+                    <option value="all">Todos</option>
+                    <option value="Crédito">Crédito</option>
+                    <option value="Débito">Débito</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="priceRangeFilter"><i class="fas fa-money-bill"></i> Faixa de Preço</label>
+                <select id="priceRangeFilter" onchange="ui.filterCards()">
+                    <option value="all">Todas</option>
+                    <option value="0-10">R$ 0 - R$ 10</option>
+                    <option value="10-20">R$ 10 - R$ 20</option>
+                    <option value="20-50">R$ 20 - R$ 50</option>
+                    <option value="50+">R$ 50+</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="stockFilter"><i class="fas fa-boxes"></i> Estoque</label>
+                <select id="stockFilter" onchange="ui.filterCards()">
+                    <option value="all">Todos</option>
+                    <option value="inStock">Em Estoque</option>
+                    <option value="outOfStock">Fora de Estoque</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="viewMode"><i class="fas fa-eye"></i> Visualização</label>
+                <select id="viewMode" onchange="ui.toggleViewMode()">
+                    <option value="grid">Grade</option>
+                    <option value="list">Lista</option>
+                </select>
+            </div>
+            <button class="btn btn-clear" onclick="ui.clearFilters()">Limpar Filtros</button>
         </div>
 
-        <div id="cardList" class="card-list"></div>
+        <div id="cardList" class="card-list card-list-grid"></div>
     </div>
 
     <!-- Modal de Confirmação de Compra -->
@@ -77,19 +121,35 @@
         </div>
     </div>
 
+    <!-- Modal de Detalhes do Cartão -->
+    <div id="cardDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCardDetailsModal()">×</span>
+            <h2>Detalhes do Cartão</h2>
+            <div id="cardDetailsContent"></div>
+            <button class="btn btn-secondary" onclick="closeCardDetailsModal()">Fechar</button>
+        </div>
+    </div>
+
     <!-- Modal de Recarga -->
     <div id="rechargeModal" class="modal">
         <div class="modal-content recharge-modal">
             <span class="close" onclick="ui.closeModal()">×</span>
             <h2>Adicionar Saldo</h2>
-            <p>Escolha o valor da recarga (com bônus progressivo!):</p>
+            <p>Escolha o valor da recarga ou insira um valor personalizado (com bônus progressivo!):</p>
             <div class="recharge-options">
                 <button class="btn btn-secondary" onclick="ui.selectRecharge(40)">R$ 40 + 50% bônus</button>
                 <button class="btn btn-secondary" onclick="ui.selectRecharge(70)">R$ 70 + 50% bônus</button>
                 <button class="btn btn-secondary" onclick="ui.selectRecharge(150)">R$ 150 + 60% bônus</button>
                 <button class="btn btn-secondary" onclick="ui.selectRecharge(300)">R$ 300 + 70% bônus</button>
             </div>
-            <p><small>Exemplo: R$ 150 + 60% = R$ 240 de saldo.</small></p>
+            <div class="form-group custom-deposit">
+                <label for="customDeposit">Valor Personalizado (R$)</label>
+                <input type="number" id="customDeposit" placeholder="Ex.: 25" min="10" step="1">
+                <button class="btn btn-primary" onclick="ui.selectCustomRecharge()">Adicionar</button>
+                <p id="customBonusText" class="bonus-text">Bônus: Calculando...</p>
+            </div>
+            <p><small>Exemplo: R$ 200 + 60% = R$ 320 de saldo.</small></p>
         </div>
     </div>
 
