@@ -365,23 +365,6 @@ body.dark .recharge-modal {
     background-color: #0056b3;
 }
 
-.custom-deposit {
-    margin-top: 15px;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.custom-deposit input {
-    flex: 1;
-}
-
-.bonus-text {
-    color: #28a745;
-    font-weight: bold;
-    margin-top: 5px;
-}
-
 .progress-bar {
     width: 100%;
     height: 20px;
