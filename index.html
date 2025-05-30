@@ -85,20 +85,14 @@
         <div class="modal-content recharge-modal">
             <span class="close" onclick="ui.closeModal()">×</span>
             <h2>Adicionar Saldo</h2>
-            <p>Escolha o valor da recarga ou insira um valor personalizado (com bônus progressivo!):</p>
+            <p>Escolha o valor da recarga (com bônus progressivo!):</p>
             <div class="recharge-options">
                 <button class="btn btn-secondary" onclick="ui.selectRecharge(40)">R$ 40 + 50% bônus</button>
                 <button class="btn btn-secondary" onclick="ui.selectRecharge(70)">R$ 70 + 50% bônus</button>
                 <button class="btn btn-secondary" onclick="ui.selectRecharge(150)">R$ 150 + 60% bônus</button>
                 <button class="btn btn-secondary" onclick="ui.selectRecharge(300)">R$ 300 + 70% bônus</button>
             </div>
-            <div class="form-group custom-deposit">
-                <label for="customDeposit">Valor Personalizado (R$)</label>
-                <input type="number" id="customDeposit" placeholder="Ex.: 25" min="10" step="1">
-                <button class="btn btn-primary" onclick="ui.selectCustomRecharge()">Adicionar</button>
-                <p id="customBonusText" class="bonus-text">Bônus: Calculando...</p>
-            </div>
-            <p><small>Exemplo: R$ 200 + 60% = R$ 320 de saldo.</small></p>
+            <p><small>Exemplo: R$ 150 + 60% = R$ 240 de saldo.</small></p>
         </div>
     </div>
 
