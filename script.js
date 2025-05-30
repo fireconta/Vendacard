@@ -8,7 +8,8 @@ const CONFIG = {
     LOGIN_BLOCK_TIME: 60000,
     LOW_STOCK_THRESHOLD: 3,
     NOTIFICATION_TIMEOUT: 5000,
-    LOG_RETENTION_DAYS: 30
+    LOG_RETENTION_DAYS: 30,
+    API_URL: 'https://script.google.com/macros/s/AKfycbxsl_dcM9iZMPYynmzsKmkMD8IkgTuQTsYD_4WnZFKMGlAESElubZqxIz5DTlsY_gQi/exec'
 };
 
 // === Estado Global ===
@@ -23,26 +24,9 @@ const state = {
     editingPixAmount: null,
     logs: JSON.parse(localStorage.getItem('logs')) || [],
     viewMode: 'grid',
-    sessionStart: localStorage.getItem('sessionStart') || Date.now()
-};
-
-// === Gerenciamento de Armazenamento ===
-const storage = {
-    users: JSON.parse(localStorage.getItem('users')) || [],
-    cards: JSON.parse(localStorage.getItem('cards')) || [
-        { id: '1', number: '1234567890123456', cvv: '123', expiry: '12/25', brand: 'Visa', bank: 'Banco do Brasil S.A.', country: 'Brasil', price: 10.00, stock: 10, type: 'Crédito', name: 'João Silva', cpf: '123.456.789-00', level: 'Padrão' },
-        { id: '2', number: '9876543210987654', cvv: '456', expiry: '11/26', brand: 'Mastercard', bank: 'Banco Inter', country: 'Brasil', price: 15.00, stock: 5, type: 'Débito', name: 'Maria Oliveira', cpf: '987.654.321-00', level: 'Gold' }
-    ],
-    pixDetails: JSON.parse(localStorage.getItem('pixDetails')) || {
-        40: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" },
-        70: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" },
-        150: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" },
-        300: { key: "chave@exemplo.com", qrCode: "https://via.placeholder.com/150" }
-    },
-    saveUsers() { localStorage.setItem('users', JSON.stringify(this.users)); },
-    saveCards() { localStorage.setItem('cards', JSON.stringify(this.cards)); },
-    savePixDetails() { localStorage.setItem('pixDetails', JSON.stringify(this.pixDetails)); },
-    saveLogs() { localStorage.setItem('logs', JSON.stringify(state.logs)); }
+    sessionStart: localStorage.getItem('sessionStart') || Date.now(),
+    users: [],
+    cards: []
 };
 
 // === Funções de Formatação Automática ===
@@ -76,72 +60,58 @@ function checkLogin() {
 
 // === Autenticação ===
 const auth = {
-    generateUniqueId() { let id; do { id = Math.floor(100000 + Math.random() * 900000).toString(); } while (storage.users.some(u => u.id === id)); return id; },
-    async hashPassword(password) {
-        if (window.crypto && window.crypto.subtle) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(password);
-            const hash = await window.crypto.subtle.digest('SHA-256', data);
-            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-        function md5(str) { /* MD5 implementation */ }
-        return md5(password);
-    },
-    validateLogin() {
+    async login() {
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
         const usernameError = document.getElementById('usernameError');
         const passwordError = document.getElementById('passwordError');
+        const loginLoader = document.getElementById('loginLoader');
 
-        if (!usernameInput || !passwordInput) return false;
+        if (!usernameInput || !passwordInput) return;
 
-        const username = usernameInput.value;
-        const password = passwordInput.value;
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value.trim();
 
         if (!username) {
             if (usernameError) usernameError.textContent = 'Por favor, preencha o usuário.';
-            return false;
+            return;
         }
         if (!password) {
             if (passwordError) passwordError.textContent = 'Por favor, preencha a senha.';
-            return false;
+            return;
         }
         if (password.length < CONFIG.MIN_PASSWORD_LENGTH) {
             if (passwordError) passwordError.textContent = `A senha deve ter pelo menos ${CONFIG.MIN_PASSWORD_LENGTH} caracteres.`;
-            return false;
+            return;
         }
-        return true;
-    },
-    async initializeData() {
-        if (!storage.users.some(u => u.username === 'LVz')) {
-            const defaultPassword = '123456';
-            const passwordHash = await this.hashPassword(defaultPassword);
-            storage.users.push({ id: this.generateUniqueId(), username: 'LVz', password: passwordHash, balance: 0, purchases: [], isAdmin: false });
-            storage.saveUsers();
-        }
-        if (storage.cards.length === 0) {
-            storage.cards = [];
-            storage.saveCards();
-        }
-        ui.updateNavbarVisibility();
-    },
-    async login() {
-        if (!this.validateLogin()) return;
 
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const passwordHash = await this.hashPassword(password);
-        const user = storage.users.find(u => u.username === username && u.password === passwordHash);
-
-        if (user) {
-            state.currentUser = username;
-            localStorage.setItem('currentUser', username);
-            localStorage.setItem('loggedIn', 'true');
-            localStorage.setItem('sessionStart', Date.now().toString());
-            window.location.href = 'shop.html'; // Redireciona para a loja após login
-        } else {
-            const passwordError = document.getElementById('passwordError');
-            if (passwordError) passwordError.textContent = 'Usuário ou senha inválidos.';
+        loginLoader.style.display = 'block';
+        try {
+            const response = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `action=validateLogin&user=${encodeURIComponent(username)}&senha=${encodeURIComponent(password)}`
+            });
+            const result = await response.json();
+            if (result.success) {
+                state.currentUser = username;
+                localStorage.setItem('currentUser', username);
+                localStorage.setItem('loggedIn', 'true');
+                localStorage.setItem('sessionStart', Date.now().toString());
+                window.location.href = 'shop.html';
+            } else {
+                if (passwordError) passwordError.textContent = 'Usuário ou senha inválidos.';
+                state.loginAttempts++;
+                if (state.loginAttempts >= CONFIG.MAX_LOGIN_ATTEMPTS) {
+                    state.loginBlockedUntil = Date.now() + CONFIG.LOGIN_BLOCK_TIME;
+                    alert(`Limite de tentativas atingido. Tente novamente após ${CONFIG.LOGIN_BLOCK_TIME / 1000} segundos.`);
+                }
+            }
+        } catch (error) {
+            if (passwordError) passwordError.textContent = 'Erro ao conectar ao servidor.';
+            console.error('Login error:', error);
+        } finally {
+            loginLoader.style.display = 'none';
         }
     },
     forgotPassword() { alert('Funcionalidade de recuperação de senha não implementada. Contate o suporte.'); },
@@ -160,16 +130,7 @@ const auth = {
                 if (state.clickCount >= CONFIG.ADMIN_CLICKS) {
                     const password = prompt('Insira a senha para acessar o Painel Admin:');
                     if (password === CONFIG.ADMIN_PASSWORD) {
-                        const adminUser = storage.users.find(u => u.username === state.currentUser);
-                        if (adminUser) {
-                            adminUser.isAdmin = true;
-                            storage.saveUsers();
-                            alert('Acesso ao Painel Admin concedido!');
-                            window.location.href = 'dashboard.html';
-                        } else {
-                            alert('Usuário não encontrado. Faça login novamente.');
-                            window.location.href = 'index.html';
-                        }
+                        window.location.href = 'dashboard.html';
                     } else {
                         alert('Senha incorreta!');
                         state.clickCount = 0;
@@ -182,6 +143,25 @@ const auth = {
 
 // === Interface do Usuário ===
 const ui = {
+    async initializeData() {
+        try {
+            const usersResponse = await fetch(CONFIG.API_URL + '?action=getUsers');
+            const cardsResponse = await fetch(CONFIG.API_URL + '?action=getCards');
+            state.users = await usersResponse.json();
+            state.cards = await cardsResponse.json();
+            const user = state.users.find(u => u.user === state.currentUser);
+            if (user) {
+                const userBalance = document.getElementById('userBalance');
+                const userBalanceAccount = document.getElementById('userBalanceAccount');
+                if (userBalance) userBalance.textContent = user.saldo.toFixed(2);
+                if (userBalanceAccount) userBalanceAccount.textContent = user.saldo.toFixed(2);
+            }
+            this.filterCards();
+        } catch (error) {
+            console.error('Erro ao carregar dados:', error);
+            this.showNotification('Erro ao carregar dados do servidor.');
+        }
+    },
     toggleTheme() {
         document.body.classList.toggle('dark');
         const themeToggle = document.getElementById('themeToggle');
@@ -224,32 +204,42 @@ const ui = {
     updatePixDetailsDisplay() {
         const pixKeySpan = document.getElementById('pixKey');
         const pixQRCodeImg = document.getElementById('pixQRCode');
-        if (state.selectedRechargeAmount && storage.pixDetails[state.selectedRechargeAmount]) {
-            if (pixKeySpan) pixKeySpan.textContent = storage.pixDetails[state.selectedRechargeAmount].key;
-            if (pixQRCodeImg) pixQRCodeImg.src = storage.pixDetails[state.selectedRechargeAmount].qrCode;
+        if (state.selectedRechargeAmount) {
+            const pixDetails = {
+                40: { key: "chave40@exemplo.com", qrCode: "https://via.placeholder.com/150" },
+                70: { key: "chave70@exemplo.com", qrCode: "https://via.placeholder.com/150" },
+                150: { key: "chave150@exemplo.com", qrCode: "https://via.placeholder.com/150" },
+                300: { key: "chave300@exemplo.com", qrCode: "https://via.placeholder.com/150" }
+            };
+            if (pixKeySpan) pixKeySpan.textContent = pixDetails[state.selectedRechargeAmount].key;
+            if (pixQRCodeImg) pixQRCodeImg.src = pixDetails[state.selectedRechargeAmount].qrCode;
         } else {
             if (pixKeySpan) pixKeySpan.textContent = 'Chave não configurada';
             if (pixQRCodeImg) pixQRCodeImg.src = 'https://via.placeholder.com/150';
         }
     },
-    addBalance() {
+    async addBalance() {
         if (!state.selectedRechargeAmount || ![40, 70, 150, 300].includes(state.selectedRechargeAmount)) {
             alert('Por favor, selecione um valor de recarga válido.');
             return;
         }
-        const user = storage.users.find(u => u.username === state.currentUser);
+        const user = state.users.find(u => u.user === state.currentUser);
         if (user) {
             const bonus = state.selectedRechargeAmount * 0.5;
             const totalCredit = state.selectedRechargeAmount + bonus;
-            user.balance += totalCredit;
-            storage.saveUsers();
+            await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `action=updateUser&user=${encodeURIComponent(user.user)}&senha=${encodeURIComponent(user.senha)}&saldo=${(user.saldo + totalCredit).toFixed(2)}`
+            });
+            state.users = (await (await fetch(CONFIG.API_URL + '?action=getUsers')).json());
             const userBalance = document.getElementById('userBalance');
             const userBalanceAccount = document.getElementById('userBalanceAccount');
-            if (userBalance) userBalance.textContent = user.balance.toFixed(2);
-            if (userBalanceAccount) userBalanceAccount.textContent = user.balance.toFixed(2);
+            if (userBalance) userBalance.textContent = (user.saldo + totalCredit).toFixed(2);
+            if (userBalanceAccount) userBalanceAccount.textContent = (user.saldo + totalCredit).toFixed(2);
             const pixPayment = document.getElementById('pixPayment');
             if (pixPayment) pixPayment.style.display = 'none';
-            alert(`Saldo adicionado com sucesso! Você recarregou R$ ${state.selectedRechargeAmount.toFixed(2)} e recebeu R$ ${totalCredit.toFixed(2)} (incluindo bônus de R$ ${bonus.toFixed(2)}).`);
+            alert(`Saldo adicionado com sucesso! Você recarregou R$ ${state.selectedRechargeAmount.toFixed(2)} e recebeu R$ ${(totalCredit).toFixed(2)} (incluindo bônus de R$ ${bonus.toFixed(2)}).`);
             state.selectedRechargeAmount = null;
             this.showNotification('Saldo atualizado!');
         }
@@ -275,11 +265,11 @@ const ui = {
         const priceRangeFilter = document.getElementById('priceRangeFilter')?.value || 'all';
         const stockFilter = document.getElementById('stockFilter')?.value || 'all';
 
-        const filteredCards = storage.cards.filter(card => {
-            const matchesBin = binFilter ? card.number.startsWith(binFilter) : true;
-            const matchesBrand = brandFilter === 'all' || card.brand === brandFilter;
-            const matchesBank = bankFilter === 'all' || card.bank === bankFilter;
-            const matchesLevel = levelFilter === 'all' || card.level === levelFilter;
+        const filteredCards = state.cards.filter(card => {
+            const matchesBin = binFilter ? card.bin.startsWith(binFilter) : true;
+            const matchesBrand = brandFilter === 'all' || card.bandeira === brandFilter;
+            const matchesBank = bankFilter === 'all' || card.banco === bankFilter;
+            const matchesLevel = levelFilter === 'all' || card.nivel === levelFilter;
             const matchesType = typeFilter === 'all' || card.type === typeFilter;
             const matchesPrice = priceRangeFilter === 'all' ||
                 (priceRangeFilter === '0-10' && card.price >= 0 && card.price <= 10) ||
@@ -294,15 +284,15 @@ const ui = {
 
         cardList.innerHTML = filteredCards.map(card => `
             <div class="card-item">
-                <h2>${card.number.slice(0, 6)} **** **** ****</h2>
-                <p><strong>Validade:</strong> ${card.expiry}</p>
-                <p><strong>Bandeira:</strong> ${card.brand}</p>
-                <p><strong>Banco:</strong> ${card.bank}</p>
-                <p><strong>Nível:</strong> ${card.level}</p>
+                <h2>${card.bin} **** **** ****</h2>
+                <p><strong>Validade:</strong> ${card.validade}</p>
+                <p><strong>Bandeira:</strong> ${card.bandeira}</p>
+                <p><strong>Banco:</strong> ${card.banco}</p>
+                <p><strong>Nível:</strong> ${card.nivel}</p>
                 <p><strong>Preço:</strong> R$ ${card.price.toFixed(2)}</p>
                 <p><strong>Estoque:</strong> ${card.stock}</p>
-                <button class="btn btn-primary" onclick="buyCard('${card.number}')" ${card.stock === 0 ? 'disabled' : ''}>Comprar</button>
-                <button class="btn btn-secondary" onclick="showCardDetails('${card.number}')">Detalhes</button>
+                <button class="btn btn-primary" onclick="buyCard('${card.numero}')" ${card.stock === 0 ? 'disabled' : ''}>Comprar</button>
+                <button class="btn btn-secondary" onclick="showCardDetails('${card.numero}')">Detalhes</button>
             </div>
         `).join('');
     },
@@ -328,22 +318,231 @@ const ui = {
     },
     showAccountInfo() {
         const accountInfo = document.getElementById('accountInfo');
-        if (accountInfo) accountInfo.style.display = accountInfo.style.display === 'none' ? 'block' : 'none';
+        if (accountInfo) {
+            accountInfo.style.display = accountInfo.style.display === 'none' ? 'block' : 'none';
+            const userCards = document.getElementById('userCards');
+            if (userCards) {
+                userCards.innerHTML = state.users.find(u => u.user === state.currentUser)?.purchases.map(p => `
+                    <div class="card-item">
+                        <h2>${p.bin} **** **** ****</h2>
+                        <p><strong>Validade:</strong> ${p.validade}</p>
+                        <p><strong>Bandeira:</strong> ${p.bandeira}</p>
+                        <p><strong>Banco:</strong> ${p.banco}</p>
+                    </div>
+                `).join('') || '<p>Nenhuma compra registrada.</p>';
+            }
+        }
     },
-    addLog(message, details = {}) {
-        const logEntry = { message, details, timestamp: new Date().toISOString() };
-        state.logs.push(logEntry);
-        storage.saveLogs();
+    async addUser() {
+        const username = document.getElementById('newUsername').value.trim();
+        const password = document.getElementById('newPassword').value.trim();
+        const balance = document.getElementById('newBalance').value.trim();
+        const usernameError = document.getElementById('newUsernameError');
+        const passwordError = document.getElementById('newPasswordError');
+        const balanceError = document.getElementById('newBalanceError');
+
+        if (!username) { if (usernameError) usernameError.textContent = 'Usuário é obrigatório.'; return; }
+        if (!password) { if (passwordError) passwordError.textContent = 'Senha é obrigatória.'; return; }
+        if (password.length < CONFIG.MIN_PASSWORD_LENGTH) { if (passwordError) passwordError.textContent = `Senha deve ter pelo menos ${CONFIG.MIN_PASSWORD_LENGTH} caracteres.`; return; }
+        if (!balance || isNaN(balance) || parseFloat(balance) < 0) { if (balanceError) balanceError.textContent = 'Saldo inválido.'; return; }
+
+        try {
+            await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `action=addUser&user=${encodeURIComponent(username)}&senha=${encodeURIComponent(password)}&saldo=${encodeURIComponent(balance)}`
+            });
+            state.users = await (await fetch(CONFIG.API_URL + '?action=getUsers')).json();
+            document.getElementById('addUserModal').style.display = 'none';
+            this.showNotification('Usuário adicionado com sucesso!');
+            this.displayUsers();
+        } catch (error) {
+            console.error('Erro ao adicionar usuário:', error);
+            this.showNotification('Erro ao adicionar usuário.');
+        }
+    },
+    async displayUsers(searchTerm = '') {
+        const userList = document.getElementById('userList');
+        if (!userList) return;
+        const filteredUsers = state.users.filter(u => u.user.toLowerCase().includes(searchTerm.toLowerCase()));
+        userList.innerHTML = filteredUsers.map(u => `
+            <div class="card-item">
+                <h2>${u.user}</h2>
+                <p><strong>Saldo:</strong> R$ ${u.saldo.toFixed(2)}</p>
+                <button class="btn btn-secondary" onclick="ui.editUser('${u.user}')">Editar</button>
+                <button class="btn btn-clear" onclick="ui.deleteUser('${u.user}')">Excluir</button>
+            </div>
+        `).join('');
+    },
+    async editUser(user) {
+        const existingUser = state.users.find(u => u.user === user);
+        if (existingUser) {
+            document.getElementById('newUsername').value = existingUser.user;
+            document.getElementById('newPassword').value = existingUser.senha;
+            document.getElementById('newBalance').value = existingUser.saldo;
+            document.getElementById('addUserModal').style.display = 'flex';
+            window.editUserCallback = async () => {
+                const newPassword = document.getElementById('newPassword').value.trim();
+                const newBalance = document.getElementById('newBalance').value.trim();
+                if (!newPassword || newPassword.length < CONFIG.MIN_PASSWORD_LENGTH || !newBalance || isNaN(newBalance) || parseFloat(newBalance) < 0) {
+                    alert('Senha ou saldo inválido.');
+                    return;
+                }
+                try {
+                    await fetch(CONFIG.API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `action=updateUser&user=${encodeURIComponent(user)}&senha=${encodeURIComponent(newPassword)}&saldo=${encodeURIComponent(newBalance)}`
+                    });
+                    state.users = await (await fetch(CONFIG.API_URL + '?action=getUsers')).json();
+                    document.getElementById('addUserModal').style.display = 'none';
+                    this.showNotification('Usuário atualizado com sucesso!');
+                    this.displayUsers();
+                } catch (error) {
+                    console.error('Erro ao atualizar usuário:', error);
+                    this.showNotification('Erro ao atualizar usuário.');
+                }
+            };
+            document.querySelector('#addUserModal .btn-confirm').onclick = window.editUserCallback;
+        }
+    },
+    async deleteUser(user) {
+        if (confirm(`Tem certeza que deseja excluir o usuário ${user}?`)) {
+            try {
+                await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `action=deleteUser&user=${encodeURIComponent(user)}`
+                });
+                state.users = await (await fetch(CONFIG.API_URL + '?action=getUsers')).json();
+                this.showNotification('Usuário excluído com sucesso!');
+                this.displayUsers();
+            } catch (error) {
+                console.error('Erro ao excluir usuário:', error);
+                this.showNotification('Erro ao excluir usuário.');
+            }
+        }
+    },
+    async saveCard() {
+        const numero = document.getElementById('cardNumber').value.trim();
+        const cvv = document.getElementById('cardCvv').value.trim();
+        const validade = document.getElementById('cardExpiry').value.trim();
+        const nome = document.getElementById('cardName').value.trim();
+        const cpf = document.getElementById('cardCpf').value.trim();
+        const bandeira = document.getElementById('cardBrand').value.trim();
+        const banco = document.getElementById('cardBank').value.trim();
+        const pais = document.getElementById('cardCountry').value.trim();
+        const bin = numero.substring(0, 6); // Extrai BIN do número do cartão
+        const nivel = document.getElementById('cardLevel').value.trim();
+        const price = document.getElementById('cardPrice').value.trim();
+        const stock = document.getElementById('cardStock').value.trim();
+        const type = document.getElementById('cardType').value.trim();
+
+        if (!numero || !cvv || !valide || !nome || !cpf || !bandeira || !banco || !pais || !bin || !nivel || !price || !stock || !type) {
+            alert('Todos os campos são obrigatórios.');
+            return;
+        }
+
+        try {
+            await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `action=addCard&numero=${encodeURIComponent(numero)}&cvv=${encodeURIComponent(cvv)}&valida=${encodeURIComponent(valide)}&nome=${encodeURIComponent(nome)}&cpf=${encodeURIComponent(cpf)}&bandeira=${encodeURIComponent(bandeira)}&banco=${encodeURIComponent(banco)}&pais=${encodeURIComponent(pais)}&bin=${encodeURIComponent(bin)}&nivel=${encodeURIComponent(nivel)}`
+            });
+            state.cards = await (await fetch(CONFIG.API_URL + '?action=getCards')).json();
+            document.getElementById('cardModal').style.display = 'none';
+            this.showNotification('Cartão adicionado com sucesso!');
+            this.displayAdminCards();
+        } catch (error) {
+            console.error('Erro ao adicionar cartão:', error);
+            this.showNotification('Erro ao adicionar cartão.');
+        }
+    },
+    async displayAdminCards(searchTerm = '') {
+        const adminCardList = document.getElementById('adminCardList');
+        if (!adminCardList) return;
+        const filteredCards = state.cards.filter(c => c.numero.toLowerCase().includes(searchTerm.toLowerCase()) || c.bandeira.toLowerCase().includes(searchTerm.toLowerCase()) || c.banco.toLowerCase().includes(searchTerm.toLowerCase()));
+        adminCardList.innerHTML = filteredCards.map(c => `
+            <div class="card-item">
+                <h2>${c.bin} **** **** ****</h2>
+                <p><strong>Validade:</strong> ${c.validade}</p>
+                <p><strong>Bandeira:</strong> ${c.bandeira}</p>
+                <p><strong>Banco:</strong> ${c.banco}</p>
+                <button class="btn btn-secondary" onclick="ui.editCard('${c.numero}')">Editar</button>
+                <button class="btn btn-clear" onclick="ui.deleteCard('${c.numero}')">Excluir</button>
+            </div>
+        `).join('');
+    },
+    async editCard(numero) {
+        const existingCard = state.cards.find(c => c.numero === numero);
+        if (existingCard) {
+            document.getElementById('cardNumber').value = existingCard.numero;
+            document.getElementById('cardCvv').value = existingCard.cvv;
+            document.getElementById('cardExpiry').value = existingCard.validade;
+            document.getElementById('cardName').value = existingCard.nome;
+            document.getElementById('cardCpf').value = existingCard.cpf;
+            document.getElementById('cardBrand').value = existingCard.bandeira;
+            document.getElementById('cardBank').value = existingCard.banco;
+            document.getElementById('cardCountry').value = existingCard.pais;
+            document.getElementById('cardLevel').value = existingCard.nivel;
+            document.getElementById('cardModal').style.display = 'flex';
+            window.editCardCallback = async () => {
+                const cvv = document.getElementById('cardCvv').value.trim();
+                const validade = document.getElementById('cardExpiry').value.trim();
+                const nome = document.getElementById('cardName').value.trim();
+                const cpf = document.getElementById('cardCpf').value.trim();
+                const bandeira = document.getElementById('cardBrand').value.trim();
+                const banco = document.getElementById('cardBank').value.trim();
+                const pais = document.getElementById('cardCountry').value.trim();
+                const nivel = document.getElementById('cardLevel').value.trim();
+                if (!cvv || !valide || !nome || !cpf || !bandeira || !banco || !pais || !nivel) {
+                    alert('Todos os campos são obrigatórios.');
+                    return;
+                }
+                try {
+                    await fetch(CONFIG.API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `action=updateCard&numero=${encodeURIComponent(numero)}&cvv=${encodeURIComponent(cvv)}&valida=${encodeURIComponent(valide)}&nome=${encodeURIComponent(nome)}&cpf=${encodeURIComponent(cpf)}&bandeira=${encodeURIComponent(bandeira)}&banco=${encodeURIComponent(banco)}&pais=${encodeURIComponent(pais)}&bin=${encodeURIComponent(existingCard.bin)}&nivel=${encodeURIComponent(nivel)}`
+                    });
+                    state.cards = await (await fetch(CONFIG.API_URL + '?action=getCards')).json();
+                    document.getElementById('cardModal').style.display = 'none';
+                    this.showNotification('Cartão atualizado com sucesso!');
+                    this.displayAdminCards();
+                } catch (error) {
+                    console.error('Erro ao atualizar cartão:', error);
+                    this.showNotification('Erro ao atualizar cartão.');
+                }
+            };
+            document.querySelector('#cardModal .btn-confirm').onclick = window.editCardCallback;
+        }
+    },
+    async deleteCard(numero) {
+        if (confirm(`Tem certeza que deseja excluir o cartão ${numero}?`)) {
+            try {
+                await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `action=deleteCard&numero=${encodeURIComponent(numero)}`
+                });
+                state.cards = await (await fetch(CONFIG.API_URL + '?action=getCards')).json();
+                this.showNotification('Cartão excluído com sucesso!');
+                this.displayAdminCards();
+            } catch (error) {
+                console.error('Erro ao excluir cartão:', error);
+                this.showNotification('Erro ao excluir cartão.');
+            }
+        }
     }
 };
 
 // === Funções Globais ===
-function buyCard(cardNumber) {
+async function buyCard(cardNumber) {
     if (!checkLogin()) return;
     const cardList = document.getElementById('cardList');
     if (!cardList) return;
-    const card = storage.cards.find(c => c.number === cardNumber);
-    const user = storage.users.find(u => u.username === state.currentUser);
+    const card = state.cards.find(c => c.numero === cardNumber);
+    const user = state.users.find(u => u.user === state.currentUser);
     if (!card || !user) return;
 
     const confirmTotalAmount = document.getElementById('confirmTotalAmount');
@@ -353,14 +552,14 @@ function buyCard(cardNumber) {
 
     if (confirmTotalAmount && confirmUserBalance && confirmCardDetails && confirmPurchaseModal) {
         confirmTotalAmount.textContent = card.price.toFixed(2);
-        confirmUserBalance.textContent = user.balance.toFixed(2);
+        confirmUserBalance.textContent = user.saldo.toFixed(2);
         confirmCardDetails.innerHTML = `
             <div class="card-item">
-                <h2>${card.number.slice(0, 6)} **** **** ****</h2>
-                <p><strong>Validade:</strong> ${card.expiry}</p>
-                <p><strong>Bandeira:</strong> ${card.brand}</p>
-                <p><strong>Banco:</strong> ${card.bank}</p>
-                <p><strong>Nível:</strong> ${card.level}</p>
+                <h2>${card.bin} **** **** ****</h2>
+                <p><strong>Validade:</strong> ${card.validade}</p>
+                <p><strong>Bandeira:</strong> ${card.bandeira}</p>
+                <p><strong>Banco:</strong> ${card.banco}</p>
+                <p><strong>Nível:</strong> ${card.nivel}</p>
             </div>
         `;
         confirmPurchaseModal.style.display = 'flex';
@@ -372,26 +571,36 @@ function closeConfirmPurchaseModal() {
     if (confirmPurchaseModal) confirmPurchaseModal.style.display = 'none';
 }
 
-function confirmPurchase() {
+async function confirmPurchase() {
     if (!checkLogin()) return;
     const cardNumberElement = document.querySelector('#confirmCardDetails .card-item h2');
     if (!cardNumberElement) return;
     const cardNumber = cardNumberElement.textContent.replace(/\s/g, '');
-    const card = storage.cards.find(c => c.number === cardNumber);
-    const user = storage.users.find(u => u.username === state.currentUser);
+    const card = state.cards.find(c => c.numero === cardNumber);
+    const user = state.users.find(u => u.user === state.currentUser);
 
-    if (card && user && user.balance >= card.price && card.stock > 0) {
-        user.balance -= card.price;
+    if (card && user && user.saldo >= card.price) {
+        user.saldo -= card.price;
         card.stock--;
-        user.purchases.push({ cardNumber: card.number, expiry: card.expiry, brand: card.brand, bank: card.bank, country: card.country, type: card.type, price: card.price, date: new Date().toISOString(), name: card.name, cpf: card.cpf, level: card.level });
-        storage.saveUsers();
-        storage.saveCards();
+        if (!user.purchases) user.purchases = [];
+        user.purchases.push({ numero: card.numero, validade: card.validade, bandeira: card.bandeira, banco: card.banco, pais: card.pais, price: card.price, date: new Date().toISOString(), nome: card.nome, cpf: card.cpf, nivel: card.nivel });
+        await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `action=updateUser&user=${encodeURIComponent(user.user)}&senha=${encodeURIComponent(user.senha)}&saldo=${encodeURIComponent(user.saldo)}`
+        });
+        await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `action=updateCard&numero=${encodeURIComponent(card.numero)}&cvv=${encodeURIComponent(card.cvv)}&valida=${encodeURIComponent(card.validade)}&nome=${encodeURIComponent(card.nome)}&cpf=${encodeURIComponent(card.cpf)}&bandeira=${encodeURIComponent(card.bandeira)}&banco=${encodeURIComponent(card.banco)}&pais=${encodeURIComponent(card.pais)}&bin=${encodeURIComponent(card.bin)}&nivel=${encodeURIComponent(card.nivel)}`
+        });
+        state.users = await (await fetch(CONFIG.API_URL + '?action=getUsers')).json();
+        state.cards = await (await fetch(CONFIG.API_URL + '?action=getCards')).json();
         const userBalance = document.getElementById('userBalance');
-        if (userBalance) userBalance.textContent = user.balance.toFixed(2);
+        if (userBalance) userBalance.textContent = user.saldo.toFixed(2);
         closeConfirmPurchaseModal();
         alert('Compra realizada com sucesso!');
         ui.filterCards();
-        ui.addLog(`Compra realizada por ${user.username} do cartão ${card.number}`, { price: card.price, stock: card.stock });
         ui.showNotification('Compra confirmada!');
     } else {
         alert('Saldo insuficiente ou cartão fora de estoque.');
@@ -400,17 +609,17 @@ function confirmPurchase() {
 
 function showCardDetails(cardNumber) {
     if (!checkLogin()) return;
-    const card = storage.cards.find(c => c.number === cardNumber);
+    const card = state.cards.find(c => c.numero === cardNumber);
     if (card) {
         const cardDetailsContent = document.getElementById('cardDetailsContent');
         if (cardDetailsContent) {
             cardDetailsContent.innerHTML = `
-                <p><strong>Número:</strong> ${card.number}</p>
-                <p><strong>Validade:</strong> ${card.expiry}</p>
-                <p><strong>Bandeira:</strong> ${card.brand}</p>
-                <p><strong>Banco:</strong> ${card.bank}</p>
-                <p><strong>Nível:</strong> ${card.level}</p>
-                <p><strong>Tipo:</strong> ${card.type}</p>
+                <p><strong>Número:</strong> ${card.numero}</p>
+                <p><strong>Validade:</strong> ${card.validade}</p>
+                <p><strong>Bandeira:</strong> ${card.bandeira}</p>
+                <p><strong>Banco:</strong> ${card.banco}</p>
+                <p><strong>Nível:</strong> ${card.nivel}</p>
+                <p><strong>Tipo:</strong> ${card.type || 'N/A'}</p>
                 <p><strong>Preço:</strong> R$ ${card.price.toFixed(2)}</p>
                 <p><strong>Estoque:</strong> ${card.stock}</p>
             `;
@@ -428,15 +637,11 @@ function closeCardDetailsModal() {
 document.addEventListener('DOMContentLoaded', () => {
     if (!checkLogin()) return;
 
-    auth.initializeData();
     auth.checkAdminMode();
-    const user = storage.users.find(u => u.username === state.currentUser);
-    if (user) {
-        const userBalance = document.getElementById('userBalance');
-        const userBalanceAccount = document.getElementById('userBalanceAccount');
-        if (userBalance) userBalance.textContent = user.balance.toFixed(2);
-        if (userBalanceAccount) userBalanceAccount.textContent = user.balance.toFixed(2);
-    }
+    ui.initializeData();
     ui.updateNavbarVisibility();
-    if (window.location.pathname.includes('shop.html')) ui.filterCards();
+    if (window.location.pathname.includes('dashboard.html')) {
+        ui.displayUsers();
+        ui.displayAdminCards();
+    }
 });
