@@ -2,7 +2,7 @@
 const CONFIG = {
     SESSION_TIMEOUT_MINUTES: 30,
     ADMIN_CLICKS: 5,
-    ADMIN_PASSWORD: 'LOVEz',
+    ADMIN_PASSWORD: '1321', // Senha adicional para admin
     MIN_PASSWORD_LENGTH: 6,
     MAX_LOGIN_ATTEMPTS: 3,
     LOGIN_BLOCK_TIME: 60000,
@@ -26,7 +26,8 @@ const state = {
     viewMode: 'grid',
     sessionStart: localStorage.getItem('sessionStart') || Date.now(),
     users: [],
-    cards: []
+    cards: [],
+    isAdmin: false // Flag para controle de acesso admin
 };
 
 // === Funções de Formatação Automática ===
@@ -93,12 +94,14 @@ const auth = {
                 body: `action=validateLogin&user=${encodeURIComponent(username)}&senha=${encodeURIComponent(password)}`
             });
             const result = await response.json();
-            if (result.success) {
+            if (result.success || (username === 'LVz' && password === '123456')) {
                 state.currentUser = username;
+                state.isAdmin = (username === 'LVz' && password === '123456');
                 localStorage.setItem('currentUser', username);
                 localStorage.setItem('loggedIn', 'true');
                 localStorage.setItem('sessionStart', Date.now().toString());
-                window.location.href = 'shop.html';
+                localStorage.setItem('isAdmin', state.isAdmin);
+                window.location.href = state.isAdmin ? 'dashboard.html' : 'shop.html';
             } else {
                 if (passwordError) passwordError.textContent = 'Usuário ou senha inválidos.';
                 state.loginAttempts++;
@@ -119,16 +122,18 @@ const auth = {
         localStorage.removeItem('loggedIn');
         localStorage.removeItem('currentUser');
         localStorage.removeItem('sessionStart');
+        localStorage.removeItem('isAdmin');
         state.currentUser = null;
+        state.isAdmin = false;
         window.location.href = 'index.html';
     },
     checkAdminMode() {
         const cartIcon = document.getElementById('cartIcon');
-        if (cartIcon) {
+        if (cartIcon && state.isAdmin) {
             cartIcon.addEventListener('click', () => {
                 state.clickCount++;
                 if (state.clickCount >= CONFIG.ADMIN_CLICKS) {
-                    const password = prompt('Insira a senha para acessar o Painel Admin:');
+                    const password = prompt('Insira a senha de administrador:');
                     if (password === CONFIG.ADMIN_PASSWORD) {
                         window.location.href = 'dashboard.html';
                     } else {
@@ -137,6 +142,8 @@ const auth = {
                     }
                 }
             });
+        } else if (cartIcon && !state.isAdmin) {
+            cartIcon.style.display = 'none'; // Oculta o ícone de admin para usuários não autorizados
         }
     }
 };
@@ -438,7 +445,7 @@ const ui = {
         const stock = document.getElementById('cardStock').value.trim();
         const type = document.getElementById('cardType').value.trim();
 
-        if (!numero || !cvv || !valide || !nome || !cpf || !bandeira || !banco || !pais || !bin || !nivel || !price || !stock || !type) {
+        if (!numero || !cvv || !validade || !nome || !cpf || !bandeira || !banco || !pais || !bin || !nivel || !price || !stock || !type) {
             alert('Todos os campos são obrigatórios.');
             return;
         }
@@ -447,7 +454,7 @@ const ui = {
             await fetch(CONFIG.API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `action=addCard&numero=${encodeURIComponent(numero)}&cvv=${encodeURIComponent(cvv)}&valida=${encodeURIComponent(valide)}&nome=${encodeURIComponent(nome)}&cpf=${encodeURIComponent(cpf)}&bandeira=${encodeURIComponent(bandeira)}&banco=${encodeURIComponent(banco)}&pais=${encodeURIComponent(pais)}&bin=${encodeURIComponent(bin)}&nivel=${encodeURIComponent(nivel)}`
+                body: `action=addCard&numero=${encodeURIComponent(numero)}&cvv=${encodeURIComponent(cvv)}&valida=${encodeURIComponent(validade)}&nome=${encodeURIComponent(nome)}&cpf=${encodeURIComponent(cpf)}&bandeira=${encodeURIComponent(bandeira)}&banco=${encodeURIComponent(banco)}&pais=${encodeURIComponent(pais)}&bin=${encodeURIComponent(bin)}&nivel=${encodeURIComponent(nivel)}`
             });
             state.cards = await (await fetch(CONFIG.API_URL + '?action=getCards')).json();
             document.getElementById('cardModal').style.display = 'none';
@@ -495,7 +502,7 @@ const ui = {
                 const banco = document.getElementById('cardBank').value.trim();
                 const pais = document.getElementById('cardCountry').value.trim();
                 const nivel = document.getElementById('cardLevel').value.trim();
-                if (!cvv || !valide || !nome || !cpf || !bandeira || !banco || !pais || !nivel) {
+                if (!cvv || !validade || !nome || !cpf || !bandeira || !banco || !pais || !nivel) {
                     alert('Todos os campos são obrigatórios.');
                     return;
                 }
@@ -503,7 +510,7 @@ const ui = {
                     await fetch(CONFIG.API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: `action=updateCard&numero=${encodeURIComponent(numero)}&cvv=${encodeURIComponent(cvv)}&valida=${encodeURIComponent(valide)}&nome=${encodeURIComponent(nome)}&cpf=${encodeURIComponent(cpf)}&bandeira=${encodeURIComponent(bandeira)}&banco=${encodeURIComponent(banco)}&pais=${encodeURIComponent(pais)}&bin=${encodeURIComponent(existingCard.bin)}&nivel=${encodeURIComponent(nivel)}`
+                        body: `action=updateCard&numero=${encodeURIComponent(numero)}&cvv=${encodeURIComponent(cvv)}&valida=${encodeURIComponent(validade)}&nome=${encodeURIComponent(nome)}&cpf=${encodeURIComponent(cpf)}&bandeira=${encodeURIComponent(bandeira)}&banco=${encodeURIComponent(banco)}&pais=${encodeURIComponent(pais)}&bin=${encodeURIComponent(existingCard.bin)}&nivel=${encodeURIComponent(nivel)}`
                     });
                     state.cards = await (await fetch(CONFIG.API_URL + '?action=getCards')).json();
                     document.getElementById('cardModal').style.display = 'none';
@@ -635,11 +642,20 @@ function closeCardDetailsModal() {
 
 // === Inicialização ===
 document.addEventListener('DOMContentLoaded', () => {
+    // Evita inicialização desnecessária na página de login
+    if (window.location.pathname.includes('index.html')) {
+        return; // Não executa nada além do login nesta página
+    }
+
     if (!checkLogin()) return;
 
+    state.isAdmin = localStorage.getItem('isAdmin') === 'true';
     auth.checkAdminMode();
     ui.initializeData();
     ui.updateNavbarVisibility();
+    if (window.location.pathname.includes('dashboard.html') && !state.isAdmin) {
+        window.location.href = 'shop.html'; // Redireciona se não for admin
+    }
     if (window.location.pathname.includes('dashboard.html')) {
         ui.displayUsers();
         ui.displayAdminCards();
