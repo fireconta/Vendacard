@@ -6,7 +6,7 @@ const CONFIG = {
     LOGIN_BLOCK_TIME: 60000,
     NOTIFICATION_TIMEOUT: 5000,
     LOG_RETENTION_DAYS: 30,
-    API_URL: 'https://script.google.com/macros/s/AKfycbzEJ7vsoGOM73X5WgooghEUYxuKkBergWYN4gBrX7zDSp28QTWn0fsBTnJQT52koZQO/exec' // Substitua pela URL correta do Google Apps Script
+    API_URL: 'https://script.google.com/macros/s/AKfycbzEJ7vsoGOM73X5WgooghEUYxuKkBergWYN4gBrX7zDSp28QTWn0fsBTnJQT52koZQO/exec' // URL fornecida
 };
 
 // === Estado Global ===
@@ -109,8 +109,9 @@ const auth = {
         }
 
         try {
-            console.log(`Tentando login com URL: ${CONFIG.API_URL}?action=login&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
-            const response = await fetch(`${CONFIG.API_URL}?action=login&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
+            const loginUrl = `${CONFIG.API_URL}?action=login&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+            console.log(`Tentando login com URL: ${loginUrl}`);
+            const response = await fetch(loginUrl);
             const responseText = await response.text();
             console.log('Resposta bruta do servidor:', responseText);
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
