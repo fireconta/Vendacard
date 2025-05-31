@@ -14,7 +14,7 @@
             <h1 class="text-xl font-bold">Painel Administrativo</h1>
             <div>
                 <button id="themeToggle" onclick="ui.toggleTheme()" class="mr-4">Modo Claro</button>
-                <button onclick="auth.logout()" aria-label="Sair">Sair</button>
+                <button onclick="window.location.href='shop.html'" class="bg-blue-600 p-2 rounded hover:bg-blue-500">Voltar para Loja</button>
             </div>
         </div>
     </nav>
@@ -130,5 +130,16 @@
         </div>
     </div>
     <div id="notifications" class="fixed top-4 right-4"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!checkAuth() || !state.isAdmin) {
+                window.location.href = 'shop.html';
+            } else {
+                document.getElementById('userName').textContent = state.currentUser.user;
+                admin.loadUsers();
+                admin.loadAdminCards();
+            }
+        });
+    </script>
 </body>
 </html>
