@@ -51,13 +51,11 @@
     <div id="notifications" class="fixed top-4 right-4"></div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Verificar se já está logado
             if (checkAuth()) {
                 window.location.href = 'shop.html';
             }
-            // Configurar tema inicial
             document.documentElement.className = state.theme;
-            console.log('Página index.html carregada. URL da API:', CONFIG.API_URL);
+            console.log('Página index.html carregada em ' + new Date().toLocaleString() + '. URL da API:', CONFIG.API_URL);
         });
     </script>
 </body>
