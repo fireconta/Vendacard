@@ -1,45 +1,43 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vendacards - Login</title>
+    <title>Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { transition: background-color 0.3s, color 0.3s; }
-        body.light { background-color: #f3f4f6; color: #1f2937; }
-        body.light input, body.light select { background-color: #fff; color: #1f2937; border: 1px solid #d1d5db; }
-        #notifications { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
-    </style>
+    <script src="script.js" defer></script>
 </head>
 <body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
-    <div id="notifications"></div>
     <div id="loginForm" class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-4 text-center">Login</h1>
+        <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
         <div class="mb-4">
-            <input id="username" type="text" placeholder="Usuário" class="w-full p-2 rounded bg-gray-700 text-white">
-            <p id="usernameError" class="text-red-500 text-sm mt-1"></p>
+            <label for="username" class="block mb-1">Usuário</label>
+            <input type="text" id="username" class="w-full p-2 bg-gray-700 rounded" oninput="document.getElementById('usernameError').textContent = ''">
+            <p id="usernameError" class="text-red-500 text-sm"></p>
         </div>
         <div class="mb-4">
-            <input id="password" type="password" placeholder="Senha" class="w-full p-2 rounded bg-gray-700 text-white">
-            <p id="passwordError" class="text-red-500 text-sm mt-1"></p>
+            <label for="password" class="block mb-1">Senha</label>
+            <input type="password" id="password" class="w-full p-2 bg-gray-700 rounded" oninput="document.getElementById('passwordError').textContent = ''">
+            <p id="passwordError" class="text-red-500 text-sm"></p>
         </div>
-        <button onclick="auth.login()" class="w-full p-2 bg-blue-600 rounded hover:bg-blue-500">Entrar</button>
-        <p class="text-center mt-4">Não tem uma conta? <a href="#" onclick="ui.showRegisterForm()" class="text-blue-400 hover:underline">Registre-se</a></p>
+        <button onclick="auth.login()" class="w-full bg-blue-600 p-2 rounded hover:bg-blue-500">Entrar</button>
+        <p class="mt-4 text-center">Não tem conta? <a href="#" onclick="ui.showRegisterForm()" class="text-blue-400 hover:underline">Registre-se</a></p>
     </div>
-    <div id="registerForm" class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md hidden">
-        <h1 class="text-2xl font-bold mb-4 text-center">Registro</h1>
+    <div id="registerForm" class="hidden bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4 text-center">Registrar</h2>
         <div class="mb-4">
-            <input id="newUsername" type="text" placeholder="Usuário" class="w-full p-2 rounded bg-gray-700 text-white">
-            <p id="newUsernameError" class="text-red-500 text-sm mt-1"></p>
+            <label for="newUsername" class="block mb-1">Usuário</label>
+            <input type="text" id="newUsername" class="w-full p-2 bg-gray-700 rounded" oninput="document.getElementById('newUsernameError').textContent = ''">
+            <p id="newUsernameError" class="text-red-500 text-sm"></p>
         </div>
         <div class="mb-4">
-            <input id="newPassword" type="password" placeholder="Senha" class="w-full p-2 rounded bg-gray-700 text-white">
-            <p id="newPasswordError" class="text-red-500 text-sm mt-1"></p>
+            <label for="newPassword" class="block mb-1">Senha</label>
+            <input type="password" id="newPassword" class="w-full p-2 bg-gray-700 rounded" oninput="document.getElementById('newPasswordError').textContent = ''">
+            <p id="newPasswordError" class="text-red-500 text-sm"></p>
         </div>
-        <button onclick="auth.register()" class="w-full p-2 bg-blue-600 rounded hover:bg-blue-500">Registrar</button>
-        <p class="text-center mt-4">Já tem uma conta? <a href="#" onclick="ui.showLoginForm()" class="text-blue-400 hover:underline">Faça login</a></p>
+        <button onclick="auth.register()" class="w-full bg-green-600 p-2 rounded hover:bg-green-500">Registrar</button>
+        <p class="mt-4 text-center">Já tem conta? <a href="#" onclick="ui.showLoginForm()" class="text-blue-400 hover:underline">Faça login</a></p>
     </div>
-    <script src="script.js"></script>
+    <div id="notifications" class="fixed top-4 right-4"></div>
 </body>
 </html>
