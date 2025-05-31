@@ -5,7 +5,7 @@ const CONFIG = {
     LOGIN_BLOCK_TIME: 60000,
     NOTIFICATION_TIMEOUT: 5000,
     LOG_RETENTION_DAYS: 30,
-    API_URL: 'https://script.google.com/macros/s/AKfycbzEJ7vsoGOM73X5WgooghEUYxuKkBergWYN4gBrX7zDSp28QTWn0fsBTnJQT52koZQO/exec'
+    API_URL: 'https://script.google.com/macros/s/AKfycbx1quy5cfw9XVFkQtJ9XU_LsEyLmBhO2mDmFU5_3__DTWaO25rCIA84SbesR8oGl8M/exec'
 };
 
 const state = {
