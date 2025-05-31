@@ -3,61 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Página inicial do Vendacards.">
     <title>Vendacards - Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #1a1a1a; color: #ffffff; }
-        .container { max-width: 400px; margin: 0 auto; padding: 20px; }
-        .form-group { margin-bottom: 15px; }
-        .error { color: #ff4d4d; font-size: 0.9em; }
+        body { transition: background-color 0.3s, color 0.3s; }
+        body.light { background-color: #f3f4f6; color: #1f2937; }
+        body.light input, body.light select { background-color: #fff; color: #1f2937; border: 1px solid #d1d5db; }
+        #notifications { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center">
-    <div class="container bg-gray-800 p-6 rounded-lg">
-        <h1 class="text-2xl font-bold mb-4 text-center">Vendacards</h1>
-
-        <div id="loginForm">
-            <h2 class="text-xl font-semibold mb-4">Login</h2>
-            <div class="form-group">
-                <label for="username" class="block">Usuário:</label>
-                <input type="text" id="username" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Digite seu usuário" required aria-required="true">
-                <span id="usernameError" class="error"></span>
-            </div>
-            <div class="form-group">
-                <label for="password" class="block">Senha:</label>
-                <input type="password" id="password" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Digite sua senha" required aria-required="true">
-                <span id="passwordError" class="error"></span>
-            </div>
-            <button onclick="auth.login()" class="w-full p-2 bg-blue-600 text-white rounded hover:bg-blue-500">Entrar</button>
-            <p class="mt-4 text-center">Não tem uma conta? <a href="#" onclick="ui.showRegisterForm()" class="text-blue-400 hover:text-blue-300">Registre-se</a></p>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
+    <div id="notifications"></div>
+    <div id="loginForm" class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-center">Login</h1>
+        <div class="mb-4">
+            <input id="username" type="text" placeholder="Usuário" class="w-full p-2 rounded bg-gray-700 text-white">
+            <p id="usernameError" class="text-red-500 text-sm mt-1"></p>
         </div>
-
-        <div id="registerForm" class="hidden">
-            <h2 class="text-xl font-semibold mb-4">Registro</h2>
-            <div class="form-group">
-                <label for="newUsername" class="block">Usuário:</label>
-                <input type="text" id="newUsername" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Digite um usuário" required aria-required="true">
-                <span id="newUsernameError" class="error"></span>
-            </div>
-            <div class="form-group">
-                <label for="newPassword" class="block">Senha:</label>
-                <input type="password" id="newPassword" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Digite uma senha" required aria-required="true">
-                <span id="newPasswordError" class="error"></span>
-            </div>
-            <button onclick="auth.register()" class="w-full p-2 bg-blue-600 text-white rounded hover:bg-blue-500">Registrar</button>
-            <p class="mt-4 text-center">Já tem uma conta? <a href="#" onclick="ui.showLoginForm()" class="text-blue-400 hover:text-blue-300">Faça login</a></p>
+        <div class="mb-4">
+            <input id="password" type="password" placeholder="Senha" class="w-full p-2 rounded bg-gray-700 text-white">
+            <p id="passwordError" class="text-red-500 text-sm mt-1"></p>
         </div>
+        <button onclick="auth.login()" class="w-full p-2 bg-blue-600 rounded hover:bg-blue-500">Entrar</button>
+        <p class="text-center mt-4">Não tem uma conta? <a href="#" onclick="ui.showRegisterForm()" class="text-blue-400 hover:underline">Registre-se</a></p>
     </div>
-
+    <div id="registerForm" class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md hidden">
+        <h1 class="text-2xl font-bold mb-4 text-center">Registro</h1>
+        <div class="mb-4">
+            <input id="newUsername" type="text" placeholder="Usuário" class="w-full p-2 rounded bg-gray-700 text-white">
+            <p id="newUsernameError" class="text-red-500 text-sm mt-1"></p>
+        </div>
+        <div class="mb-4">
+            <input id="newPassword" type="password" placeholder="Senha" class="w-full p-2 rounded bg-gray-700 text-white">
+            <p id="newPasswordError" class="text-red-500 text-sm mt-1"></p>
+        </div>
+        <button onclick="auth.register()" class="w-full p-2 bg-blue-600 rounded hover:bg-blue-500">Registrar</button>
+        <p class="text-center mt-4">Já tem uma conta? <a href="#" onclick="ui.showLoginForm()" class="text-blue-400 hover:underline">Faça login</a></p>
+    </div>
     <script src="script.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (checkLogin()) {
-                window.location.href = 'shop.html';
-            }
-        });
-    </script>
 </body>
 </html>
