@@ -2,7 +2,7 @@ const CONFIG = {
     SESSION_TIMEOUT_MINUTES: 30,
     MIN_PASSWORD_LENGTH: 6,
     MAX_LOGIN_ATTEMPTS: 3,
-    LOGIN_BLOCK_TIME: 10000,
+    LOGIN_BLOCK_TIME: 60000,
     NOTIFICATION_TIMEOUT: 5000,
     LOG_RETENTION_DAYS: 30,
     API_URL: 'https://script.google.com/macros/s/AKfycbzEJ7vsoGOM73X5WgooghEUYxuKkBergWYN4gBrX7zDSp28QTWn0fsBTnJQT52koZQO/exec'
@@ -76,7 +76,7 @@ const auth = {
         const passwordError = document.getElementById('passwordError');
 
         if (!usernameInput || !passwordInput) {
-            console.error('Elementos de entrada não encontrados.');
+            console.error('Elementos de entrada não encontrados em ' + new Date().toLocaleString());
             return;
         }
 
@@ -107,7 +107,10 @@ const auth = {
             console.log(`Enviando login: user="${username}" (encoded: "${encodedUsername}"), password="${password}" (encoded: "${encodedPassword}") em ${new Date().toLocaleString()}.`);
             const loginUrl = `${CONFIG.API_URL}?action=login&user=${encodedUsername}&password=${encodedPassword}`;
             console.log(`URL de login: ${loginUrl}`);
-            const response = await fetch(loginUrl);
+            const response = await fetch(loginUrl, {
+                method: 'GET',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
             const responseText = await response.text();
             console.log('Resposta bruta do servidor:', responseText);
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -119,6 +122,7 @@ const auth = {
                 localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
                 localStorage.setItem('sessionStart', Date.now().toString());
                 state.loginAttempts = 0;
+                console.log('Login bem-sucedido, redirecionando para shop.html em ' + new Date().toLocaleString());
                 window.location.href = 'shop.html';
             } else {
                 if (passwordError) passwordError.textContent = result.message || 'Usuário ou senha inválidos.';
@@ -129,7 +133,7 @@ const auth = {
                 }
             }
         } catch (error) {
-            console.error('Erro ao fazer login:', error.message);
+            console.error('Erro ao fazer login:', error.message, 'em ' + new Date().toLocaleString());
             if (passwordError) passwordError.textContent = 'Erro ao conectar ao servidor. Verifique a URL da API e a implantação do script.';
         }
     },
@@ -596,7 +600,6 @@ const ui = {
     }
 };
 
-// Funções globais
 function closeCardDetailsModal() {
     document.getElementById('cardDetailsModal').classList.add('hidden');
 }
