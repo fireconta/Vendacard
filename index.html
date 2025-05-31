@@ -3,60 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Faça login no Vendacards para gerenciar e comprar cartões.">
-    <title>Login - Vendacards</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Ícones Font Awesome para melhorar a interface -->
+    <meta name="description" content="Página inicial do Vendacards.">
+    <title>Vendacards - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #1a1a1a; color: #ffffff; }
+        .container { max-width: 400px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .error { color: #ff4d4d; font-size: 0.9em; }
+    </style>
 </head>
-<body>
-    <div class="login-container">
-        <h1><i class="fas fa-sign-in-alt"></i> Login - Vendacards</h1>
-        <form id="loginForm" onsubmit="event.preventDefault(); auth.login();" aria-label="Formulário de Login">
+<body class="min-h-screen flex items-center justify-center">
+    <div class="container bg-gray-800 p-6 rounded-lg">
+        <h1 class="text-2xl font-bold mb-4 text-center">Vendacards</h1>
+
+        <div id="loginForm">
+            <h2 class="text-xl font-semibold mb-4">Login</h2>
             <div class="form-group">
-                <label for="username"><i class="fas fa-user"></i> Usuário:</label>
-                <input type="text" id="username" name="username" autocomplete="off" required aria-required="true" aria-describedby="usernameError">
-                <span id="usernameError" class="error" role="alert"></span>
+                <label for="username" class="block">Usuário:</label>
+                <input type="text" id="username" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Digite seu usuário" required aria-required="true">
+                <span id="usernameError" class="error"></span>
             </div>
             <div class="form-group">
-                <label for="password"><i class="fas fa-lock"></i> Senha:</label>
-                <div class="password-wrapper">
-                    <input type="password" id="password" name="password" autocomplete="off" required aria-required="true" aria-describedby="passwordError">
-                    <i class="fas fa-eye toggle-password" onclick="togglePassword()"></i>
-                </div>
-                <span id="passwordError" class="error" role="alert"></span>
+                <label for="password" class="block">Senha:</label>
+                <input type="password" id="password" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Digite sua senha" required aria-required="true">
+                <span id="passwordError" class="error"></span>
             </div>
-            <button type="submit" id="loginButton" aria-label="Entrar no sistema">
-                <i class="fas fa-sign-in-alt"></i> Entrar
-            </button>
-            <button type="button" class="secondary-btn" onclick="auth.forgotPassword()" aria-label="Recuperar senha">
-                <i class="fas fa-question-circle"></i> Esqueceu a senha?
-            </button>
-            <div id="loginLoader" class="loader" style="display: none;" aria-live="polite">
-                <i class="fas fa-spinner fa-spin"></i> Carregando...
+            <button onclick="auth.login()" class="w-full p-2 bg-blue-600 text-white rounded hover:bg-blue-500">Entrar</button>
+            <p class="mt-4 text-center">Não tem uma conta? <a href="#" onclick="ui.showRegisterForm()" class="text-blue-400 hover:text-blue-300">Registre-se</a></p>
+        </div>
+
+        <div id="registerForm" class="hidden">
+            <h2 class="text-xl font-semibold mb-4">Registro</h2>
+            <div class="form-group">
+                <label for="newUsername" class="block">Usuário:</label>
+                <input type="text" id="newUsername" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Digite um usuário" required aria-required="true">
+                <span id="newUsernameError" class="error"></span>
             </div>
-            <div id="errorDetails" class="error-details" style="display: none;" role="alert"></div>
-        </form>
-        <footer class="login-footer">
-            <p>© 2025 Vendacards. Todos os direitos reservados.</p>
-        </footer>
+            <div class="form-group">
+                <label for="newPassword" class="block">Senha:</label>
+                <input type="password" id="newPassword" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Digite uma senha" required aria-required="true">
+                <span id="newPasswordError" class="error"></span>
+            </div>
+            <button onclick="auth.register()" class="w-full p-2 bg-blue-600 text-white rounded hover:bg-blue-500">Registrar</button>
+            <p class="mt-4 text-center">Já tem uma conta? <a href="#" onclick="ui.showLoginForm()" class="text-blue-400 hover:text-blue-300">Faça login</a></p>
+        </div>
     </div>
+
     <script src="script.js"></script>
     <script>
-        // Função para alternar visibilidade da senha
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const toggleIcon = document.querySelector('.toggle-password');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkLogin()) {
+                window.location.href = 'shop.html';
             }
-        }
+        });
     </script>
 </body>
 </html>
