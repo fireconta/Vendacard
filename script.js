@@ -3,7 +3,7 @@ const CONFIG = {
     SESSION_TIMEOUT_MINUTES: 30,
     MIN_PASSWORD_LENGTH: 6,
     MAX_LOGIN_ATTEMPTS: 3,
-    LOGIN_BLOCK_TIME: 60000,
+    LOGIN_BLOCK_TIME: 30000,
     NOTIFICATION_TIMEOUT: 5000,
     LOG_RETENTION_DAYS: 30,
     API_URL: 'https://script.google.com/macros/s/AKfycbzEJ7vsoGOM73X5WgooghEUYxuKkBergWYN4gBrX7zDSp28QTWn0fsBTnJQT52koZQO/exec' // URL fornecida
@@ -73,7 +73,7 @@ function checkLogin() {
     }
 
     state.currentUser = JSON.parse(currentUser);
-    state.isAdmin = state.currentUser.isAdmin === 'TRUE';
+    state.isAdmin = state.currentUser.ISadmin === 'TRUE';
     return true;
 }
 
@@ -119,7 +119,7 @@ const auth = {
             console.log('Resultado parsed:', result);
             if (result.success) {
                 state.currentUser = result.user;
-                state.isAdmin = result.user.isAdmin === 'TRUE';
+                state.isAdmin = result.user.ISadmin === 'TRUE';
                 localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
                 localStorage.setItem('sessionStart', Date.now().toString());
                 state.loginAttempts = 0;
@@ -161,7 +161,7 @@ const auth = {
             const response = await fetch(CONFIG.API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&saldo=0&isAdmin=FALSE`
+                body: `action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&saldo da conta=0&ISadmin=FALSE`
             });
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             const result = await response.json();
@@ -204,8 +204,8 @@ const ui = {
 
             const userBalance = document.getElementById('userBalance');
             const userBalanceAccount = document.getElementById('userBalanceAccount');
-            if (userBalance) userBalance.textContent = parseFloat(state.currentUser.saldo).toFixed(2);
-            if (userBalanceAccount) userBalanceAccount.textContent = parseFloat(state.currentUser.saldo).toFixed(2);
+            if (userBalance) userBalance.textContent = parseFloat(state.currentUser['Saldo da conta']).toFixed(2);
+            if (userBalanceAccount) userBalanceAccount.textContent = parseFloat(state.currentUser['Saldo da conta']).toFixed(2);
 
             this.displayCards();
         } catch (error) {
@@ -292,8 +292,8 @@ const ui = {
         userList.innerHTML = filteredUsers.map(user => `
             <div class="card-item">
                 <p><strong>Usuário:</strong> ${user.user}</p>
-                <p><strong>Saldo:</strong> R$ ${parseFloat(user.saldo).toFixed(2)}</p>
-                <p><strong>Admin:</strong> ${user.isAdmin}</p>
+                <p><strong>Saldo da conta:</strong> R$ ${parseFloat(user['Saldo da conta']).toFixed(2)}</p>
+                <p><strong>ISadmin:</strong> ${user.ISadmin}</p>
                 <button class="p-2 bg-blue-600 text-white rounded hover:bg-blue-500" onclick="ui.editUser('${user.user}')">Editar</button>
                 <button class="p-2 bg-red-600 text-white rounded hover:bg-red-500" onclick="ui.deleteUser('${user.user}')">Excluir</button>
             </div>
@@ -368,11 +368,11 @@ const ui = {
             return;
         }
         if (password.length < CONFIG.MIN_PASSWORD_LENGTH) {
-            if (passwordError) passwordError.textContent = `A senha deve ter pelo menos ${CONFIG.MIN_PASSWORD_LENGTH} caracteres.`;
+            if (passwordError) passwordError.textContent = `A senha deve ter pelo menos ${CONFIG.MIN_PASSWORD_LENGTH} caracteres.';
             return;
         }
         if (!balance || isNaN(balance) || parseFloat(balance) < 0) {
-            if (balanceError) balanceError.textContent = 'Saldo inválido.';
+            if (balanceError) balanceError.textContent = 'Saldo da conta inválido.';
             return;
         }
 
@@ -380,7 +380,7 @@ const ui = {
             const response = await fetch(CONFIG.API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&saldo=${balance}&isAdmin=FALSE`
+                body: `action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&saldo da conta=${balance}&ISadmin=FALSE`
             });
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             const result = await response.json();
@@ -405,21 +405,21 @@ const ui = {
 
         document.getElementById('newUsername').value = user.user;
         document.getElementById('newPassword').value = user.password;
-        document.getElementById('newBalance').value = user.saldo;
+        document.getElementById('newBalance').value = user['Saldo da conta'];
         document.getElementById('addUserModal').style.display = 'flex';
 
         window.editUserCallback = async () => {
             const newPassword = document.getElementById('newPassword').value.trim();
             const newBalance = document.getElementById('newBalance').value.trim();
             if (!newPassword || newPassword.length < CONFIG.MIN_PASSWORD_LENGTH || !newBalance || isNaN(newBalance) || parseFloat(newBalance) < 0) {
-                alert('Senha ou saldo inválido.');
+                alert('Senha ou Saldo da conta inválido.');
                 return;
             }
             try {
                 const response = await fetch(CONFIG.API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(newPassword)}&saldo=${encodeURIComponent(newBalance)}&isAdmin=${user.isAdmin}`
+                    body: `action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(newPassword)}&saldo da conta=${encodeURIComponent(newBalance)}&ISadmin=${user.ISadmin}`
                 });
                 if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                 state.users = await (await fetch(`${CONFIG.API_URL}?action=getUsers`)).json();
@@ -644,7 +644,7 @@ function openConfirmPurchaseModal(cardNumber) {
 
     if (confirmTotalAmount && confirmUserBalance && confirmCardDetails && confirmPurchaseModal) {
         confirmTotalAmount.textContent = price.toFixed(2);
-        confirmUserBalance.textContent = parseFloat(state.currentUser.saldo).toFixed(2);
+        confirmUserBalance.textContent = parseFloat(state.currentUser['Saldo da conta']).toFixed(2);
         confirmCardDetails.innerHTML = `
             <p><strong>Número:</strong> ${card.numero}</p>
             <p><strong>Bandeira:</strong> ${card.bandeira}</p>
@@ -666,7 +666,7 @@ async function confirmPurchase() {
     const card = state.cards.find(c => c.numero === cardNumber);
     const price = 10.00;
 
-    if (parseFloat(state.currentUser.saldo) < price) {
+    if (parseFloat(state.currentUser['Saldo da conta']) < price) {
         ui.showNotification('Saldo insuficiente para realizar a compra.');
         return;
     }
@@ -681,14 +681,14 @@ async function confirmPurchase() {
         const result = await response.json();
 
         if (result.success) {
-            state.currentUser.saldo = parseFloat(state.currentUser.saldo) - price;
+            state.currentUser['Saldo da conta'] = parseFloat(state.currentUser['Saldo da conta']) - price;
             localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
             state.cards = state.cards.filter(c => c.numero !== cardNumber);
             state.userCards.push(card);
             const userBalance = document.getElementById('userBalance');
             const userBalanceAccount = document.getElementById('userBalanceAccount');
-            if (userBalance) userBalance.textContent = parseFloat(state.currentUser.saldo).toFixed(2);
-            if (userBalanceAccount) userBalanceAccount.textContent = parseFloat(state.currentUser.saldo).toFixed(2);
+            if (userBalance) userBalance.textContent = parseFloat(state.currentUser['Saldo da conta']).toFixed(2);
+            if (userBalanceAccount) userBalanceAccount.textContent = parseFloat(state.currentUser['Saldo da conta']).toFixed(2);
             closeConfirmPurchaseModal();
             ui.showNotification('Compra realizada com sucesso!');
             ui.displayCards();
