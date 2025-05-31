@@ -8,53 +8,56 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="script.js" defer></script>
 </head>
-<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
-    <main>
-        <div id="loginForm" class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+    <div class="container mx-auto p-4 max-w-md">
+        <!-- Formulário de Login -->
+        <div id="loginForm" class="bg-gray-800 p-6 rounded-lg shadow-lg">
             <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
-            <form id="loginFormElement" onsubmit="event.preventDefault(); auth.login();">
+            <form onsubmit="event.preventDefault(); auth.login();">
                 <div class="mb-4">
                     <label for="username" class="block mb-1">Usuário</label>
                     <input type="text" id="username" class="w-full p-2 bg-gray-700 rounded" required autocomplete="username">
-                    <p id="usernameError" class="text-red-500 text-sm"></p>
+                    <p id="usernameError" class="text-red-500 text-sm mt-1"></p>
                 </div>
                 <div class="mb-4">
                     <label for="password" class="block mb-1">Senha</label>
-                    <input type="password" id="password" class="w-full p-2 bg-gray-700 rounded" required autocomplete="current-password">
-                    <p id="passwordError" class="text-red-500 text-sm"></p>
+                    <input type="password" id="password" class="w-full p-2 bg-gray-700 rounded" required autocomplete="current-password" minlength="6">
+                    <p id="passwordError" class="text-red-500 text-sm mt-1"></p>
                 </div>
-                <button type="submit" id="loginButton" class="w-full bg-blue-600 p-2 rounded hover:bg-blue-500">Entrar</button>
+                <button type="submit" class="w-full bg-blue-600 p-2 rounded hover:bg-blue-500">Entrar</button>
             </form>
-            <p class="mt-4 text-center">Não tem conta? <a href="#" onclick="ui.showRegisterForm()" class="text-blue-400 hover:underline">Registre-se</a></p>
+            <button type="button" onclick="ui.showRegisterForm()" class="mt-4 w-full bg-gray-600 p-2 rounded hover:bg-gray-500">Criar Conta</button>
         </div>
-        <div id="registerForm" class="hidden bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+
+        <!-- Formulário de Registro -->
+        <div id="registerForm" class="bg-gray-800 p-6 rounded-lg shadow-lg hidden">
             <h2 class="text-2xl font-bold mb-4 text-center">Registrar</h2>
             <form onsubmit="event.preventDefault(); auth.register();">
                 <div class="mb-4">
                     <label for="newUsername" class="block mb-1">Usuário</label>
                     <input type="text" id="newUsername" class="w-full p-2 bg-gray-700 rounded" required autocomplete="username">
-                    <p id="newUsernameError" class="text-red-500 text-sm"></p>
+                    <p id="newUsernameError" class="text-red-500 text-sm mt-1"></p>
                 </div>
                 <div class="mb-4">
                     <label for="newPassword" class="block mb-1">Senha</label>
                     <input type="password" id="newPassword" class="w-full p-2 bg-gray-700 rounded" required autocomplete="new-password" minlength="6">
-                    <p id="newPasswordError" class="text-red-500 text-sm"></p>
+                    <p id="newPasswordError" class="text-red-500 text-sm mt-1"></p>
                 </div>
                 <button type="submit" class="w-full bg-green-600 p-2 rounded hover:bg-green-500">Registrar</button>
             </form>
-            <p class="mt-4 text-center">Já tem conta? <a href="#" onclick="ui.showLoginForm()" class="text-blue-400 hover:underline">Faça login</a></p>
+            <button type="button" onclick="ui.showLoginForm()" class="mt-4 w-full bg-gray-600 p-2 rounded hover:bg-gray-500">Voltar ao Login</button>
         </div>
-        <div id="notifications" class="fixed top-4 right-4"></div>
-    </main>
+    </div>
+    <div id="notifications" class="fixed top-4 right-4"></div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const loginButton = document.getElementById('loginButton');
-            if (loginButton) {
-                loginButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    auth.login();
-                });
+            // Verificar se já está logado
+            if (checkAuth()) {
+                window.location.href = 'shop.html';
             }
+            // Configurar tema inicial
+            document.documentElement.className = state.theme;
+            console.log('Página index.html carregada. URL da API:', CONFIG.API_URL);
         });
     </script>
 </body>
