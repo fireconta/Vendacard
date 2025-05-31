@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Painel administrativo para gerenciamento de usuários e cartões">
     <title>Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="script.js" defer></script>
@@ -13,110 +14,119 @@
             <h1 class="text-xl font-bold">Painel Administrativo</h1>
             <div>
                 <button id="themeToggle" onclick="ui.toggleTheme()" class="mr-4">Modo Claro</button>
-                <button onclick="auth.logout()">Sair</button>
+                <button onclick="auth.logout()" aria-label="Sair">Sair</button>
             </div>
         </div>
     </nav>
-    <div class="container mx-auto p-4">
+    <main class="container mx-auto p-4">
         <h2 class="text-2xl font-bold mb-4">Gerenciar Usuários</h2>
+        <label for="userSearch" class="sr-only">Pesquisar usuário</label>
         <input type="text" id="userSearch" placeholder="Pesquisar usuário" class="p-2 bg-gray-700 rounded mb-4" oninput="ui.displayUsers(this.value)">
         <div id="userList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        <button onclick="document.getElementById('addUserModal').style.display='flex'" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500">Adicionar Usuário</button>
+        <button type="button" onclick="document.getElementById('addUserModal').style.display='flex'" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500">Adicionar Usuário</button>
         <h2 class="text-2xl font-bold mt-8 mb-4">Gerenciar Cartões</h2>
+        <label for="cardSearch" class="sr-only">Pesquisar cartão</label>
         <input type="text" id="cardSearch" placeholder="Pesquisar cartão" class="p-2 bg-gray-700 rounded mb-4" oninput="ui.displayAdminCards(this.value)">
         <div id="adminCardList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        <button onclick="document.getElementById('cardModal').style.display='flex'" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500">Adicionar Cartão</button>
+        <button type="button" onclick="document.getElementById('cardModal').style.display='flex'" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500">Adicionar Cartão</button>
         <h2 class="text-2xl font-bold mt-8 mb-4">Logs</h2>
         <div id="logList" class="grid grid-cols-1 gap-4"></div>
-    </div>
+    </main>
     <div id="addUserModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
         <div class="bg-gray-800 p-6 rounded-lg">
             <h2 id="modalTitle" class="text-xl font-bold mb-4">Adicionar Usuário</h2>
-            <div class="mb-4">
-                <label for="newUsername" class="block mb-1">Usuário</label>
-                <input type="text" id="newUsername" class="w-full p-2 bg-gray-700 rounded" oninput="document.getElementById('newUsernameError').textContent = ''">
-                <p id="newUsernameError" class="text-red-500 text-sm"></p>
-            </div>
-            <div class="mb-4">
-                <label for="newPassword" class="block mb-1">Senha</label>
-                <input type="password" id="newPassword" class="w-full p-2 bg-gray-700 rounded" oninput="document.getElementById('newPasswordError').textContent = ''">
-                <p id="newPasswordError" class="text-red-500 text-sm"></p>
-            </div>
-            <div class="mb-4">
-                <label for="newBalance" class="block mb-1">Saldo</label>
-                <input type="number" id="newBalance" class="w-full p-2 bg-gray-700 rounded" oninput="document.getElementById('newBalanceError').textContent = ''">
-                <p id="newBalanceError" class="text-red-500 text-sm"></p>
-            </div>
-            <div class="mb-4">
-                <label for="isAdmin" class="block mb-1">Administrador?</label>
-                <select id="isAdmin" class="w-full p-2 bg-gray-700 rounded">
-                    <option value="FALSE">Não</option>
-                    <option value="TRUE">Sim</option>
-                </select>
-            </div>
-            <button class="btn-confirm bg-green-600 p-2 rounded hover:bg-green-500">Confirmar</button>
-            <button onclick="document.getElementById('addUserModal').style.display='none'" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
+            <form onsubmit="event.preventDefault(); ui.addUser();">
+                <div class="mb-4">
+                    <label for="newUsername" class="block mb-1">Usuário</label>
+                    <input type="text" id="newUsername" class="w-full p-2 bg-gray-700 rounded" required autocomplete="username">
+                    <p id="newUsernameError" class="text-red-500 text-sm"></p>
+                </div>
+                <div class="mb-4">
+                    <label for="newPassword" class="block mb-1">Senha</label>
+                    <input type="password" id="newPassword" class="w-full p-2 bg-gray-700 rounded" required autocomplete="new-password" minlength="6">
+                    <p id="newPasswordError" class="text-red-500 text-sm"></p>
+                </div>
+                <div class="mb-4">
+                    <label for="newBalance" class="block mb-1">Saldo</label>
+                    <input type="number" id="newBalance" class="w-full p-2 bg-gray-700 rounded" required min="0" step="0.01">
+                    <p id="newBalanceError" class="text-red-500 text-sm"></p>
+                </div>
+                <div class="mb-4">
+                    <label for="isAdmin" class="block mb-1">Administrador?</label>
+                    <select id="isAdmin" class="w-full p-2 bg-gray-700 rounded" required>
+                        <option value="FALSE">Não</option>
+                        <option value="TRUE">Sim</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-green-600 p-2 rounded hover:bg-green-500">Confirmar</button>
+                <button type="button" onclick="document.getElementById('addUserModal').style.display='none'" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
+            </form>
         </div>
     </div>
     <div id="cardModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
         <div class="bg-gray-800 p-6 rounded-lg">
             <h2 id="modalTitle" class="text-xl font-bold mb-4">Adicionar Cartão</h2>
-            <div class="mb-4">
-                <label for="cardNumber" class="block mb-1">Número</label>
-                <input type="text" id="cardNumber" class="w-full p-2 bg-gray-700 rounded" oninput="formatCardNumber(this)">
-                <p id="cardNumberError" class="text-red-500 text-sm"></p>
-            </div>
-            <div class="mb-4">
-                <label for="cardCvv" class="block mb-1">CVV</label>
-                <input type="text" id="cardCvv" class="w-full p-2 bg-gray-700 rounded" oninput="restrictCvv(this)">
-                <p id="cardCvvError" class="text-red-500 text-sm"></p>
-            </div>
-            <div class="mb-4">
-                <label for="cardExpiry" class="block mb-1">Validade (MM/AA)</label>
-                <input type="text" id="cardExpiry" class="w-full p-2 bg-gray-700 rounded" oninput="formatExpiry(this)">
-                <p id="cardExpiryError" class="text-red-500 text-sm"></p>
-            </div>
-            <div class="mb-4">
-                <label for="cardName" class="block mb-1">Nome</label>
-                <input type="text" id="cardName" class="w-full p-2 bg-gray-700 rounded">
-                <p id="cardNameError" class="text-red-500 text-sm"></p>
-            </div>
-            <div class="mb-4">
-                <label for="cardCpf" class="block mb-1">CPF</label>
-                <input type="text" id="cardCpf" class="w-full p-2 bg-gray-700 rounded" oninput="formatCpf(this)">
-                <p id="cardCpfError" class="text-red-500 text-sm"></p>
-            </div>
-            <div class="mb-4">
-                <label for="cardBrand" class="block mb-1">Bandeira</label>
-                <select id="cardBrand" class="w-full p-2 bg-gray-700 rounded">
-                    <option value="visa">Visa</option>
-                    <option value="mastercard">Mastercard</option>
-                </select>
-                <p id="cardBrandError" class="text-red-500 text-sm"></p>
-            </div>
-            <div class="mb-4">
-                <label for="cardBank" class="block mb-1">Banco</label>
-                <select id="cardBank" class="w-full p-2 bg-gray-700 rounded">
-                    <option value="itau">Itaú</option>
-                    <option value="bradesco">Bradesco</option>
-                </select>
-                <p id="cardBankError" class="text-red-500 text-sm"></p>
-            </div>
-            <div class="mb-4">
-                <label for="cardCountry" class="block mb-1">País</label>
-                <input type="text" id="cardCountry" class="w-full p-2 bg-gray-700 rounded">
-                <p id="cardCountryError" class="text-red-500 text-sm"></p>
-            </div>
-            <div class="mb-4">
-                <label for="cardLevel" class="block mb-1">Nível</label>
-                <select id="cardLevel" class="w-full p-2 bg-gray-700 rounded">
-                    <option value="gold">Gold</option>
-                    <option value="platinum">Platinum</option>
-                </select>
-                <p id="cardLevelError" class="text-red-500 text-sm"></p>
-            </div>
-            <button class="btn-confirm bg-green-600 p-2 rounded hover:bg-green-500">Confirmar</button>
-            <button onclick="document.getElementById('cardModal').style.display='none'" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
+            <form onsubmit="event.preventDefault(); ui.saveCard();">
+                <div class="mb-4">
+                    <label for="cardNumber" class="block mb-1">Número</label>
+                    <input type="text" id="cardNumber" class="w-full p-2 bg-gray-700 rounded" required pattern="\d{4}\s?\d{4}\s?\d{4}\s?\d{4}" title="16 dígitos numéricos" oninput="formatCardNumber(this)">
+                    <p id="cardNumberError" class="text-red-500 text-sm"></p>
+                </div>
+                <div class="mb-4">
+                    <label for="cardCvv" class="block mb-1">CVV</label>
+                    <input type="text" id="cardCvv" class="w-full p-2 bg-gray-700 rounded" required pattern="\d{3}" title="3 dígitos numéricos" oninput="restrictCvv(this)">
+                    <p id="cardCvvError" class="text-red-500 text-sm"></p>
+                </div>
+                <div class="mb-4">
+                    <label for="cardExpiry" class="block mb-1">Validade (MM/AA)</label>
+                    <input type="text" id="cardExpiry" class="w-full p-2 bg-gray-700 rounded" required pattern="\d{2}/\d{2}" title="Formato MM/AA" oninput="formatExpiry(this)">
+                    <p id="cardExpiryError" class="text-red-500 text-sm"></p>
+                </div>
+                <div class="mb-4">
+                    <label for="cardName" class="block mb-1">Nome</label>
+                    <input type="text" id="cardName" class="w-full p-2 bg-gray-700 rounded" required>
+                    <p id="cardNameError" class="text-red-500 text-sm"></p>
+                </div>
+                <div class="mb-4">
+                    <label for="cardCpf" class="block mb-1">CPF</label>
+                    <input type="text" id="cardCpf" class="w-full p-2 bg-gray-700 rounded" required pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" title="Formato 000.000.000-00" oninput="formatCpf(this)">
+                    <p id="cardCpfError" class="text-red-500 text-sm"></p>
+                </div>
+                <div class="mb-4">
+                    <label for="cardBrand" class="block mb-1">Bandeira</label>
+                    <select id="cardBrand" class="w-full p-2 bg-gray-700 rounded" required>
+                        <option value="">Selecione</option>
+                        <option value="visa">Visa</option>
+                        <option value="mastercard">Mastercard</option>
+                    </select>
+                    <p id="cardBrandError" class="text-red-500 text-sm"></p>
+                </div>
+                <div class="mb-4">
+                    <label for="cardBank" class="block mb-1">Banco</label>
+                    <select id="cardBank" class="w-full p-2 bg-gray-700 rounded" required>
+                        <option value="">Selecione</option>
+                        <option value="itau">Itaú</option>
+                        <option value="bradesco">Bradesco</option>
+                    </select>
+                    <p id="cardBankError" class="text-red-500 text-sm"></p>
+                </div>
+                <div class="mb-4">
+                    <label for="cardCountry" class="block mb-1">País</label>
+                    <input type="text" id="cardCountry" class="w-full p-2 bg-gray-700 rounded" required>
+                    <p id="cardCountryError" class="text-red-500 text-sm"></p>
+                </div>
+                <div class="mb-4">
+                    <label for="cardLevel" class="block mb-1">Nível</label>
+                    <select id="cardLevel" class="w-full p-2 bg-gray-700 rounded" required>
+                        <option value="">Selecione</option>
+                        <option value="gold">Gold</option>
+                        <option value="platinum">Platinum</option>
+                    </select>
+                    <p id="cardLevelError" class="text-red-500 text-sm"></p>
+                </div>
+                <button type="submit" class="bg-green-600 p-2 rounded hover:bg-green-500">Confirmar</button>
+                <button type="button" onclick="document.getElementById('cardModal').style.display='none'" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
+            </form>
         </div>
     </div>
     <div id="notifications" class="fixed top-4 right-4"></div>
