@@ -6,7 +6,7 @@ const CONFIG = {
     LOGIN_BLOCK_TIME: 60000,
     NOTIFICATION_TIMEOUT: 5000,
     LOG_RETENTION_DAYS: 30,
-    API_URL: 'https://script.google.com/macros/s/AKfycbwKlJO3JFEs9_mOuwKddAHLbX3tIbdk3vmBfCx3XlDVe6Qo26XprIqEh3yFLiUwfih9/exec'
+    API_URL: 'https://script.google.com/macros/s/AKfycbzEJ7vsoGOM73X5WgooghEUYxuKkBergWYN4gBrX7zDSp28QTWn0fsBTnJQT52koZQO/exec' // Substitua pela URL correta do Google Apps Script
 };
 
 // === Estado Global ===
@@ -109,10 +109,13 @@ const auth = {
         }
 
         try {
+            console.log(`Tentando login com URL: ${CONFIG.API_URL}?action=login&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
             const response = await fetch(`${CONFIG.API_URL}?action=login&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
+            const responseText = await response.text();
+            console.log('Resposta bruta do servidor:', responseText);
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            const result = await response.json();
-
+            const result = JSON.parse(responseText);
+            console.log('Resultado parsed:', result);
             if (result.success) {
                 state.currentUser = result.user;
                 state.isAdmin = result.user.isAdmin === 'TRUE';
@@ -121,7 +124,7 @@ const auth = {
                 state.loginAttempts = 0;
                 window.location.href = state.isAdmin ? 'dashboard.html' : 'shop.html';
             } else {
-                if (passwordError) passwordError.textContent = 'Usuário ou senha inválidos.';
+                if (passwordError) passwordError.textContent = result.message || 'Usuário ou senha inválidos.';
                 state.loginAttempts++;
                 if (state.loginAttempts >= CONFIG.MAX_LOGIN_ATTEMPTS) {
                     state.loginBlockedUntil = Date.now() + CONFIG.LOGIN_BLOCK_TIME;
@@ -130,7 +133,7 @@ const auth = {
             }
         } catch (error) {
             console.error('Erro ao fazer login:', error.message);
-            if (passwordError) passwordError.textContent = 'Erro ao conectar ao servidor.';
+            if (passwordError) passwordError.textContent = 'Erro ao conectar ao servidor. Verifique a URL da API e a implantação do script.';
         }
     },
 
@@ -415,7 +418,7 @@ const ui = {
                 const response = await fetch(CONFIG.API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `action=updateUser&user=${encodeURIComponent(username)}&password=${encodeURIComponent(newPassword)}&saldo=${encodeURIComponent(newBalance)}&isAdmin=${user.isAdmin}`
+                    body: `action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(newPassword)}&saldo=${encodeURIComponent(newBalance)}&isAdmin=${user.isAdmin}`
                 });
                 if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                 state.users = await (await fetch(`${CONFIG.API_URL}?action=getUsers`)).json();
