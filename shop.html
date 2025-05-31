@@ -12,7 +12,7 @@
     <nav id="navbar" class="bg-gray-800 p-4 hidden">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold">Loja de Cartões</h1>
-            <div>
+            <div id="navButtons">
                 <button id="themeToggle" onclick="ui.toggleTheme()" class="mr-4">Modo Claro</button>
                 <button onclick="auth.logout()" aria-label="Sair">Sair</button>
             </div>
@@ -87,5 +87,17 @@
         </div>
     </div>
     <div id="notifications" class="fixed top-4 right-4"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!checkAuth()) {
+                window.location.href = 'index.html';
+            } else {
+                document.getElementById('userName').textContent = state.currentUser.user;
+                document.getElementById('userBalance').textContent = `R$ ${state.currentUser.SALDO.toFixed(2)}`;
+                document.getElementById('userBalanceAccount').textContent = `R$ ${state.currentUser.SALDO.toFixed(2)}`;
+                shop.loadCards();
+            }
+        });
+    </script>
 </body>
 </html>
