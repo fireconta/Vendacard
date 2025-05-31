@@ -69,6 +69,7 @@ function checkAuth() {
 
 const auth = {
     async login() {
+        console.log('Função de login chamada em ' + new Date().toLocaleString());
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
         const usernameError = document.getElementById('usernameError');
@@ -134,6 +135,7 @@ const auth = {
     },
 
     async register() {
+        console.log('Função de registro chamada em ' + new Date().toLocaleString());
         const usernameInput = document.getElementById('newUsername');
         const passwordInput = document.getElementById('newPassword');
         const usernameError = document.getElementById('newUsernameError');
@@ -161,12 +163,18 @@ const auth = {
         }
 
         try {
-            const encodedUsername = encodeURIComponent(username);
-            const encodedPassword = encodeURIComponent(password);
-            console.log(`Enviando registro: user="${username}" (encoded: "${encodedUsername}"), password="${password}" (encoded: "${encodedPassword}") em ${new Date().toLocaleString()}.`);
-            const registerUrl = `${CONFIG.API_URL}?action=register&user=${encodedUsername}&password=${encodedPassword}&saldo=0&isadmin=FALSE`;
-            console.log(`URL de registro: ${registerUrl}`);
-            const response = await fetch(registerUrl, { method: 'POST' });
+            const registerData = new URLSearchParams({
+                action: 'register',
+                user: username,
+                password: password,
+                saldo: '0',
+                isadmin: 'FALSE'
+            });
+            console.log(`Enviando registro: user="${username}", password="${password}" em ${new Date().toLocaleString()}.`);
+            const response = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                body: registerData
+            });
             const responseText = await response.text();
             console.log('Resposta bruta do servidor:', responseText);
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -229,7 +237,6 @@ const shop = {
                     });
                 });
             }
-            // Exibir botão de administrador se aplicável
             if (state.isAdmin) {
                 const navbar = document.getElementById('navbar');
                 if (navbar) {
@@ -297,6 +304,50 @@ const admin = {
             ui.displayAdminCards();
         } catch (error) {
             console.error('Erro ao carregar cartões:', error);
+        }
+    },
+
+    async deleteUser(username) {
+        if (!state.isAdmin) {
+            alert('Acesso negado. Apenas administradores podem excluir usuários.');
+            return;
+        }
+        if (confirm(`Tem certeza que deseja excluir o usuário ${username}?`)) {
+            try {
+                const response = await fetch(`${CONFIG.API_URL}?action=deleteUser&user=${encodeURIComponent(username)}`, { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    alert('Usuário excluído com sucesso!');
+                    admin.loadUsers();
+                } else {
+                    alert(result.message || 'Erro ao excluir usuário.');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir usuário:', error);
+                alert('Erro ao conectar ao servidor.');
+            }
+        }
+    },
+
+    async deleteCard(cardNumber) {
+        if (!state.isAdmin) {
+            alert('Acesso negado. Apenas administradores podem excluir cartões.');
+            return;
+        }
+        if (confirm(`Tem certeza que deseja excluir o cartão ${cardNumber}?`)) {
+            try {
+                const response = await fetch(`${CONFIG.API_URL}?action=deleteCard&cardNumber=${encodeURIComponent(cardNumber)}`, { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    alert('Cartão excluído com sucesso!');
+                    admin.loadAdminCards();
+                } else {
+                    alert(result.message || 'Erro ao excluir cartão.');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir cartão:', error);
+                alert('Erro ao conectar ao servidor.');
+            }
         }
     }
 };
@@ -545,52 +596,6 @@ const ui = {
     }
 };
 
-const admin = {
-    async deleteUser(username) {
-        if (!state.isAdmin) {
-            alert('Acesso negado. Apenas administradores podem excluir usuários.');
-            return;
-        }
-        if (confirm(`Tem certeza que deseja excluir o usuário ${username}?`)) {
-            try {
-                const response = await fetch(`${CONFIG.API_URL}?action=deleteUser&user=${encodeURIComponent(username)}`, { method: 'POST' });
-                const result = await response.json();
-                if (result.success) {
-                    alert('Usuário excluído com sucesso!');
-                    admin.loadUsers();
-                } else {
-                    alert(result.message || 'Erro ao excluir usuário.');
-                }
-            } catch (error) {
-                console.error('Erro ao excluir usuário:', error);
-                alert('Erro ao conectar ao servidor.');
-            }
-        }
-    },
-
-    async deleteCard(cardNumber) {
-        if (!state.isAdmin) {
-            alert('Acesso negado. Apenas administradores podem excluir cartões.');
-            return;
-        }
-        if (confirm(`Tem certeza que deseja excluir o cartão ${cardNumber}?`)) {
-            try {
-                const response = await fetch(`${CONFIG.API_URL}?action=deleteCard&cardNumber=${encodeURIComponent(cardNumber)}`, { method: 'POST' });
-                const result = await response.json();
-                if (result.success) {
-                    alert('Cartão excluído com sucesso!');
-                    admin.loadAdminCards();
-                } else {
-                    alert(result.message || 'Erro ao excluir cartão.');
-                }
-            } catch (error) {
-                console.error('Erro ao excluir cartão:', error);
-                alert('Erro ao conectar ao servidor.');
-            }
-        }
-    }
-};
-
 // Funções globais
 function closeCardDetailsModal() {
     document.getElementById('cardDetailsModal').classList.add('hidden');
@@ -603,6 +608,6 @@ function closeConfirmPurchaseModal() {
 function confirmPurchase() {
     const modal = document.getElementById('confirmPurchaseModal');
     const cardNumber = modal.getAttribute('data-card-number');
-    shop.purchaseCard(cardNumber, '10.00'); // Preço fixo de exemplo
+    shop.purchaseCard(cardNumber, '10.00');
     closeConfirmPurchaseModal();
 }
