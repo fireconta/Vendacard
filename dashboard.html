@@ -43,9 +43,16 @@
                 <p id="newPasswordError" class="text-red-500 text-sm"></p>
             </div>
             <div class="mb-4">
-                <label for="newBalance" class="block mb-1">Saldo da conta</label>
+                <label for="newBalance" class="block mb-1">Saldo</label>
                 <input type="number" id="newBalance" class="w-full p-2 bg-gray-700 rounded" oninput="document.getElementById('newBalanceError').textContent = ''">
                 <p id="newBalanceError" class="text-red-500 text-sm"></p>
+            </div>
+            <div class="mb-4">
+                <label for="isAdmin" class="block mb-1">Administrador?</label>
+                <select id="isAdmin" class="w-full p-2 bg-gray-700 rounded">
+                    <option value="FALSE">Não</option>
+                    <option value="TRUE">Sim</option>
+                </select>
             </div>
             <button class="btn-confirm bg-green-600 p-2 rounded hover:bg-green-500">Confirmar</button>
             <button onclick="document.getElementById('addUserModal').style.display='none'" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
