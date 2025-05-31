@@ -12,7 +12,7 @@
     <main>
         <div id="loginForm" class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
             <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
-            <form onsubmit="event.preventDefault(); auth.login();">
+            <form id="loginFormElement" onsubmit="event.preventDefault(); auth.login();">
                 <div class="mb-4">
                     <label for="username" class="block mb-1">Usuário</label>
                     <input type="text" id="username" class="w-full p-2 bg-gray-700 rounded" required autocomplete="username">
@@ -23,7 +23,7 @@
                     <input type="password" id="password" class="w-full p-2 bg-gray-700 rounded" required autocomplete="current-password">
                     <p id="passwordError" class="text-red-500 text-sm"></p>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 p-2 rounded hover:bg-blue-500">Entrar</button>
+                <button type="submit" id="loginButton" class="w-full bg-blue-600 p-2 rounded hover:bg-blue-500">Entrar</button>
             </form>
             <p class="mt-4 text-center">Não tem conta? <a href="#" onclick="ui.showRegisterForm()" class="text-blue-400 hover:underline">Registre-se</a></p>
         </div>
@@ -46,5 +46,16 @@
         </div>
         <div id="notifications" class="fixed top-4 right-4"></div>
     </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginButton = document.getElementById('loginButton');
+            if (loginButton) {
+                loginButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    auth.login();
+                });
+            }
+        });
+    </script>
 </body>
 </html>
