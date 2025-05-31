@@ -3,452 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Painel de administração do Vendacards.">
-    <title>Dashboard - Vendacards</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Vendacards - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #1a1a1a; color: #ffffff; }
-        .card-item { background-color: #333; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
-        .search-bar { margin-bottom: 20px; }
-        .stats { display: flex; justify-content: space-around; margin-bottom: 20px; }
-        .stat-item { background-color: #333; padding: 15px; border-radius: 8px; text-align: center; width: 30%; }
-        .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        .chart-item { background-color: #333; padding: 15px; border-radius: 8px; }
+        body { transition: background-color 0.3s, color 0.3s; }
+        body.light { background-color: #f3f4f6; color: #1f2937; }
+        body.light input, body.light select { background-color: #fff; color: #1f2937; border: 1px solid #d1d5db; }
+        body.light .card-item { background-color: #fff; }
+        .card-item { background-color: #374151; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+        #userList, #adminCardList, #logList { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+        #notifications { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+        #navbar { position: fixed; top: 0; width: 100%; z-index: 100; }
     </style>
 </head>
-<body class="min-h-screen p-4">
-    <nav id="navbar" class="flex justify-between items-center bg-gray-800 p-4 rounded-lg mb-4 hidden">
-        <div class="navbar-brand text-xl font-bold">Vendacards - Admin</div>
-        <div class="navbar-links">
-            <a href="shop.html" class="text-blue-400 hover:text-blue-300" aria-label="Ir para a loja"><i class="fas fa-store"></i> Loja</a>
-            <button onclick="ui.toggleTheme()" class="text-blue-400 hover:text-blue-300" aria-label="Alternar tema"><i class="fas fa-adjust"></i> <span id="themeToggle">Modo Claro</span></button>
-            <button onclick="auth.logout()" class="text-blue-400 hover:text-blue-300" aria-label="Sair da conta"><i class="fas fa-sign-out-alt"></i> Sair</button>
+<body class="bg-gray-900 text-white">
+    <div id="notifications"></div>
+    <nav id="navbar" class="bg-gray-800 p-4 flex justify-between items-center hidden">
+        <div class="flex items-center">
+            <span class="text-xl font-bold">Vendacards</span>
+            <span id="cartIcon" class="ml-4 cursor-pointer">🛒</span>
+        </div>
+        <div>
+            <button id="themeToggle" onclick="ui.toggleTheme()" class="p-2 bg-gray-600 rounded hover:bg-gray-500">Modo Claro</button>
+            <button onclick="auth.logout()" class="ml-4 p-2 bg-red-600 rounded hover:bg-red-500">Sair</button>
         </div>
     </nav>
-
-    <div class="container mx-auto">
-        <h1 class="text-2xl font-bold mb-4"><i class="fas fa-tachometer-alt"></i> Painel de Administração</h1>
-
-        <div class="stats">
-            <div class="stat-item">
-                <h3 class="text-lg font-semibold">Total de Usuários</h3>
-                <p id="totalUsers">0</p>
-            </div>
-            <div class="stat-item">
-                <h3 class="text-lg font-semibold">Total de Cartões</h3>
-                <p id="totalCards">0</p>
-            </div>
-            <div class="stat-item">
-                <h3 class="text-lg font-semibold">Saldo Total (R$)</h3>
-                <p id="totalBalance">0.00</p>
-            </div>
+    <div class="container mx-auto p-6 mt-16">
+        <h1 class="text-3xl font-bold mb-4">Dashboard de Administração</h1>
+        <h2 class="text-2xl font-bold mb-4">Gerenciar Usuários</h2>
+        <div class="mb-4">
+            <input id="userSearch" type="text" placeholder="Pesquisar usuários..." class="p-2 rounded bg-gray-700 text-white" oninput="ui.displayUsers(this.value)">
+            <button onclick="document.getElementById('addUserModal').style.display='flex'" class="ml-4 p-2 bg-blue-600 rounded hover:bg-blue-500">Adicionar Usuário</button>
         </div>
-
-        <div class="charts">
-            <div class="chart-item">
-                <canvas id="balanceChart" role="img" aria-label="Gráfico de saldo dos usuários"></canvas>
-            </div>
-            <div class="chart-item">
-                <canvas id="salesChart" role="img" aria-label="Gráfico de vendas"></canvas>
-            </div>
-            <div class="chart-item">
-                <canvas id="salesByBrandChart" role="img" aria-label="Gráfico de vendas por bandeira"></canvas>
-            </div>
-            <div class="chart-item">
-                <canvas id="conversionRateChart" role="img" aria-label="Gráfico de taxa de conversão"></canvas>
-            </div>
+        <div id="userList"></div>
+        <h2 class="text-2xl font-bold mb-4 mt-8">Gerenciar Cartões</h2>
+        <div class="mb-4">
+            <input id="cardSearch" type="text" placeholder="Pesquisar cartões..." class="p-2 rounded bg-gray-700 text-white" oninput="ui.displayAdminCards(this.value)">
+            <button onclick="document.getElementById('cardModal').style.display='flex'; document.getElementById('modalTitle').textContent='Adicionar Cartão'" class="ml-4 p-2 bg-blue-600 rounded hover:bg-blue-500">Adicionar Cartão</button>
         </div>
-
-        <div class="section mb-6">
-            <h2 class="text-xl font-bold mb-2">Gerenciar Usuários</h2>
-            <div class="search-bar">
-                <input type="text" id="userSearch" placeholder="Pesquisar usuário por nome" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full mb-2" oninput="ui.displayUsers(this.value)" aria-label="Pesquisar usuário">
-                <button onclick="document.getElementById('addUserModal').style.display='flex'" class="p-2 bg-green-600 text-white rounded hover:bg-green-500" aria-label="Adicionar novo usuário">Adicionar Usuário</button>
-            </div>
-            <div id="userList" class="card-list"></div>
-        </div>
-
-        <div class="section mb-6">
-            <h2 class="text-xl font-bold mb-2">Gerenciar Cartões</h2>
-            <div class="search-bar">
-                <input type="text" id="cardSearch" placeholder="Pesquisar cartão por número, bandeira ou banco" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full mb-2" oninput="ui.displayAdminCards(this.value)" aria-label="Pesquisar cartão">
-                <button onclick="document.getElementById('cardModal').style.display='flex'" class="p-2 bg-green-600 text-white rounded hover:bg-green-500" aria-label="Adicionar novo cartão">Adicionar Cartão</button>
-                <button onclick="ui.showBulkEditModal()" class="p-2 bg-blue-600 text-white rounded hover:bg-blue-500" aria-label="Editar cartões em massa">Editar em Massa</button>
-                <button onclick="ui.importCards()" class="p-2 bg-blue-600 text-white rounded hover:bg-blue-500" aria-label="Importar cartões via CSV">Importar Cartões (CSV)</button>
-                <button onclick="ui.exportCards()" class="p-2 bg-blue-600 text-white rounded hover:bg-blue-500" aria-label="Exportar cartões para CSV">Exportar Cartões (CSV)</button>
-            </div>
-            <div id="adminCardList" class="card-list"></div>
-            <div id="lowStockAlert" class="alert bg-red-600 text-white p-2 rounded mt-2 hidden" aria-live="polite"></div>
-        </div>
-
-        <div class="section">
-            <h2 class="text-xl font-bold mb-2">Logs de Atividade</h2>
-            <div class="search-bar">
-                <button onclick="ui.exportLogs('csv')" class="p-2 bg-blue-600 text-white rounded hover:bg-blue-500" aria-label="Exportar logs em CSV">Exportar Logs (CSV)</button>
-                <button onclick="ui.exportLogs('json')" class="p-2 bg-blue-600 text-white rounded hover:bg-blue-500" aria-label="Exportar logs em JSON">Exportar Logs (JSON)</button>
-                <button onclick="ui.clearLogs()" class="p-2 bg-red-600 text-white rounded hover:bg-red-500" aria-label="Limpar logs">Limpar Logs</button>
-            </div>
-            <div id="logList" class="card-list"></div>
-        </div>
-
-        <div id="addUserModal" class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden">
-            <div class="modal-content p-6 bg-gray-800 rounded-lg relative">
-                <span class="close absolute top-2 right-4 text-2xl cursor-pointer" onclick="document.getElementById('addUserModal').style.display='none'" aria-label="Fechar modal">×</span>
-                <div class="modal-body">
-                    <h2 class="text-xl mb-2">Adicionar/Editar Usuário</h2>
-                    <div class="form-group mb-4">
-                        <label for="newUsername" class="block">Usuário:</label>
-                        <input type="text" id="newUsername" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Digite um usuário" required aria-required="true">
-                        <span id="newUsernameError" class="text-red-500 text-sm"></span>
-                    </div>
-                    <div class="form-group mb-4">
-                        <label for="newPassword" class="block">Senha:</label>
-                        <input type="password" id="newPassword" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Digite uma senha" required aria-required="true">
-                        <span id="newPasswordError" class="text-red-500 text-sm"></span>
-                    </div>
-                    <div class="form-group mb-4">
-                        <label for="newBalance" class="block">Saldo Inicial:</label>
-                        <input type="number" id="newBalance" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="0.00" step="0.01" aria-required="true">
-                        <span id="newBalanceError" class="text-red-500 text-sm"></span>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button onclick="document.getElementById('addUserModal').style.display='none'" class="btn-cancel p-2 rounded">Cancelar</button>
-                    <button class="btn-confirm p-2 rounded" onclick="ui.addUser()">Salvar</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="cardModal" class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden">
-            <div class="modal-content p-6 bg-gray-800 rounded-lg relative">
-                <span class="close absolute top-2 right-4 text-2xl cursor-pointer" onclick="document.getElementById('cardModal').style.display='none'" aria-label="Fechar modal">×</span>
-                <div class="modal-body">
-                    <h2 id="modalTitle" class="text-xl mb-2">Adicionar Novo Cartão</h2>
-                    <div class="form-group mb-4">
-                        <label for="cardNumber" class="block">Número do Cartão:</label>
-                        <input type="text" id="cardNumber" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Ex.: 1234567890123456" oninput="formatCardNumber(this)" aria-required="true">
-                        <span id="cardNumberError" class="text-red-500 text-sm"></span>
-                    </div>
-                    <div class="form-group mb-4">
-                        <label for="cardCvv" class="block">CVV:</label>
-                        <input type="text" id="cardCvv" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Ex.: 123" oninput="restrictCvv(this)" aria-required="true">
-                        <span id="cardCvvError" class="text-red-500 text-sm"></span>
-                    </div>
-                    <div class="form-group mb-4">
-                        <label for="cardExpiry" class="block">Validade:</label>
-                        <input type="text" id="cardExpiry" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Ex.: 12/25" oninput="formatExpiry(this)" aria-required="true">
-                        <span id="cardExpiryError" class="text-red-500 text-sm"></span>
-                    </div>
-                    <div class="form-group mb-4">
-                        <label for="cardName" class="block">Nome:</label>
-                        <input type="text" id="cardName" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Ex.: João Silva" aria-required="true">
-                        <span id="cardNameError" class="text-red-500 text-sm"></span>
-                    </div>
-                    <div class="form-group mb-4">
-                        <label for="cardCpf" class="block">CPF:</label>
-                        <input type="text" id="cardCpf" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Ex.: 123.456.789-00" oninput="formatCpf(this)" aria-required="true">
-                        <span id="cardCpfError" class="text-red-500 text-sm"></span>
-                    </div>
-                    <div class="form-group mb-4">
-                        <label for="cardBrand" class="block">Bandeira:</label>
-                        <select id="cardBrand" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" aria-required="true">
-                            <option value="">Selecione</option>
-                            <option value="Visa">Visa</option>
-                            <option value="Mastercard">Mastercard</option>
-                        </select>
-                        <span id="cardBrandError" class="text-red-500 text-sm"></span>
-                    </div>
-                    <div class="form-group mb-4">
-                        <label for="cardBank" class="block">Banco:</label>
-                        <select id="cardBank" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" aria-required="true">
-                            <option value="">Selecione</option>
-                            <option value="Nubank">Nubank</option>
-                            <option value="Itaú">Itaú</option>
-                        </select>
-                        <span id="cardBankError" class="text-red-500 text-sm"></span>
-                    </div>
-                    <div class="form-group mb-4">
-                        <label for="cardCountry" class="block">País:</label>
-                        <input type="text" id="cardCountry" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Ex.: Brasil" aria-required="true">
-                        <span id="cardCountryError" class="text-red-500 text-sm"></span>
-                    </div>
-                    <div class="form-group mb-4">
-                        <label for="cardLevel" class="block">Nível:</label>
-                        <select id="cardLevel" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" aria-required="true">
-                            <option value="">Selecione</option>
-                            <option value="Gold">Gold</option>
-                            <option value="Platinum">Platinum</option>
-                        </select>
-                        <span id="cardLevelError" class="text-red-500 text-sm"></span>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button onclick="document.getElementById('cardModal').style.display='none'" class="btn-cancel p-2 rounded">Cancelar</button>
-                    <button class="btn-confirm p-2 rounded" onclick="ui.saveCard()">Salvar</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="bulkEditModal" class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden">
-            <div class="modal-content p-6 bg-gray-800 rounded-lg relative">
-                <span class="close absolute top-2 right-4 text-2xl cursor-pointer" onclick="document.getElementById('bulkEditModal').style.display='none'" aria-label="Fechar modal">×</span>
-                <div class="modal-body">
-                    <h2 class="text-xl mb-2">Editar Cartões em Massa</h2>
-                    <div class="form-group mb-4">
-                        <label for="bulkEditField" class="block">Campo:</label>
-                        <select id="bulkEditField" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" aria-required="true">
-                            <option value="bandeira">Bandeira</option>
-                            <option value="banco">Banco</option>
-                        </select>
-                        <span id="bulkEditFieldError" class="text-red-500 text-sm"></span>
-                    </div>
-                    <div class="form-group mb-4">
-                        <label for="bulkEditValue" class="block">Valor:</label>
-                        <input type="text" id="bulkEditValue" class="p-2 border border-gray-600 rounded bg-gray-800 text-white w-full" placeholder="Ex.: Visa ou Nubank" aria-required="true">
-                        <span id="bulkEditValueError" class="text-red-500 text-sm"></span>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button onclick="document.getElementById('bulkEditModal').style.display='none'" class="btn-cancel p-2 rounded">Cancelar</button>
-                    <button class="btn-confirm p-2 rounded" onclick="applyBulkEdit()">Aplicar</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="notifications" class="fixed bottom-4 right-4 space-y-2"></div>
+        <div id="adminCardList"></div>
+        <h2 class="text-2xl font-bold mb-4 mt-8">Logs</h2>
+        <div id="logList"></div>
     </div>
-
+    <div id="addUserModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
+            <h2 class="text-xl font-bold mb-4">Adicionar Usuário</h2>
+            <div class="mb-4">
+                <input id="newUsername" type="text" placeholder="Usuário" class="w-full p-2 rounded bg-gray-700 text-white">
+                <p id="newUsernameError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="mb-4">
+                <input id="newPassword" type="password" placeholder="Senha" class="w-full p-2 rounded bg-gray-700 text-white">
+                <p id="newPasswordError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="mb-4">
+                <input id="newBalance" type="number" placeholder="Saldo Inicial" class="w-full p-2 rounded bg-gray-700 text-white">
+                <p id="newBalanceError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="flex gap-2">
+                <button class="btn-confirm p-2 bg-blue-600 rounded hover:bg-blue-500 flex-1" onclick="ui.addUser()">Confirmar</button>
+                <button onclick="document.getElementById('addUserModal').style.display='none'" class="p-2 bg-gray-600 rounded hover:bg-gray-500 flex-1">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    <div id="cardModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
+            <h2 id="modalTitle" class="text-xl font-bold mb-4">Adicionar Cartão</h2>
+            <div class="mb-2">
+                <input id="cardNumber" type="text" placeholder="Número do Cartão" class="w-full p-2 rounded bg-gray-700 text-white" oninput="formatCardNumber(this)">
+                <p id="cardNumberError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="mb-2">
+                <input id="cardCvv" type="text" placeholder="CVV" class="w-full p-2 rounded bg-gray-700 text-white" oninput="restrictCvv(this)">
+                <p id="cardCvvError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="mb-2">
+                <input id="cardExpiry" type="text" placeholder="Validade (MM/AA)" class="w-full p-2 rounded bg-gray-700 text-white" oninput="formatExpiry(this)">
+                <p id="cardExpiryError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="mb-2">
+                <input id="cardName" type="text" placeholder="Nome no Cartão" class="w-full p-2 rounded bg-gray-700 text-white">
+                <p id="cardNameError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="mb-2">
+                <input id="cardCpf" type="text" placeholder="CPF" class="w-full p-2 rounded bg-gray-700 text-white" oninput="formatCpf(this)">
+                <p id="cardCpfError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="mb-2">
+                <select id="cardBrand" class="w-full p-2 rounded bg-gray-700 text-white">
+                    <option value="">Selecione a Bandeira</option>
+                    <option value="Visa">Visa</option>
+                    <option value="Mastercard">Mastercard</option>
+                </select>
+                <p id="cardBrandError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="mb-2">
+                <select id="cardBank" class="w-full p-2 rounded bg-gray-700 text-white">
+                    <option value="">Selecione o Banco</option>
+                    <option value="Nubank">Nubank</option>
+                    <option value="Itaú">Itaú</option>
+                </select>
+                <p id="cardBankError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="mb-2">
+                <input id="cardCountry" type="text" placeholder="País" class="w-full p-2 rounded bg-gray-700 text-white">
+                <p id="cardCountryError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="mb-2">
+                <select id="cardLevel" class="w-full p-2 rounded bg-gray-700 text-white">
+                    <option value="">Selecione o Nível</option>
+                    <option value="Gold">Gold</option>
+                    <option value="Platinum">Platinum</option>
+                </select>
+                <p id="cardLevelError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="flex gap-2">
+                <button class="btn-confirm p-2 bg-blue-600 rounded hover:bg-blue-500 flex-1" onclick="ui.saveCard()">Confirmar</button>
+                <button onclick="document.getElementById('cardModal').style.display='none'" class="p-2 bg-gray-600 rounded hover:bg-gray-500 flex-1">Cancelar</button>
+            </div>
+        </div>
+    </div>
     <script src="script.js"></script>
-    <script>
-        // Função para atualizar as estatísticas
-        function updateStats() {
-            const totalUsers = state.users.length;
-            const totalCards = state.cards.length;
-            const totalBalance = state.users.reduce((sum, user) => sum + parseFloat(user.saldo), 0);
-
-            document.getElementById('totalUsers').textContent = totalUsers;
-            document.getElementById('totalCards').textContent = totalCards;
-            document.getElementById('totalBalance').textContent = totalBalance.toFixed(2);
-        }
-
-        // Função para inicializar os gráficos
-        function initializeCharts() {
-            // Gráfico de saldo dos usuários
-            const balanceChart = new Chart(document.getElementById('balanceChart'), {
-                type: 'bar',
-                data: {
-                    labels: state.users.map(user => user.user),
-                    datasets: [{
-                        label: 'Saldo (R$)',
-                        data: state.users.map(user => user.saldo),
-                        backgroundColor: 'rgba(0, 196, 204, 0.5)',
-                        borderColor: 'rgba(0, 196, 204, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
-
-            // Gráfico de vendas (fictício, pois não temos dados de vendas)
-            const salesChart = new Chart(document.getElementById('salesChart'), {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai'],
-                    datasets: [{
-                        label: 'Vendas (R$)',
-                        data: [1200, 1900, 3000, 5000, 4000],
-                        borderColor: 'rgba(0, 196, 204, 1)',
-                        fill: false
-                    }]
-                },
-                options: {
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
-
-            // Gráfico de vendas por bandeira
-            const brands = [...new Set(state.cards.map(card => card.bandeira))];
-            const salesByBrand = brands.map(brand => {
-                return state.cards.filter(card => card.bandeira === brand).length * 10; // Valor fictício
-            });
-            const salesByBrandChart = new Chart(document.getElementById('salesByBrandChart'), {
-                type: 'pie',
-                data: {
-                    labels: brands,
-                    datasets: [{
-                        label: 'Vendas por Bandeira',
-                        data: salesByBrand,
-                        backgroundColor: ['#00c4cc', '#ff4d4d', '#ffd700', '#00ff00']
-                    }]
-                }
-            });
-
-            // Gráfico de taxa de conversão (fictício)
-            const conversionRateChart = new Chart(document.getElementById('conversionRateChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Conversões', 'Visitas'],
-                    datasets: [{
-                        label: 'Taxa de Conversão',
-                        data: [30, 70], // Fictício
-                        backgroundColor: ['#00c4cc', '#444']
-                    }]
-                }
-            });
-        }
-
-        // Função para edição em massa
-        async function applyBulkEdit() {
-            const field = document.getElementById('bulkEditField').value;
-            const value = document.getElementById('bulkEditValue').value.trim();
-            if (!value) {
-                document.getElementById('bulkEditValueError').textContent = 'Valor é obrigatório.';
-                return;
-            }
-
-            try {
-                for (let card of state.cards) {
-                    const updatedCard = { ...card, [field]: value };
-                    const response = await fetch(CONFIG.API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: `action=updateCard&numero=${encodeURIComponent(updatedCard.numero)}&cvv=${encodeURIComponent(updatedCard.cvv)}&valida=${encodeURIComponent(updatedCard.validade)}&nome=${encodeURIComponent(updatedCard.nome)}&cpf=${encodeURIComponent(updatedCard.cpf)}&bandeira=${encodeURIComponent(updatedCard.bandeira)}&banco=${encodeURIComponent(updatedCard.banco)}&pais=${encodeURIComponent(updatedCard.pais)}&bin=${encodeURIComponent(updatedCard.bin)}&nivel=${encodeURIComponent(updatedCard.nivel)}`
-                    });
-                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                state.cards = await (await fetch(CONFIG.API_URL + '?action=getCards')).json();
-                document.getElementById('bulkEditModal').style.display = 'none';
-                ui.showNotification('Cartões atualizados com sucesso!');
-                ui.displayAdminCards();
-            } catch (error) {
-                console.error('Erro ao aplicar edição em massa:', error.message);
-                ui.showNotification('Erro ao atualizar cartões.');
-            }
-        }
-
-        // Funções adicionais para compatibilidade com o script original
-        ui.showAddUserModal = function() {
-            document.getElementById('newUsername').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('newBalance').value = '';
-            document.getElementById('addUserModal').style.display = 'flex';
-        };
-
-        ui.showAddCardModal = function() {
-            document.getElementById('cardNumber').value = '';
-            document.getElementById('cardCvv').value = '';
-            document.getElementById('cardExpiry').value = '';
-            document.getElementById('cardName').value = '';
-            document.getElementById('cardCpf').value = '';
-            document.getElementById('cardBrand').value = '';
-            document.getElementById('cardBank').value = '';
-            document.getElementById('cardCountry').value = '';
-            document.getElementById('cardLevel').value = '';
-            document.getElementById('modalTitle').textContent = 'Adicionar Novo Cartão';
-            document.getElementById('cardModal').style.display = 'flex';
-        };
-
-        ui.showBulkEditModal = function() {
-            document.getElementById('bulkEditField').value = 'bandeira';
-            document.getElementById('bulkEditValue').value = '';
-            document.getElementById('bulkEditModal').style.display = 'flex';
-        };
-
-        ui.importCards = function() {
-            alert('Funcionalidade de importação de cartões via CSV não implementada.');
-        };
-
-        ui.exportCards = function() {
-            const csvContent = [
-                ['Número do Cartão', 'CVV', 'Validade', 'Nome', 'CPF', 'Bandeira', 'Banco', 'País', 'BIN', 'Nível'],
-                ...state.cards.map(card => [
-                    card.numero,
-                    card.cvv,
-                    card.validade,
-                    card.nome,
-                    card.cpf,
-                    card.bandeira,
-                    card.banco,
-                    card.pais,
-                    card.bin,
-                    card.nivel
-                ])
-            ].map(row => row.join(',')).join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'cards_export.csv';
-            a.click();
-            window.URL.revokeObjectURL(url);
-        };
-
-        ui.exportLogs = function(format) {
-            if (state.logs.length === 0) {
-                ui.showNotification('Nenhum log para exportar.');
-                return;
-            }
-            let content, mimeType, extension;
-            if (format === 'csv') {
-                content = [
-                    ['Data', 'Usuário', 'Ação'],
-                    ...state.logs.map(log => [
-                        new Date(log.timestamp).toLocaleString(),
-                        log.user,
-                        log.action
-                    ])
-                ].map(row => row.join(',')).join('\n');
-                mimeType = 'text/csv';
-                extension = 'csv';
-            } else {
-                content = JSON.stringify(state.logs, null, 2);
-                mimeType = 'application/json';
-                extension = 'json';
-            }
-            const blob = new Blob([content], { type: mimeType });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `logs_export.${extension}`;
-            a.click();
-            window.URL.revokeObjectURL(url);
-        };
-
-        ui.clearLogs = function() {
-            if (confirm('Tem certeza que deseja limpar os logs?')) {
-                state.logs = [];
-                localStorage.setItem('logs', JSON.stringify(state.logs));
-                document.getElementById('logList').innerHTML = '';
-                ui.showNotification('Logs limpos com sucesso!');
-            }
-        };
-
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!checkLogin() || !state.isAdmin) {
-                window.location.href = 'index.html';
-                return;
-            }
-            ui.initializeData().then(() => {
-                updateStats();
-                initializeCharts();
-                ui.displayUsers();
-                ui.displayAdminCards();
-                // Exibir logs (se existirem)
-                document.getElementById('logList').innerHTML = state.logs.map(log => `
-                    <div class="card-item">
-                        <p><strong>Data:</strong> ${new Date(log.timestamp).toLocaleString()}</p>
-                        <p><strong>Usuário:</strong> ${log.user}</p>
-                        <p><strong>Ação:</strong> ${log.action}</p>
-                    </div>
-                `).join('');
-            });
-            ui.updateNavbarVisibility();
-        });
-    </script>
 </body>
 </html>
