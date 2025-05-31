@@ -6,7 +6,7 @@ const CONFIG = {
     LOGIN_BLOCK_TIME: 30000,
     NOTIFICATION_TIMEOUT: 5000,
     LOG_RETENTION_DAYS: 30,
-    API_URL: 'https://script.google.com/macros/s/AKfycbzEJ7vsoGOM73X5WgooghEUYxuKkBergWYN4gBrX7zDSp28QTWn0fsBTnJQT52koZQO/exec' // URL fornecida
+    API_URL: 'https://script.google.com/macros/s/AKfycbzEJ7vsoGOM73X5WgooghEUYxuKkBergWYN4gBrX7zDSp28QTWn0fsBTnJQT52koZQO/exec'
 };
 
 // === Estado Global ===
@@ -73,7 +73,7 @@ function checkLogin() {
     }
 
     state.currentUser = JSON.parse(currentUser);
-    state.isAdmin = state.currentUser.ISadmin === 'TRUE';
+    state.isAdmin = state.currentUser.ISADMIN === 'TRUE';
     return true;
 }
 
@@ -119,7 +119,7 @@ const auth = {
             console.log('Resultado parsed:', result);
             if (result.success) {
                 state.currentUser = result.user;
-                state.isAdmin = result.user.ISadmin === 'TRUE';
+                state.isAdmin = result.user.ISADMIN === 'TRUE';
                 localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
                 localStorage.setItem('sessionStart', Date.now().toString());
                 state.loginAttempts = 0;
@@ -161,7 +161,7 @@ const auth = {
             const response = await fetch(CONFIG.API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&saldo da conta=0&ISadmin=FALSE`
+                body: `action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&saldo=0&isadmin=FALSE`
             });
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             const result = await response.json();
@@ -204,8 +204,8 @@ const ui = {
 
             const userBalance = document.getElementById('userBalance');
             const userBalanceAccount = document.getElementById('userBalanceAccount');
-            if (userBalance) userBalance.textContent = parseFloat(state.currentUser['Saldo da conta']).toFixed(2);
-            if (userBalanceAccount) userBalanceAccount.textContent = parseFloat(state.currentUser['Saldo da conta']).toFixed(2);
+            if (userBalance) userBalance.textContent = parseFloat(state.currentUser.SALDO).toFixed(2);
+            if (userBalanceAccount) userBalanceAccount.textContent = parseFloat(state.currentUser.SALDO).toFixed(2);
 
             this.displayCards();
         } catch (error) {
@@ -292,8 +292,8 @@ const ui = {
         userList.innerHTML = filteredUsers.map(user => `
             <div class="card-item">
                 <p><strong>Usuário:</strong> ${user.user}</p>
-                <p><strong>Saldo da conta:</strong> R$ ${parseFloat(user['Saldo da conta']).toFixed(2)}</p>
-                <p><strong>ISadmin:</strong> ${user.ISadmin}</p>
+                <p><strong>Saldo:</strong> R$ ${parseFloat(user.SALDO).toFixed(2)}</p>
+                <p><strong>ISADMIN:</strong> ${user.ISADMIN}</p>
                 <button class="p-2 bg-blue-600 text-white rounded hover:bg-blue-500" onclick="ui.editUser('${user.user}')">Editar</button>
                 <button class="p-2 bg-red-600 text-white rounded hover:bg-red-500" onclick="ui.deleteUser('${user.user}')">Excluir</button>
             </div>
@@ -355,6 +355,7 @@ const ui = {
         const username = document.getElementById('newUsername').value.trim();
         const password = document.getElementById('newPassword').value.trim();
         const balance = document.getElementById('newBalance').value.trim();
+        const isAdmin = document.getElementById('isAdmin').value;
         const usernameError = document.getElementById('newUsernameError');
         const passwordError = document.getElementById('newPasswordError');
         const balanceError = document.getElementById('newBalanceError');
@@ -368,11 +369,11 @@ const ui = {
             return;
         }
         if (password.length < CONFIG.MIN_PASSWORD_LENGTH) {
-            if (passwordError) passwordError.textContent = `A senha deve ter pelo menos ${CONFIG.MIN_PASSWORD_LENGTH} caracteres.';
+            if (passwordError) passwordError.textContent = `A senha deve ter pelo menos ${CONFIG.MIN_PASSWORD_LENGTH} caracteres.`;
             return;
         }
         if (!balance || isNaN(balance) || parseFloat(balance) < 0) {
-            if (balanceError) balanceError.textContent = 'Saldo da conta inválido.';
+            if (balanceError) balanceError.textContent = 'Saldo inválido.';
             return;
         }
 
@@ -380,7 +381,7 @@ const ui = {
             const response = await fetch(CONFIG.API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&saldo da conta=${balance}&ISadmin=FALSE`
+                body: `action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&saldo=${balance}&isadmin=${isAdmin}`
             });
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             const result = await response.json();
@@ -405,21 +406,24 @@ const ui = {
 
         document.getElementById('newUsername').value = user.user;
         document.getElementById('newPassword').value = user.password;
-        document.getElementById('newBalance').value = user['Saldo da conta'];
+        document.getElementById('newBalance').value = user.SALDO;
+        document.getElementById('isAdmin').value = user.ISADMIN;
         document.getElementById('addUserModal').style.display = 'flex';
+        document.getElementById('modalTitle').textContent = 'Editar Usuário';
 
         window.editUserCallback = async () => {
             const newPassword = document.getElementById('newPassword').value.trim();
             const newBalance = document.getElementById('newBalance').value.trim();
+            const isAdmin = document.getElementById('isAdmin').value;
             if (!newPassword || newPassword.length < CONFIG.MIN_PASSWORD_LENGTH || !newBalance || isNaN(newBalance) || parseFloat(newBalance) < 0) {
-                alert('Senha ou Saldo da conta inválido.');
+                alert('Senha ou Saldo inválido.');
                 return;
             }
             try {
                 const response = await fetch(CONFIG.API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(newPassword)}&saldo da conta=${encodeURIComponent(newBalance)}&ISadmin=${user.ISadmin}`
+                    body: `action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(newPassword)}&saldo=${encodeURIComponent(newBalance)}&isadmin=${isAdmin}`
                 });
                 if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                 state.users = await (await fetch(`${CONFIG.API_URL}?action=getUsers`)).json();
@@ -636,7 +640,7 @@ function openConfirmPurchaseModal(cardNumber) {
     const card = state.cards.find(c => c.numero === cardNumber);
     if (!card) return;
 
-    const price = 10.00; // Preço fixo
+    const price = 10.00;
     const confirmTotalAmount = document.getElementById('confirmTotalAmount');
     const confirmUserBalance = document.getElementById('confirmUserBalance');
     const confirmCardDetails = document.getElementById('confirmCardDetails');
@@ -644,7 +648,7 @@ function openConfirmPurchaseModal(cardNumber) {
 
     if (confirmTotalAmount && confirmUserBalance && confirmCardDetails && confirmPurchaseModal) {
         confirmTotalAmount.textContent = price.toFixed(2);
-        confirmUserBalance.textContent = parseFloat(state.currentUser['Saldo da conta']).toFixed(2);
+        confirmUserBalance.textContent = parseFloat(state.currentUser.SALDO).toFixed(2);
         confirmCardDetails.innerHTML = `
             <p><strong>Número:</strong> ${card.numero}</p>
             <p><strong>Bandeira:</strong> ${card.bandeira}</p>
@@ -666,7 +670,7 @@ async function confirmPurchase() {
     const card = state.cards.find(c => c.numero === cardNumber);
     const price = 10.00;
 
-    if (parseFloat(state.currentUser['Saldo da conta']) < price) {
+    if (parseFloat(state.currentUser.SALDO) < price) {
         ui.showNotification('Saldo insuficiente para realizar a compra.');
         return;
     }
@@ -681,14 +685,14 @@ async function confirmPurchase() {
         const result = await response.json();
 
         if (result.success) {
-            state.currentUser['Saldo da conta'] = parseFloat(state.currentUser['Saldo da conta']) - price;
+            state.currentUser.SALDO = parseFloat(state.currentUser.SALDO) - price;
             localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
             state.cards = state.cards.filter(c => c.numero !== cardNumber);
             state.userCards.push(card);
             const userBalance = document.getElementById('userBalance');
             const userBalanceAccount = document.getElementById('userBalanceAccount');
-            if (userBalance) userBalance.textContent = parseFloat(state.currentUser['Saldo da conta']).toFixed(2);
-            if (userBalanceAccount) userBalanceAccount.textContent = parseFloat(state.currentUser['Saldo da conta']).toFixed(2);
+            if (userBalance) userBalance.textContent = parseFloat(state.currentUser.SALDO).toFixed(2);
+            if (userBalanceAccount) userBalanceAccount.textContent = parseFloat(state.currentUser.SALDO).toFixed(2);
             closeConfirmPurchaseModal();
             ui.showNotification('Compra realizada com sucesso!');
             ui.displayCards();
