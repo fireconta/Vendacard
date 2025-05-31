@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Loja de cartões para compra e gerenciamento de saldo">
     <title>Loja</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="script.js" defer></script>
@@ -13,51 +14,55 @@
             <h1 class="text-xl font-bold">Loja de Cartões</h1>
             <div>
                 <button id="themeToggle" onclick="ui.toggleTheme()" class="mr-4">Modo Claro</button>
-                <button onclick="auth.logout()">Sair</button>
+                <button onclick="auth.logout()" aria-label="Sair">Sair</button>
             </div>
         </div>
     </nav>
-    <div class="container mx-auto p-4">
+    <main class="container mx-auto p-4">
         <div class="shop-header flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold">Cartões Disponíveis</h2>
             <div>
                 <span id="userBalance" class="mr-4"></span>
-                <button onclick="ui.showAccountInfo()" class="bg-blue-600 p-2 rounded hover:bg-blue-500">Conta</button>
+                <button onclick="ui.showAccountInfo()" class="bg-blue-600 p-2 rounded hover:bg-blue-500" aria-label="Ver conta">Conta</button>
             </div>
         </div>
-        <div class="filters mb-4">
+        <form class="filters mb-4">
+            <label for="binFilter" class="sr-only">Filtrar por BIN</label>
             <input type="text" id="binFilter" placeholder="Filtrar por BIN" class="p-2 bg-gray-700 rounded mr-2" oninput="ui.filterCards()">
+            <label for="brandFilter" class="sr-only">Bandeira</label>
             <select id="brandFilter" class="p-2 bg-gray-700 rounded mr-2" onchange="ui.filterCards()">
                 <option value="all">Todas as Bandeiras</option>
                 <option value="visa">Visa</option>
                 <option value="mastercard">Mastercard</option>
             </select>
+            <label for="bankFilter" class="sr-only">Banco</label>
             <select id="bankFilter" class="p-2 bg-gray-700 rounded mr-2" onchange="ui.filterCards()">
                 <option value="all">Todos os Bancos</option>
                 <option value="itau">Itaú</option>
                 <option value="bradesco">Bradesco</option>
             </select>
+            <label for="levelFilter" class="sr-only">Nível</label>
             <select id="levelFilter" class="p-2 bg-gray-700 rounded" onchange="ui.filterCards()">
                 <option value="all">Todos os Níveis</option>
                 <option value="gold">Gold</option>
                 <option value="platinum">Platinum</option>
             </select>
-            <button onclick="ui.clearFilters()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Limpar Filtros</button>
-        </div>
+            <button type="button" onclick="ui.clearFilters()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Limpar Filtros</button>
+        </form>
         <div id="cardList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-    </div>
+    </main>
     <div id="accountInfo" class="container mx-auto p-4 hidden">
         <h2 class="text-2xl font-bold mb-4">Minha Conta</h2>
         <p><strong>Usuário:</strong> <span id="userName"></span></p>
         <p><strong>Saldo:</strong> <span id="userBalanceAccount"></span></p>
         <div id="userCards" class="mt-4"></div>
-        <button onclick="ui.showAddBalanceForm()" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500">Adicionar Saldo</button>
+        <button onclick="ui.showAddBalanceForm()" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500" aria-label="Adicionar saldo">Adicionar Saldo</button>
     </div>
     <div id="cardDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
         <div class="bg-gray-800 p-6 rounded-lg">
             <h2 class="text-xl font-bold mb-4">Detalhes do Cartão</h2>
             <div id="cardDetailsContent"></div>
-            <button onclick="closeCardDetailsModal()" class="mt-4 bg-red-600 p-2 rounded hover:bg-red-500">Fechar</button>
+            <button type="button" onclick="closeCardDetailsModal()" class="mt-4 bg-red-600 p-2 rounded hover:bg-red-500">Fechar</button>
         </div>
     </div>
     <div id="confirmPurchaseModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" data-card-number="">
@@ -66,16 +71,19 @@
             <div id="confirmCardDetails"></div>
             <p><strong>Total:</strong> R$ <span id="confirmTotalAmount"></span></p>
             <p><strong>Seu Saldo:</strong> R$ <span id="confirmUserBalance"></span></p>
-            <button onclick="confirmPurchase()" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500">Confirmar</button>
-            <button onclick="closeConfirmPurchaseModal()" class="mt-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
+            <button type="button" onclick="confirmPurchase()" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500">Confirmar</button>
+            <button type="button" onclick="closeConfirmPurchaseModal()" class="mt-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
         </div>
     </div>
     <div id="rechargeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
         <div class="bg-gray-800 p-6 rounded-lg">
             <h2 class="text-xl font-bold mb-4">Adicionar Saldo</h2>
-            <input type="number" id="rechargeAmount" class="w-full p-2 bg-gray-700 rounded mb-4" placeholder="Digite o valor">
-            <button onclick="ui.addBalance()" class="bg-green-600 p-2 rounded hover:bg-green-500">Adicionar</button>
-            <button onclick="ui.closeModal()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
+            <form onsubmit="event.preventDefault(); ui.addBalance();">
+                <label for="rechargeAmount" class="block mb-1">Valor</label>
+                <input type="number" id="rechargeAmount" class="w-full p-2 bg-gray-700 rounded mb-4" placeholder="Digite o valor" required min="0.01" step="0.01">
+                <button type="submit" class="bg-green-600 p-2 rounded hover:bg-green-500">Adicionar</button>
+                <button type="button" onclick="ui.closeModal()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
+            </form>
         </div>
     </div>
     <div id="notifications" class="fixed top-4 right-4"></div>
