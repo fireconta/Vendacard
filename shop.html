@@ -1,93 +1,83 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vendacards - Loja</title>
+    <title>Loja</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { transition: background-color 0.3s, color 0.3s; }
-        body.light { background-color: #f3f4f6; color: #1f2937; }
-        body.light input, body.light select { background-color: #fff; color: #1f2937; border: 1px solid #d1d5db; }
-        body.light .card-item { background-color: #fff; }
-        .card-item { background-color: #374151; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
-        #cardList { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
-        #notifications { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
-        #navbar { position: fixed; top: 0; width: 100%; z-index: 100; }
-    </style>
+    <script src="script.js" defer></script>
 </head>
-<body class="bg-gray-900 text-white">
-    <div id="notifications"></div>
-    <nav id="navbar" class="bg-gray-800 p-4 flex justify-between items-center hidden">
-        <div class="flex items-center">
-            <span class="text-xl font-bold">Vendacards</span>
-            <span id="cartIcon" class="ml-4 cursor-pointer">🛒</span>
-        </div>
-        <div>
-            <span>Saldo: R$ <span id="userBalance">0.00</span></span>
-            <button onclick="ui.showAddBalanceForm()" class="ml-4 p-2 bg-blue-600 rounded hover:bg-blue-500">Adicionar Saldo</button>
-            <button onclick="ui.showAccountInfo()" class="ml-4 p-2 bg-gray-600 rounded hover:bg-gray-500">Minha Conta</button>
-            <button id="themeToggle" onclick="ui.toggleTheme()" class="ml-4 p-2 bg-gray-600 rounded hover:bg-gray-500">Modo Claro</button>
-            <button onclick="auth.logout()" class="ml-4 p-2 bg-red-600 rounded hover:bg-red-500">Sair</button>
+<body class="bg-gray-900 text-white min-h-screen">
+    <nav id="navbar" class="bg-gray-800 p-4 hidden">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Loja de Cartões</h1>
+            <div>
+                <button id="themeToggle" onclick="ui.toggleTheme()" class="mr-4">Modo Claro</button>
+                <button onclick="auth.logout()">Sair</button>
+            </div>
         </div>
     </nav>
-    <div class="container mx-auto p-6 mt-16">
-        <div class="shop-header">
-            <h1 class="text-3xl font-bold mb-4">Loja de Cartões</h1>
-            <div class="filters flex flex-wrap gap-4 mb-4">
-                <input id="binFilter" type="text" placeholder="Filtrar por BIN" class="p-2 rounded bg-gray-700 text-white" oninput="ui.filterCards()">
-                <select id="brandFilter" class="p-2 rounded bg-gray-700 text-white" onchange="ui.filterCards()">
-                    <option value="all">Todas as Bandeiras</option>
-                    <option value="Visa">Visa</option>
-                    <option value="Mastercard">Mastercard</option>
-                </select>
-                <select id="bankFilter" class="p-2 rounded bg-gray-700 text-white" onchange="ui.filterCards()">
-                    <option value="all">Todos os Bancos</option>
-                    <option value="Nubank">Nubank</option>
-                    <option value="Itaú">Itaú</option>
-                </select>
-                <select id="levelFilter" class="p-2 rounded bg-gray-700 text-white" onchange="ui.filterCards()">
-                    <option value="all">Todos os Níveis</option>
-                    <option value="Gold">Gold</option>
-                    <option value="Platinum">Platinum</option>
-                </select>
-                <button onclick="ui.clearFilters()" class="p-2 bg-gray-600 rounded hover:bg-gray-500">Limpar Filtros</button>
+    <div class="container mx-auto p-4">
+        <div class="shop-header flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Cartões Disponíveis</h2>
+            <div>
+                <span id="userBalance" class="mr-4"></span>
+                <button onclick="ui.showAccountInfo()" class="bg-blue-600 p-2 rounded hover:bg-blue-500">Conta</button>
             </div>
         </div>
-        <div id="cardList"></div>
-        <div id="accountInfo" class="hidden">
-            <h2 class="text-2xl font-bold mb-4">Minha Conta</h2>
-            <p><strong>Saldo:</strong> R$ <span id="userBalanceAccount">0.00</span></p>
-            <h3 class="text-xl font-bold mt-4 mb-2">Meus Cartões</h3>
-            <div id="userCards" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        <div class="filters mb-4">
+            <input type="text" id="binFilter" placeholder="Filtrar por BIN" class="p-2 bg-gray-700 rounded mr-2" oninput="ui.filterCards()">
+            <select id="brandFilter" class="p-2 bg-gray-700 rounded mr-2" onchange="ui.filterCards()">
+                <option value="all">Todas as Bandeiras</option>
+                <option value="visa">Visa</option>
+                <option value="mastercard">Mastercard</option>
+            </select>
+            <select id="bankFilter" class="p-2 bg-gray-700 rounded mr-2" onchange="ui.filterCards()">
+                <option value="all">Todos os Bancos</option>
+                <option value="itau">Itaú</option>
+                <option value="bradesco">Bradesco</option>
+            </select>
+            <select id="levelFilter" class="p-2 bg-gray-700 rounded" onchange="ui.filterCards()">
+                <option value="all">Todos os Níveis</option>
+                <option value="gold">Gold</option>
+                <option value="platinum">Platinum</option>
+            </select>
+            <button onclick="ui.clearFilters()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Limpar Filtros</button>
         </div>
+        <div id="cardList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+    <div id="accountInfo" class="container mx-auto p-4 hidden">
+        <h2 class="text-2xl font-bold mb-4">Minha Conta</h2>
+        <p><strong>Usuário:</strong> <span id="userName"></span></p>
+        <p><strong>Saldo da conta:</strong> <span id="userBalanceAccount"></span></p>
+        <div id="userCards" class="mt-4"></div>
+        <button onclick="ui.showAddBalanceForm()" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500">Adicionar Saldo</button>
     </div>
     <div id="cardDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
+        <div class="bg-gray-800 p-6 rounded-lg">
             <h2 class="text-xl font-bold mb-4">Detalhes do Cartão</h2>
             <div id="cardDetailsContent"></div>
-            <button onclick="closeCardDetailsModal()" class="mt-4 p-2 bg-gray-600 rounded hover:bg-gray-500 w-full">Fechar</button>
+            <button onclick="closeCardDetailsModal()" class="mt-4 bg-red-600 p-2 rounded hover:bg-red-500">Fechar</button>
         </div>
     </div>
-    <div id="confirmPurchaseModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
+    <div id="confirmPurchaseModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" data-card-number="">
+        <div class="bg-gray-800 p-6 rounded-lg">
             <h2 class="text-xl font-bold mb-4">Confirmar Compra</h2>
-            <p><strong>Valor Total:</strong> R$ <span id="confirmTotalAmount"></span></p>
-            <p><strong>Saldo Atual:</strong> R$ <span id="confirmUserBalance"></span></p>
-            <div id="confirmCardDetails" class="mt-4"></div>
-            <div class="flex gap-2 mt-4">
-                <button onclick="confirmPurchase()" class="p-2 bg-green-600 rounded hover:bg-green-500 flex-1">Confirmar</button>
-                <button onclick="closeConfirmPurchaseModal()" class="p-2 bg-gray-600 rounded hover:bg-gray-500 flex-1">Cancelar</button>
-            </div>
+            <div id="confirmCardDetails"></div>
+            <p><strong>Total:</strong> R$ <span id="confirmTotalAmount"></span></p>
+            <p><strong>Seu Saldo da conta:</strong> R$ <span id="confirmUserBalance"></span></p>
+            <button onclick="confirmPurchase()" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500">Confirmar</button>
+            <button onclick="closeConfirmPurchaseModal()" class="mt-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
         </div>
     </div>
     <div id="rechargeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
+        <div class="bg-gray-800 p-6 rounded-lg">
             <h2 class="text-xl font-bold mb-4">Adicionar Saldo</h2>
-            <p class="mb-4">Funcionalidade de recarga de saldo não implementada. Contate o suporte para mais informações.</p>
-            <button onclick="ui.closeModal()" class="p-2 bg-gray-600 rounded hover:bg-gray-500 w-full">Fechar</button>
+            <input type="number" id="rechargeAmount" class="w-full p-2 bg-gray-700 rounded mb-4" placeholder="Digite o valor">
+            <button onclick="ui.addBalance()" class="bg-green-600 p-2 rounded hover:bg-green-500">Adicionar</button>
+            <button onclick="ui.closeModal()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
         </div>
     </div>
-    <script src="script.js"></script>
+    <div id="notifications" class="fixed top-4 right-4"></div>
 </body>
 </html>
