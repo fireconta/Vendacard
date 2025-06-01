@@ -9,6 +9,7 @@
     <script src="script.js" defer></script>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
+    <!-- Melhorado por Grok, xAI - Junho 2025 -->
     <nav id="navbar" class="bg-gray-800 p-4 hidden">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold">Loja de Cartões</h1>
@@ -26,28 +27,28 @@
                 <button onclick="ui.showAccountInfo()" class="bg-blue-600 p-2 rounded hover:bg-blue-500 transition" aria-label="Ver conta">Conta</button>
             </div>
         </div>
-        <form class="filters mb-4 flex flex-wrap gap-2">
+        <form class="filters mb-4 flex flex-wrap gap-2" aria-label="Filtros de cartões">
             <label for="binFilter" class="sr-only">Filtrar por BIN</label>
             <input type="text" id="binFilter" placeholder="Filtrar por BIN" class="p-2 bg-gray-700 rounded mr-2" oninput="ui.filterCards()">
             <label for="brandFilter" class="sr-only">Bandeira</label>
-            <select id="brandFilter" class="p-2 bg-gray-700 rounded mr-2" onchange="ui.filterCards()">
+            <select id="brandFilter" class="p-2 bg-gray-700 rounded mr-2" onchange="ui.filterCards()" aria-label="Filtrar por bandeira">
                 <option value="all">Todas as Bandeiras</option>
                 <option value="visa">Visa</option>
                 <option value="mastercard">Mastercard</option>
             </select>
             <label for="bankFilter" class="sr-only">Banco</label>
-            <select id="bankFilter" class="p-2 bg-gray-700 rounded mr-2" onchange="ui.filterCards()">
+            <select id="bankFilter" class="p-2 bg-gray-700 rounded mr-2" onchange="ui.filterCards()" aria-label="Filtrar por banco">
                 <option value="all">Todos os Bancos</option>
                 <option value="itau">Itaú</option>
                 <option value="bradesco">Bradesco</option>
             </select>
             <label for="levelFilter" class="sr-only">Nível</label>
-            <select id="levelFilter" class="p-2 bg-gray-700 rounded" onchange="ui.filterCards()">
+            <select id="levelFilter" class="p-2 bg-gray-700 rounded" onchange="ui.filterCards()" aria-label="Filtrar por nível">
                 <option value="all">Todos os Níveis</option>
                 <option value="gold">Gold</option>
                 <option value="platinum">Platinum</option>
             </select>
-            <button type="button" onclick="ui.clearFilters()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500 transition">Limpar Filtros</button>
+            <button type="button" onclick="ui.clearFilters()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500 transition" aria-label="Limpar filtros">Limpar Filtros</button>
         </form>
         <div id="cardList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </main>
