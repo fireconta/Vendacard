@@ -25,7 +25,7 @@ function formatCardNumber(input) {
     let value = input.value.replace(/\D/g, '');
     if (value.length > 16) value = value.substring(0, 16);
     value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
-    input.value = value;
+    input.value = value.trim();
 }
 
 function restrictCvv(input) {
@@ -74,6 +74,7 @@ const auth = {
         const passwordInput = document.getElementById('password');
         const usernameError = document.getElementById('usernameError');
         const passwordError = document.getElementById('passwordError');
+        const notify = document.getElementById('notifications');
 
         if (!usernameInput || !passwordInput) {
             console.error('Elementos de entrada não encontrados em ' + new Date().toLocaleString());
@@ -85,19 +86,23 @@ const auth = {
 
         if (!username) {
             if (usernameError) usernameError.textContent = 'Por favor, preencha o usuário.';
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Preencha o usuário.</div>';
             return;
         }
         if (!password) {
             if (passwordError) passwordError.textContent = 'Por favor, preencha a senha.';
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Preencha a senha.</div>';
             return;
         }
         if (password.length < CONFIG.MIN_PASSWORD_LENGTH) {
             if (passwordError) passwordError.textContent = `A senha deve ter pelo menos ${CONFIG.MIN_PASSWORD_LENGTH} caracteres.`;
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Senha muito curta.</div>';
             return;
         }
 
         if (state.loginBlockedUntil > Date.now()) {
-            alert(`Você está bloqueado. Tente novamente em ${(state.loginBlockedUntil - Date.now()) / 1000} segundos.`);
+            const timeLeft = Math.ceil((state.loginBlockedUntil - Date.now()) / 1000);
+            alert(`Você está bloqueado. Tente novamente em ${timeLeft} segundos.`);
             return;
         }
 
@@ -122,19 +127,22 @@ const auth = {
                 localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
                 localStorage.setItem('sessionStart', Date.now().toString());
                 state.loginAttempts = 0;
+                if (notify) notify.innerHTML = '<div class="bg-green-600 p-2 rounded mb-2">Login bem-sucedido!</div>';
                 console.log('Login bem-sucedido, redirecionando para shop.html em ' + new Date().toLocaleString());
-                window.location.href = 'shop.html';
+                setTimeout(() => window.location.href = 'shop.html', 1000);
             } else {
                 if (passwordError) passwordError.textContent = result.message || 'Usuário ou senha inválidos.';
+                if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">' + (result.message || 'Usuário ou senha inválidos.') + '</div>';
                 state.loginAttempts++;
                 if (state.loginAttempts >= CONFIG.MAX_LOGIN_ATTEMPTS) {
                     state.loginBlockedUntil = Date.now() + CONFIG.LOGIN_BLOCK_TIME;
-                    alert(`Limite de tentativas atingido. Tente novamente após ${CONFIG.LOGIN_BLOCK_TIME / 1000} segundos.`);
+                    if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Limite de tentativas atingido. Tente novamente após 60 segundos.</div>';
                 }
             }
         } catch (error) {
             console.error('Erro ao fazer login:', error.message, 'em ' + new Date().toLocaleString());
             if (passwordError) passwordError.textContent = 'Erro ao conectar ao servidor. Verifique a URL da API e a implantação do script.';
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Erro ao conectar ao servidor.</div>';
         }
     },
 
@@ -144,6 +152,7 @@ const auth = {
         const passwordInput = document.getElementById('newPassword');
         const usernameError = document.getElementById('newUsernameError');
         const passwordError = document.getElementById('newPasswordError');
+        const notify = document.getElementById('notifications');
 
         if (!usernameInput || !passwordInput) {
             console.error('Elementos de entrada de registro não encontrados.');
@@ -155,14 +164,17 @@ const auth = {
 
         if (!username) {
             if (usernameError) usernameError.textContent = 'Por favor, preencha o usuário.';
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Preencha o usuário.</div>';
             return;
         }
         if (!password) {
             if (passwordError) passwordError.textContent = 'Por favor, preencha a senha.';
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Preencha a senha.</div>';
             return;
         }
         if (password.length < CONFIG.MIN_PASSWORD_LENGTH) {
             if (passwordError) passwordError.textContent = `A senha deve ter pelo menos ${CONFIG.MIN_PASSWORD_LENGTH} caracteres.`;
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Senha muito curta.</div>';
             return;
         }
 
@@ -185,16 +197,18 @@ const auth = {
             const result = JSON.parse(responseText);
             console.log('Resultado parsed:', result);
             if (result.success) {
-                alert('Registro bem-sucedido! Faça login para continuar.');
-                ui.showLoginForm();
+                if (notify) notify.innerHTML = '<div class="bg-green-600 p-2 rounded mb-2">Registro bem-sucedido!</div>';
+                setTimeout(() => ui.showLoginForm(), 1000);
             } else {
                 if (usernameError) usernameError.textContent = result.message || 'Erro ao registrar.';
                 if (passwordError) passwordError.textContent = result.message || 'Erro ao registrar.';
+                if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">' + (result.message || 'Erro ao registrar.') + '</div>';
             }
         } catch (error) {
             console.error('Erro ao registrar:', error.message);
             if (usernameError) usernameError.textContent = 'Erro ao conectar ao servidor.';
             if (passwordError) passwordError.textContent = 'Erro ao conectar ao servidor.';
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Erro ao conectar ao servidor.</div>';
         }
     },
 
@@ -217,28 +231,23 @@ const shop = {
         }
         try {
             const response = await fetch(`${CONFIG.API_URL}?action=getCards`);
-            const cards = await response.json();
-            console.log('Cartões carregados:', cards);
+            if (!response.ok) throw new Error('Erro ao carregar cartões.');
+            state.cards = await response.json();
+            console.log('Cartões carregados:', state.cards);
             const cardList = document.getElementById('cardList');
             if (cardList) {
                 cardList.innerHTML = '';
-                cards.forEach(card => {
+                state.cards.forEach(card => {
                     const cardElement = document.createElement('div');
-                    cardElement.className = 'card bg-gray-800 p-4 rounded shadow';
+                    cardElement.className = 'bg-gray-800 p-4 rounded shadow cursor-pointer hover:bg-gray-700 transition';
                     cardElement.innerHTML = `
                         <p><strong>Número:</strong> ${card.numero}</p>
-                        <p><strong>CVV:</strong> ${card.cvv}</p>
-                        <p><strong>Validade:</strong> ${card.validade}</p>
-                        <p><strong>Nome:</strong> ${card.nome}</p>
-                        <p><strong>Preço:</strong> R$ 10.00</p>
-                        <button class="buy-button mt-2 bg-green-600 p-2 rounded hover:bg-green-500" data-card-number="${card.numero}" data-price="10.00">Comprar</button>
+                        <p><strong>Bandeira:</strong> ${card.bandeira}</p>
+                        <p><strong>Banco:</strong> ${card.banco}</p>
+                        <p><strong>Nível:</strong> ${card.nivel}</p>
+                        <button onclick="shop.showCardDetails('${card.numero}')" class="mt-2 bg-blue-600 p-2 rounded hover:bg-blue-500 w-full">Ver Detalhes</button>
                     `;
                     cardList.appendChild(cardElement);
-                });
-                document.querySelectorAll('.buy-button').forEach(button => {
-                    button.addEventListener('click', () => {
-                        shop.purchaseCard(button.getAttribute('data-card-number'), button.getAttribute('data-price'));
-                    });
                 });
             }
             if (state.isAdmin) {
@@ -253,6 +262,44 @@ const shop = {
             }
         } catch (error) {
             console.error('Erro ao carregar cartões:', error);
+            const notify = document.getElementById('notifications');
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Erro ao carregar cartões.</div>';
+        }
+    },
+
+    showCardDetails(cardNumber) {
+        const card = state.cards.find(c => c.numero === cardNumber);
+        if (card) {
+            document.getElementById('cardDetailsContent').innerHTML = `
+                <p><strong>Número:</strong> ${card.numero}</p>
+                <p><strong>CVV:</strong> ${card.cvv}</p>
+                <p><strong>Validade:</strong> ${card.valida}</p>
+                <p><strong>Nome:</strong> ${card.nome}</p>
+                <p><strong>CPF:</strong> ${card.cpf}</p>
+                <p><strong>Bandeira:</strong> ${card.bandeira}</p>
+                <p><strong>Banco:</strong> ${card.banco}</p>
+                <p><strong>País:</strong> ${card.pais}</p>
+                <p><strong>BIN:</strong> ${card.bin}</p>
+                <p><strong>Nível:</strong> ${card.nivel}</p>
+                <button onclick="shop.showConfirmPurchase('${cardNumber}', 10.00)" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500 w-full">Comprar (R$ 10.00)</button>
+            `;
+            document.getElementById('cardDetailsModal').classList.remove('hidden');
+        }
+    },
+
+    showConfirmPurchase(cardNumber, price) {
+        const card = state.cards.find(c => c.numero === cardNumber);
+        if (card) {
+            document.getElementById('confirmCardDetails').innerHTML = `
+                <p><strong>Número:</strong> ${card.numero}</p>
+                <p><strong>Bandeira:</strong> ${card.bandeira}</p>
+                <p><strong>Banco:</strong> ${card.banco}</p>
+                <p><strong>Nível:</strong> ${card.nivel}</p>
+            `;
+            document.getElementById('confirmTotalAmount').textContent = price.toFixed(2);
+            document.getElementById('confirmUserBalance').textContent = state.currentUser.SALDO.toFixed(2);
+            document.getElementById('confirmPurchaseModal').setAttribute('data-card-number', cardNumber);
+            document.getElementById('confirmPurchaseModal').classList.remove('hidden');
         }
     },
 
@@ -262,14 +309,26 @@ const shop = {
             window.location.href = 'index.html';
             return;
         }
+        if (state.currentUser.SALDO < price) {
+            alert('Saldo insuficiente.');
+            return;
+        }
         try {
             const encodedCardNumber = encodeURIComponent(cardNumber);
             const encodedPrice = encodeURIComponent(price);
             const response = await fetch(`${CONFIG.API_URL}?action=purchaseCard&user=${encodeURIComponent(state.currentUser.user)}&cardNumber=${encodedCardNumber}&price=${encodedPrice}`, { method: 'POST' });
+            if (!response.ok) throw new Error('Erro ao comprar cartão.');
             const result = await response.json();
             if (result.success) {
-                alert('Compra realizada com sucesso!');
+                state.currentUser.SALDO -= price;
+                localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
+                document.getElementById('userBalance').textContent = `R$ ${state.currentUser.SALDO.toFixed(2)}`;
+                document.getElementById('userBalanceAccount').textContent = `R$ ${state.currentUser.SALDO.toFixed(2)}`;
+                state.cards = state.cards.filter(c => c.numero !== cardNumber);
                 shop.loadCards();
+                const notify = document.getElementById('notifications');
+                if (notify) notify.innerHTML = '<div class="bg-green-600 p-2 rounded mb-2">Compra realizada com sucesso!</div>';
+                document.getElementById('confirmPurchaseModal').classList.add('hidden');
             } else {
                 alert(result.message || 'Erro ao comprar o cartão.');
             }
@@ -289,10 +348,13 @@ const admin = {
         }
         try {
             const response = await fetch(`${CONFIG.API_URL}?action=getUsers`);
+            if (!response.ok) throw new Error('Erro ao carregar usuários.');
             state.users = await response.json();
             ui.displayUsers();
         } catch (error) {
             console.error('Erro ao carregar usuários:', error);
+            const notify = document.getElementById('notifications');
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Erro ao carregar usuários.</div>';
         }
     },
 
@@ -304,10 +366,13 @@ const admin = {
         }
         try {
             const response = await fetch(`${CONFIG.API_URL}?action=getCards`);
+            if (!response.ok) throw new Error('Erro ao carregar cartões.');
             state.cards = await response.json();
             ui.displayAdminCards();
         } catch (error) {
             console.error('Erro ao carregar cartões:', error);
+            const notify = document.getElementById('notifications');
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Erro ao carregar cartões.</div>';
         }
     },
 
@@ -319,6 +384,7 @@ const admin = {
         if (confirm(`Tem certeza que deseja excluir o usuário ${username}?`)) {
             try {
                 const response = await fetch(`${CONFIG.API_URL}?action=deleteUser&user=${encodeURIComponent(username)}`, { method: 'POST' });
+                if (!response.ok) throw new Error('Erro ao excluir usuário.');
                 const result = await response.json();
                 if (result.success) {
                     alert('Usuário excluído com sucesso!');
@@ -341,6 +407,7 @@ const admin = {
         if (confirm(`Tem certeza que deseja excluir o cartão ${cardNumber}?`)) {
             try {
                 const response = await fetch(`${CONFIG.API_URL}?action=deleteCard&cardNumber=${encodeURIComponent(cardNumber)}`, { method: 'POST' });
+                if (!response.ok) throw new Error('Erro ao excluir cartão.');
                 const result = await response.json();
                 if (result.success) {
                     alert('Cartão excluído com sucesso!');
@@ -376,19 +443,14 @@ const ui = {
             );
             filteredUsers.forEach(user => {
                 const userElement = document.createElement('div');
-                userElement.className = 'bg-gray-800 p-4 rounded shadow';
+                userElement.className = 'bg-gray-800 p-4 rounded shadow hover:bg-gray-700 transition';
                 userElement.innerHTML = `
                     <p><strong>Usuário:</strong> ${user.user}</p>
                     <p><strong>Saldo:</strong> R$ ${user.SALDO.toFixed(2)}</p>
                     <p><strong>Admin:</strong> ${user.ISADMIN ? 'Sim' : 'Não'}</p>
-                    <button class="delete-user mt-2 bg-red-600 p-2 rounded hover:bg-red-500" data-user="${user.user}">Excluir</button>
+                    <button onclick="admin.deleteUser('${user.user}')" class="mt-2 bg-red-600 p-2 rounded hover:bg-red-500 w-full">Excluir</button>
                 `;
                 userList.appendChild(userElement);
-            });
-            document.querySelectorAll('.delete-user').forEach(button => {
-                button.addEventListener('click', () => {
-                    admin.deleteUser(button.getAttribute('data-user'));
-                });
             });
         }
     },
@@ -402,20 +464,15 @@ const ui = {
             );
             filteredCards.forEach(card => {
                 const cardElement = document.createElement('div');
-                cardElement.className = 'bg-gray-800 p-4 rounded shadow';
+                cardElement.className = 'bg-gray-800 p-4 rounded shadow hover:bg-gray-700 transition';
                 cardElement.innerHTML = `
                     <p><strong>Número:</strong> ${card.numero}</p>
                     <p><strong>CVV:</strong> ${card.cvv}</p>
-                    <p><strong>Validade:</strong> ${card.validade}</p>
+                    <p><strong>Validade:</strong> ${card.valida}</p>
                     <p><strong>Nome:</strong> ${card.nome}</p>
-                    <button class="delete-card mt-2 bg-red-600 p-2 rounded hover:bg-red-500" data-card-number="${card.numero}">Excluir</button>
+                    <button onclick="admin.deleteCard('${card.numero}')" class="mt-2 bg-red-600 p-2 rounded hover:bg-red-500 w-full">Excluir</button>
                 `;
                 cardList.appendChild(cardElement);
-            });
-            document.querySelectorAll('.delete-card').forEach(button => {
-                button.addEventListener('click', () => {
-                    admin.deleteCard(button.getAttribute('data-card-number'));
-                });
             });
         }
     },
@@ -425,25 +482,27 @@ const ui = {
         const password = document.getElementById('newPassword').value.trim();
         const balance = document.getElementById('newBalance').value.trim();
         const isAdmin = document.getElementById('isAdmin').value;
+        const notify = document.getElementById('notifications');
 
         if (!username || !password || !balance) {
-            alert('Preencha todos os campos.');
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Preencha todos os campos.</div>';
             return;
         }
 
         try {
             const response = await fetch(`${CONFIG.API_URL}?action=register&user=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&saldo=${encodeURIComponent(balance)}&isadmin=${encodeURIComponent(isAdmin)}`, { method: 'POST' });
+            if (!response.ok) throw new Error('Erro ao adicionar usuário.');
             const result = await response.json();
             if (result.success) {
-                alert('Usuário adicionado com sucesso!');
-                document.getElementById('addUserModal').style.display = 'none';
+                if (notify) notify.innerHTML = '<div class="bg-green-600 p-2 rounded mb-2">Usuário adicionado com sucesso!</div>';
+                document.getElementById('addUserModal').classList.add('hidden');
                 admin.loadUsers();
             } else {
-                alert(result.message || 'Erro ao adicionar usuário.');
+                if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">' + (result.message || 'Erro ao adicionar usuário.') + '</div>';
             }
         } catch (error) {
             console.error('Erro ao adicionar usuário:', error);
-            alert('Erro ao conectar ao servidor.');
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Erro ao conectar ao servidor.</div>';
         }
     },
 
@@ -459,25 +518,27 @@ const ui = {
             pais: document.getElementById('cardCountry').value.trim(),
             nivel: document.getElementById('cardLevel').value.trim()
         };
+        const notify = document.getElementById('notifications');
 
         if (!cardData.numero || !cardData.cvv || !cardData.valida || !cardData.nome || !cardData.cpf || !cardData.bandeira || !cardData.banco || !cardData.pais || !cardData.nivel) {
-            alert('Preencha todos os campos.');
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Preencha todos os campos.</div>';
             return;
         }
 
         try {
             const response = await fetch(`${CONFIG.API_URL}?action=addCard&${new URLSearchParams(cardData).toString()}`, { method: 'POST' });
+            if (!response.ok) throw new Error('Erro ao adicionar cartão.');
             const result = await response.json();
             if (result.success) {
-                alert('Cartão adicionado com sucesso!');
-                document.getElementById('cardModal').style.display = 'none';
+                if (notify) notify.innerHTML = '<div class="bg-green-600 p-2 rounded mb-2">Cartão adicionado com sucesso!</div>';
+                document.getElementById('cardModal').classList.add('hidden');
                 admin.loadAdminCards();
             } else {
-                alert(result.message || 'Erro ao adicionar cartão.');
+                if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">' + (result.message || 'Erro ao adicionar cartão.') + '</div>';
             }
         } catch (error) {
             console.error('Erro ao salvar cartão:', error);
-            alert('Erro ao conectar ao servidor.');
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Erro ao conectar ao servidor.</div>';
         }
     },
 
@@ -496,21 +557,15 @@ const ui = {
                        (levelFilter === 'all' || card.nivel.toLowerCase() === levelFilter);
             }).forEach(card => {
                 const cardElement = document.createElement('div');
-                cardElement.className = 'card bg-gray-800 p-4 rounded shadow';
+                cardElement.className = 'bg-gray-800 p-4 rounded shadow cursor-pointer hover:bg-gray-700 transition';
                 cardElement.innerHTML = `
                     <p><strong>Número:</strong> ${card.numero}</p>
-                    <p><strong>CVV:</strong> ${card.cvv}</p>
-                    <p><strong>Validade:</strong> ${card.validade}</p>
-                    <p><strong>Nome:</strong> ${card.nome}</p>
-                    <p><strong>Preço:</strong> R$ 10.00</p>
-                    <button class="buy-button mt-2 bg-green-600 p-2 rounded hover:bg-green-500" data-card-number="${card.numero}" data-price="10.00">Comprar</button>
+                    <p><strong>Bandeira:</strong> ${card.bandeira}</p>
+                    <p><strong>Banco:</strong> ${card.banco}</p>
+                    <p><strong>Nível:</strong> ${card.nivel}</p>
+                    <button onclick="shop.showCardDetails('${card.numero}')" class="mt-2 bg-blue-600 p-2 rounded hover:bg-blue-500 w-full">Ver Detalhes</button>
                 `;
                 cardList.appendChild(cardElement);
-            });
-            document.querySelectorAll('.buy-button').forEach(button => {
-                button.addEventListener('click', () => {
-                    shop.purchaseCard(button.getAttribute('data-card-number'), button.getAttribute('data-price'));
-                });
             });
         }
     },
@@ -542,6 +597,7 @@ const ui = {
         if (!state.currentUser) return;
         try {
             const response = await fetch(`${CONFIG.API_URL}?action=getUserCards&user=${encodeURIComponent(state.currentUser.user)}`);
+            if (!response.ok) throw new Error('Erro ao carregar cartões do usuário.');
             state.userCards = await response.json();
             const userCardsDiv = document.getElementById('userCards');
             if (userCardsDiv) {
@@ -564,31 +620,40 @@ const ui = {
     },
 
     closeModal() {
-        document.getElementById('rechargeModal').classList.add('hidden');
-        document.getElementById('rechargeAmount').value = '';
+        document.querySelectorAll('.fixed').forEach(modal => modal.classList.add('hidden'));
     },
 
     async addBalance() {
         const amount = document.getElementById('rechargeAmount').value.trim();
+        const notify = document.getElementById('notifications');
         if (!amount || parseFloat(amount) <= 0) {
-            alert('Digite um valor válido para recarga.');
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Digite um valor válido para recarga.</div>';
             return;
         }
         try {
-            const response = await fetch(`${CONFIG.API_URL}?action=register&user=${encodeURIComponent(state.currentUser.user)}&password=${encodeURIComponent(state.currentUser.password)}&saldo=${encodeURIComponent(amount)}&isadmin=${encodeURIComponent(state.currentUser.ISADMIN)}`, { method: 'POST' });
+            const userData = {
+                action: 'register',
+                user: state.currentUser.user,
+                password: state.currentUser.password,
+                saldo: amount,
+                isadmin: state.currentUser.ISADMIN
+            };
+            const response = await fetch(`${CONFIG.API_URL}?${new URLSearchParams(userData).toString()}`, { method: 'POST' });
+            if (!response.ok) throw new Error('Erro ao adicionar saldo.');
             const result = await response.json();
             if (result.success) {
                 state.currentUser.SALDO += parseFloat(amount);
                 localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
-                alert('Saldo adicionado com sucesso!');
-                ui.showAccountInfo();
+                if (notify) notify.innerHTML = '<div class="bg-green-600 p-2 rounded mb-2">Saldo adicionado com sucesso!</div>';
+                document.getElementById('userBalance').textContent = `R$ ${state.currentUser.SALDO.toFixed(2)}`;
+                document.getElementById('userBalanceAccount').textContent = `R$ ${state.currentUser.SALDO.toFixed(2)}`;
                 ui.closeModal();
             } else {
-                alert(result.message || 'Erro ao adicionar saldo.');
+                if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">' + (result.message || 'Erro ao adicionar saldo.') + '</div>';
             }
         } catch (error) {
             console.error('Erro ao adicionar saldo:', error);
-            alert('Erro ao conectar ao servidor.');
+            if (notify) notify.innerHTML = '<div class="bg-red-600 p-2 rounded mb-2">Erro ao conectar ao servidor.</div>';
         }
     },
 
@@ -596,7 +661,8 @@ const ui = {
         state.theme = state.theme === 'dark' ? 'light' : 'dark';
         document.documentElement.className = state.theme;
         localStorage.setItem('theme', state.theme);
-        document.getElementById('themeToggle').textContent = state.theme === 'dark' ? 'Modo Claro' : 'Modo Escuro';
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) themeToggle.textContent = state.theme === 'dark' ? 'Modo Claro' : 'Modo Escuro';
     }
 };
 
@@ -611,6 +677,21 @@ function closeConfirmPurchaseModal() {
 function confirmPurchase() {
     const modal = document.getElementById('confirmPurchaseModal');
     const cardNumber = modal.getAttribute('data-card-number');
-    shop.purchaseCard(cardNumber, '10.00');
+    shop.purchaseCard(cardNumber, 10.00);
     closeConfirmPurchaseModal();
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    checkAuth();
+    console.log('Script.js carregado em ' + new Date().toLocaleString() + '. URL da API:', CONFIG.API_URL);
+    const page = window.location.pathname.split('/').pop();
+    if (page === 'shop.html' && state.currentUser) shop.loadCards();
+    if (page === 'dashboard.html' && state.currentUser) {
+        if (state.isAdmin) {
+            admin.loadUsers();
+            admin.loadAdminCards();
+        } else {
+            window.location.href = 'shop.html';
+        }
+    }
+});
