@@ -184,7 +184,7 @@ const auth = {
                 user: username,
                 password: password,
                 saldo: '0',
-                isadmin: 'FALSE'
+                isadmin: 'FALSE' // Garantindo que ISADMIN seja sempre FALSE para novos usuários
             });
             console.log(`Enviando registro: user="${username}", password="${password}" em ${new Date().toLocaleString()}.`);
             const response = await fetch(CONFIG.API_URL, {
@@ -684,6 +684,21 @@ function confirmPurchase() {
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     console.log('Script.js carregado em ' + new Date().toLocaleString() + '. URL da API:', CONFIG.API_URL);
+
+    // Adicionando evento de clique ao botão de login
+    const loginButton = document.getElementById('loginButton');
+    if (loginButton) {
+        loginButton.addEventListener('click', auth.login);
+        console.log('Evento de clique adicionado ao botão de login em ' + new Date().toLocaleString());
+    }
+
+    // Adicionando evento de clique ao botão de registro
+    const registerButton = document.getElementById('registerButton');
+    if (registerButton) {
+        registerButton.addEventListener('click', auth.register);
+        console.log('Evento de clique adicionado ao botão de registro em ' + new Date().toLocaleString());
+    }
+
     const page = window.location.pathname.split('/').pop();
     if (page === 'shop.html' && state.currentUser) shop.loadCards();
     if (page === 'dashboard.html' && state.currentUser) {
