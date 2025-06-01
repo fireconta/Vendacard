@@ -13,23 +13,23 @@
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold">Painel Administrativo</h1>
             <div>
-                <button id="themeToggle" onclick="ui.toggleTheme()" class="mr-4">Modo Claro</button>
-                <button onclick="window.location.href='shop.html'" class="bg-blue-600 p-2 rounded hover:bg-blue-500">Voltar para Loja</button>
+                <button id="themeToggle" onclick="ui.toggleTheme()" class="mr-4 text-white hover:text-gray-300 transition">Modo Claro</button>
+                <button onclick="window.location.href='shop.html'" class="bg-blue-600 p-2 rounded hover:bg-blue-500 transition">Voltar para Loja</button>
             </div>
         </div>
     </nav>
     <main class="container mx-auto p-4">
         <h2 class="text-2xl font-bold mb-4">Gerenciar Usuários</h2>
         <label for="userSearch" class="sr-only">Pesquisar usuário</label>
-        <input type="text" id="userSearch" placeholder="Pesquisar usuário" class="p-2 bg-gray-700 rounded mb-4" oninput="ui.displayUsers(this.value)">
+        <input type="text" id="userSearch" placeholder="Pesquisar usuário" class="p-2 bg-gray-700 rounded mb-4" oninput="admin.filterUsers(this.value)">
         <div id="userList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        <button type="button" onclick="document.getElementById('addUserModal').style.display='flex'" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500">Adicionar Usuário</button>
+        <button type="button" onclick="admin.showAddUserModal()" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500 transition">Adicionar Usuário</button>
 
         <h2 class="text-2xl font-bold mt-8 mb-4">Gerenciar Cartões</h2>
         <label for="cardSearch" class="sr-only">Pesquisar cartão</label>
-        <input type="text" id="cardSearch" placeholder="Pesquisar cartão" class="p-2 bg-gray-700 rounded mb-4" oninput="ui.displayAdminCards(this.value)">
+        <input type="text" id="cardSearch" placeholder="Pesquisar cartão" class="p-2 bg-gray-700 rounded mb-4" oninput="admin.filterCards(this.value)">
         <div id="adminCardList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        <button type="button" onclick="document.getElementById('cardModal').style.display='flex'" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500">Adicionar Cartão</button>
+        <button type="button" onclick="admin.showCardModal()" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500 transition">Adicionar Cartão</button>
 
         <h2 class="text-2xl font-bold mt-8 mb-4">Logs</h2>
         <div id="logList" class="grid grid-cols-1 gap-4"></div>
@@ -37,23 +37,23 @@
 
     <!-- Modal para Adicionar Usuário -->
     <div id="addUserModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-gray-800 p-6 rounded-lg">
+        <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
             <h2 id="modalTitle" class="text-xl font-bold mb-4">Adicionar Usuário</h2>
-            <form onsubmit="event.preventDefault(); ui.addUser();">
+            <form onsubmit="event.preventDefault(); admin.addUser();">
                 <div class="mb-4">
                     <label for="newUsername" class="block mb-1">Usuário</label>
-                    <input type="text" id="newUsername" class="w-full p-2 bg-gray-700 rounded" required autocomplete="username">
-                    <p id="newUsernameError" class="text-red-500 text-sm"></p>
+                    <input type="text" id="newUsername" class="w-full p-2 bg-gray-700 rounded" required autocomplete="username" maxlength="50">
+                    <p id="newUsernameError" class="text-red-500 text-sm hidden"></p>
                 </div>
                 <div class="mb-4">
                     <label for="newPassword" class="block mb-1">Senha</label>
-                    <input type="password" id="newPassword" class="w-full p-2 bg-gray-700 rounded" required autocomplete="new-password" minlength="6">
-                    <p id="newPasswordError" class="text-red-500 text-sm"></p>
+                    <input type="password" id="newPassword" class="w-full p-2 bg-gray-700 rounded" required autocomplete="new-password" minlength="6" maxlength="50">
+                    <p id="newPasswordError" class="text-red-500 text-sm hidden"></p>
                 </div>
                 <div class="mb-4">
                     <label for="newBalance" class="block mb-1">Saldo</label>
                     <input type="number" id="newBalance" class="w-full p-2 bg-gray-700 rounded" required min="0" step="0.01">
-                    <p id="newBalanceError" class="text-red-500 text-sm"></p>
+                    <p id="newBalanceError" class="text-red-500 text-sm hidden"></p>
                 </div>
                 <div class="mb-4">
                     <label for="isAdmin" class="block mb-1">Administrador?</label>
@@ -62,41 +62,41 @@
                         <option value="TRUE">Sim</option>
                     </select>
                 </div>
-                <button type="submit" class="bg-green-600 p-2 rounded hover:bg-green-500">Confirmar</button>
-                <button type="button" onclick="document.getElementById('addUserModal').style.display='none'" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
+                <button type="submit" class="bg-green-600 p-2 rounded hover:bg-green-500 transition">Confirmar</button>
+                <button type="button" onclick="admin.closeModal()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500 transition">Cancelar</button>
             </form>
         </div>
     </div>
 
     <!-- Modal para Adicionar Cartão -->
     <div id="cardModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-gray-800 p-6 rounded-lg">
+        <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
             <h2 id="modalTitle" class="text-xl font-bold mb-4">Adicionar Cartão</h2>
-            <form onsubmit="event.preventDefault(); ui.saveCard();">
+            <form onsubmit="event.preventDefault(); admin.saveCard();">
                 <div class="mb-4">
                     <label for="cardNumber" class="block mb-1">Número</label>
-                    <input type="text" id="cardNumber" class="w-full p-2 bg-gray-700 rounded" required pattern="\d{4}\s?\d{4}\s?\d{4}\s?\d{4}" title="16 dígitos numéricos" oninput="formatCardNumber(this)">
-                    <p id="cardNumberError" class="text-red-500 text-sm"></p>
+                    <input type="text" id="cardNumber" class="w-full p-2 bg-gray-700 rounded" required pattern="\d{4}\s?\d{4}\s?\d{4}\s?\d{4}" title="16 dígitos numéricos" oninput="admin.formatCardNumber(this)">
+                    <p id="cardNumberError" class="text-red-500 text-sm hidden"></p>
                 </div>
                 <div class="mb-4">
                     <label for="cardCvv" class="block mb-1">CVV</label>
-                    <input type="text" id="cardCvv" class="w-full p-2 bg-gray-700 rounded" required pattern="\d{3}" title="3 dígitos numéricos" oninput="restrictCvv(this)">
-                    <p id="cardCvvError" class="text-red-500 text-sm"></p>
+                    <input type="text" id="cardCvv" class="w-full p-2 bg-gray-700 rounded" required pattern="\d{3}" title="3 dígitos numéricos" oninput="admin.restrictCvv(this)">
+                    <p id="cardCvvError" class="text-red-500 text-sm hidden"></p>
                 </div>
                 <div class="mb-4">
                     <label for="cardExpiry" class="block mb-1">Validade (MM/AA)</label>
-                    <input type="text" id="cardExpiry" class="w-full p-2 bg-gray-700 rounded" required pattern="\d{2}/\d{2}" title="Formato MM/AA" oninput="formatExpiry(this)">
-                    <p id="cardExpiryError" class="text-red-500 text-sm"></p>
+                    <input type="text" id="cardExpiry" class="w-full p-2 bg-gray-700 rounded" required pattern="\d{2}/\d{2}" title="Formato MM/AA" oninput="admin.formatExpiry(this)">
+                    <p id="cardExpiryError" class="text-red-500 text-sm hidden"></p>
                 </div>
                 <div class="mb-4">
                     <label for="cardName" class="block mb-1">Nome</label>
                     <input type="text" id="cardName" class="w-full p-2 bg-gray-700 rounded" required>
-                    <p id="cardNameError" class="text-red-500 text-sm"></p>
+                    <p id="cardNameError" class="text-red-500 text-sm hidden"></p>
                 </div>
                 <div class="mb-4">
                     <label for="cardCpf" class="block mb-1">CPF</label>
-                    <input type="text" id="cardCpf" class="w-full p-2 bg-gray-700 rounded" required pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" title="Formato 000.000.000-00" oninput="formatCpf(this)">
-                    <p id="cardCpfError" class="text-red-500 text-sm"></p>
+                    <input type="text" id="cardCpf" class="w-full p-2 bg-gray-700 rounded" required pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" title="Formato 000.000.000-00" oninput="admin.formatCpf(this)">
+                    <p id="cardCpfError" class="text-red-500 text-sm hidden"></p>
                 </div>
                 <div class="mb-4">
                     <label for="cardBrand" class="block mb-1">Bandeira</label>
@@ -105,7 +105,7 @@
                         <option value="visa">Visa</option>
                         <option value="mastercard">Mastercard</option>
                     </select>
-                    <p id="cardBrandError" class="text-red-500 text-sm"></p>
+                    <p id="cardBrandError" class="text-red-500 text-sm hidden"></p>
                 </div>
                 <div class="mb-4">
                     <label for="cardBank" class="block mb-1">Banco</label>
@@ -114,12 +114,12 @@
                         <option value="itau">Itaú</option>
                         <option value="bradesco">Bradesco</option>
                     </select>
-                    <p id="cardBankError" class="text-red-500 text-sm"></p>
+                    <p id="cardBankError" class="text-red-500 text-sm hidden"></p>
                 </div>
                 <div class="mb-4">
                     <label for="cardCountry" class="block mb-1">País</label>
                     <input type="text" id="cardCountry" class="w-full p-2 bg-gray-700 rounded" required>
-                    <p id="cardCountryError" class="text-red-500 text-sm"></p>
+                    <p id="cardCountryError" class="text-red-500 text-sm hidden"></p>
                 </div>
                 <div class="mb-4">
                     <label for="cardLevel" class="block mb-1">Nível</label>
@@ -128,10 +128,10 @@
                         <option value="gold">Gold</option>
                         <option value="platinum">Platinum</option>
                     </select>
-                    <p id="cardLevelError" class="text-red-500 text-sm"></p>
+                    <p id="cardLevelError" class="text-red-500 text-sm hidden"></p>
                 </div>
-                <button type="submit" class="bg-green-600 p-2 rounded hover:bg-green-500">Confirmar</button>
-                <button type="button" onclick="document.getElementById('cardModal').style.display='none'" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
+                <button type="submit" class="bg-green-600 p-2 rounded hover:bg-green-500 transition">Confirmar</button>
+                <button type="button" onclick="admin.closeModal()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500 transition">Cancelar</button>
             </form>
         </div>
     </div>
@@ -140,25 +140,20 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            if (!checkAuth()) {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
                 window.location.href = 'index.html';
-            } else if (!state.isAdmin) {
+            } else if (!user.ISADMIN) {
                 alert('Acesso negado. Apenas administradores podem acessar esta funcionalidade.');
                 window.location.href = 'shop.html';
             } else {
-                document.documentElement.className = state.theme;
-                document.getElementById('themeToggle').textContent = state.theme === 'dark' ? 'Modo Claro' : 'Modo Escuro';
+                document.getElementById('navbar').classList.remove('hidden');
+                document.documentElement.className = 'dark';
+                document.getElementById('themeToggle').textContent = 'Modo Claro';
                 admin.loadUsers();
                 admin.loadAdminCards();
-
-                const logList = document.getElementById('logList');
-                state.logs.forEach(log => {
-                    const logElement = document.createElement('div');
-                    logElement.className = 'bg-gray-800 p-4 rounded shadow';
-                    logElement.textContent = log;
-                    logList.appendChild(logElement);
-                });
             }
+            console.log('Página dashboard.html carregada em ' + new Date().toLocaleString() + '. URL da API:', CONFIG.API_URL);
         });
     </script>
 </body>
