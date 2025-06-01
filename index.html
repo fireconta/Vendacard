@@ -16,17 +16,17 @@
             <form onsubmit="event.preventDefault(); auth.login();">
                 <div class="mb-4">
                     <label for="username" class="block mb-1">Usuário</label>
-                    <input type="text" id="username" class="w-full p-2 bg-gray-700 rounded" required autocomplete="username">
-                    <p id="usernameError" class="text-red-500 text-sm mt-1"></p>
+                    <input type="text" id="username" class="w-full p-2 bg-gray-700 rounded" required autocomplete="username" maxlength="50">
+                    <p id="usernameError" class="text-red-500 text-sm mt-1 hidden"></p>
                 </div>
                 <div class="mb-4">
                     <label for="password" class="block mb-1">Senha</label>
-                    <input type="password" id="password" class="w-full p-2 bg-gray-700 rounded" required autocomplete="current-password" minlength="6">
-                    <p id="passwordError" class="text-red-500 text-sm mt-1"></p>
+                    <input type="password" id="password" class="w-full p-2 bg-gray-700 rounded" required autocomplete="current-password" minlength="6" maxlength="50">
+                    <p id="passwordError" class="text-red-500 text-sm mt-1 hidden"></p>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 p-2 rounded hover:bg-blue-500">Entrar</button>
+                <button type="submit" class="w-full bg-blue-600 p-2 rounded hover:bg-blue-500 transition">Entrar</button>
             </form>
-            <button type="button" onclick="ui.showRegisterForm()" class="mt-4 w-full bg-gray-600 p-2 rounded hover:bg-gray-500">Criar Conta</button>
+            <button type="button" onclick="ui.showRegisterForm()" class="mt-4 w-full bg-gray-600 p-2 rounded hover:bg-gray-500 transition">Criar Conta</button>
         </div>
 
         <!-- Formulário de Registro -->
@@ -35,26 +35,24 @@
             <form onsubmit="event.preventDefault(); auth.register();">
                 <div class="mb-4">
                     <label for="newUsername" class="block mb-1">Usuário</label>
-                    <input type="text" id="newUsername" class="w-full p-2 bg-gray-700 rounded" required autocomplete="username">
-                    <p id="newUsernameError" class="text-red-500 text-sm mt-1"></p>
+                    <input type="text" id="newUsername" class="w-full p-2 bg-gray-700 rounded" required autocomplete="username" maxlength="50">
+                    <p id="newUsernameError" class="text-red-500 text-sm mt-1 hidden"></p>
                 </div>
                 <div class="mb-4">
                     <label for="newPassword" class="block mb-1">Senha</label>
-                    <input type="password" id="newPassword" class="w-full p-2 bg-gray-700 rounded" required autocomplete="new-password" minlength="6">
-                    <p id="newPasswordError" class="text-red-500 text-sm mt-1"></p>
+                    <input type="password" id="newPassword" class="w-full p-2 bg-gray-700 rounded" required autocomplete="new-password" minlength="6" maxlength="50">
+                    <p id="newPasswordError" class="text-red-500 text-sm mt-1 hidden"></p>
                 </div>
-                <button type="submit" class="w-full bg-green-600 p-2 rounded hover:bg-green-500">Registrar</button>
+                <button type="submit" class="w-full bg-green-600 p-2 rounded hover:bg-green-500 transition">Registrar</button>
             </form>
-            <button type="button" onclick="ui.showLoginForm()" class="mt-4 w-full bg-gray-600 p-2 rounded hover:bg-gray-500">Voltar ao Login</button>
+            <button type="button" onclick="ui.showLoginForm()" class="mt-4 w-full bg-gray-600 p-2 rounded hover:bg-gray-500 transition">Voltar ao Login</button>
         </div>
     </div>
     <div id="notifications" class="fixed top-4 right-4"></div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            if (checkAuth()) {
-                window.location.href = 'shop.html';
-            }
-            document.documentElement.className = state.theme;
+            document.documentElement.className = 'dark';
             console.log('Página index.html carregada em ' + new Date().toLocaleString() + '. URL da API:', CONFIG.API_URL);
         });
     </script>
