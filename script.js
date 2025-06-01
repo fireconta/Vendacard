@@ -132,14 +132,16 @@ const auth = {
         toggleLoadingButton(loginButton, true, 'Entrar');
 
         try {
-            const encodedUsername = encodeURIComponent(username);
-            const encodedPassword = encodeURIComponent(password);
-            console.log(`Enviando login: user="${username}" (encoded: "${encodedUsername}"), password="${password}" (encoded: "${encodedPassword}") em ${new Date().toLocaleString()}.`);
-            const loginUrl = `${CONFIG.API_URL}?action=login&user=${encodedUsername}&password=${encodedPassword}`;
-            console.log(`URL de login: ${loginUrl}`);
-            const response = await fetch(loginUrl, {
-                method: 'GET',
-                headers: { 'Cache-Control': 'no-cache' }
+            const loginData = new URLSearchParams({
+                action: 'login',
+                user: username,
+                password: password
+            });
+            console.log(`Enviando login: user="${username}", password="${password}" em ${new Date().toLocaleString()}.`);
+            const response = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: loginData
             });
             const responseText = await response.text();
             console.log('Resposta bruta do servidor:', responseText);
@@ -165,7 +167,7 @@ const auth = {
                 }
             }
         } catch (error) {
-            console.error('Erro ao fazer login:', error.message, 'em ' + new Date().toLocaleString());
+            console.error('Erro ao fazer login:', error.message, 'em ' + new Date().toLocaleString(), 'Resposta:', error.response);
             if (passwordError) passwordError.textContent = 'Erro ao conectar ao servidor.';
             showNotification('Erro ao conectar ao servidor.');
         } finally {
@@ -223,6 +225,7 @@ const auth = {
             console.log(`Enviando registro: user="${username}", password="${password}" em ${new Date().toLocaleString()}.`);
             const response = await fetch(CONFIG.API_URL, {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: registerData
             });
             const responseText = await response.text();
