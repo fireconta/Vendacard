@@ -1,60 +1,54 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Página de login e registro para a loja de cartões">
-    <title>Login</title>
+    <title>Login e Registro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="script.js" defer></script>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
-    <div class="container mx-auto p-4 max-w-md">
+    <div class="w-full max-w-md p-6">
+        <!-- Área de Notificações -->
+        <div id="notifications" class="mb-4"></div>
+
         <!-- Formulário de Login -->
         <div id="loginForm" class="bg-gray-800 p-6 rounded-lg shadow-lg">
             <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
-            <form onsubmit="event.preventDefault(); auth.login();">
-                <div class="mb-4">
-                    <label for="username" class="block mb-1">Usuário</label>
-                    <input type="text" id="username" class="w-full p-2 bg-gray-700 rounded" required autocomplete="username" maxlength="50">
-                    <p id="usernameError" class="text-red-500 text-sm mt-1 hidden"></p>
-                </div>
-                <div class="mb-4">
-                    <label for="password" class="block mb-1">Senha</label>
-                    <input type="password" id="password" class="w-full p-2 bg-gray-700 rounded" required autocomplete="current-password" minlength="6" maxlength="50">
-                    <p id="passwordError" class="text-red-500 text-sm mt-1 hidden"></p>
-                </div>
-                <button type="submit" class="w-full bg-blue-600 p-2 rounded hover:bg-blue-500 transition">Entrar</button>
-            </form>
-            <button type="button" onclick="ui.showRegisterForm()" class="mt-4 w-full bg-gray-600 p-2 rounded hover:bg-gray-500 transition">Criar Conta</button>
+            <div class="mb-4">
+                <label for="username" class="block text-sm mb-1">Usuário</label>
+                <input type="text" id="username" class="w-full p-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-600" placeholder="Digite seu usuário">
+                <p id="usernameError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="mb-4">
+                <label for="password" class="block text-sm mb-1">Senha</label>
+                <input type="password" id="password" class="w-full p-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-600" placeholder="Digite sua senha">
+                <p id="passwordError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <button id="loginButton" class="w-full bg-blue-600 p-2 rounded hover:bg-blue-500 transition">Entrar</button>
+            <p class="text-center mt-4">
+                Não tem uma conta? <a href="#" onclick="ui.showRegisterForm()" class="text-blue-400 hover:underline">Registre-se</a>
+            </p>
         </div>
 
         <!-- Formulário de Registro -->
         <div id="registerForm" class="bg-gray-800 p-6 rounded-lg shadow-lg hidden">
-            <h2 class="text-2xl font-bold mb-4 text-center">Registrar</h2>
-            <form onsubmit="event.preventDefault(); auth.register();">
-                <div class="mb-4">
-                    <label for="newUsername" class="block mb-1">Usuário</label>
-                    <input type="text" id="newUsername" class="w-full p-2 bg-gray-700 rounded" required autocomplete="username" maxlength="50">
-                    <p id="newUsernameError" class="text-red-500 text-sm mt-1 hidden"></p>
-                </div>
-                <div class="mb-4">
-                    <label for="newPassword" class="block mb-1">Senha</label>
-                    <input type="password" id="newPassword" class="w-full p-2 bg-gray-700 rounded" required autocomplete="new-password" minlength="6" maxlength="50">
-                    <p id="newPasswordError" class="text-red-500 text-sm mt-1 hidden"></p>
-                </div>
-                <button type="submit" class="w-full bg-green-600 p-2 rounded hover:bg-green-500 transition">Registrar</button>
-            </form>
-            <button type="button" onclick="ui.showLoginForm()" class="mt-4 w-full bg-gray-600 p-2 rounded hover:bg-gray-500 transition">Voltar ao Login</button>
+            <h2 class="text-2xl font-bold mb-4 text-center">Registro</h2>
+            <div class="mb-4">
+                <label for="newUsername" class="block text-sm mb-1">Usuário</label>
+                <input type="text" id="newUsername" class="w-full p-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-600" placeholder="Escolha um usuário">
+                <p id="newUsernameError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <div class="mb-4">
+                <label for="newPassword" class="block text-sm mb-1">Senha</label>
+                <input type="password" id="newPassword" class="w-full p-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-600" placeholder="Escolha uma senha">
+                <p id="newPasswordError" class="text-red-500 text-sm mt-1"></p>
+            </div>
+            <button id="registerButton" class="w-full bg-green-600 p-2 rounded hover:bg-green-500 transition">Registrar</button>
+            <p class="text-center mt-4">
+                Já tem uma conta? <a href="#" onclick="ui.showLoginForm()" class="text-blue-400 hover:underline">Faça login</a>
+            </p>
         </div>
     </div>
-    <div id="notifications" class="fixed top-4 right-4"></div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.documentElement.className = 'dark';
-            console.log('Página index.html carregada em ' + new Date().toLocaleString() + '. URL da API:', CONFIG.API_URL);
-        });
-    </script>
 </body>
 </html>
