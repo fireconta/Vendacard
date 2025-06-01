@@ -13,8 +13,8 @@
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold">Loja de Cartões</h1>
             <div id="navButtons">
-                <button id="themeToggle" onclick="ui.toggleTheme()" class="mr-4">Modo Claro</button>
-                <button onclick="auth.logout()" aria-label="Sair">Sair</button>
+                <button id="themeToggle" onclick="ui.toggleTheme()" class="mr-4 text-white hover:text-gray-300">Modo Claro</button>
+                <button onclick="auth.logout()" class="text-white hover:text-gray-300" aria-label="Sair">Sair</button>
             </div>
         </div>
     </nav>
@@ -23,10 +23,10 @@
             <h2 class="text-2xl font-bold">Cartões Disponíveis</h2>
             <div>
                 <span id="userBalance" class="mr-4"></span>
-                <button onclick="ui.showAccountInfo()" class="bg-blue-600 p-2 rounded hover:bg-blue-500" aria-label="Ver conta">Conta</button>
+                <button onclick="ui.showAccountInfo()" class="bg-blue-600 p-2 rounded hover:bg-blue-500 transition" aria-label="Ver conta">Conta</button>
             </div>
         </div>
-        <form class="filters mb-4">
+        <form class="filters mb-4 flex flex-wrap gap-2">
             <label for="binFilter" class="sr-only">Filtrar por BIN</label>
             <input type="text" id="binFilter" placeholder="Filtrar por BIN" class="p-2 bg-gray-700 rounded mr-2" oninput="ui.filterCards()">
             <label for="brandFilter" class="sr-only">Bandeira</label>
@@ -47,7 +47,7 @@
                 <option value="gold">Gold</option>
                 <option value="platinum">Platinum</option>
             </select>
-            <button type="button" onclick="ui.clearFilters()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Limpar Filtros</button>
+            <button type="button" onclick="ui.clearFilters()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500 transition">Limpar Filtros</button>
         </form>
         <div id="cardList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </main>
@@ -56,47 +56,52 @@
         <p><strong>Usuário:</strong> <span id="userName"></span></p>
         <p><strong>Saldo:</strong> <span id="userBalanceAccount"></span></p>
         <div id="userCards" class="mt-4"></div>
-        <button onclick="ui.showAddBalanceForm()" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500" aria-label="Adicionar saldo">Adicionar Saldo</button>
+        <button onclick="ui.showAddBalanceForm()" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500 transition" aria-label="Adicionar saldo">Adicionar Saldo</button>
     </div>
     <div id="cardDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-gray-800 p-6 rounded-lg">
+        <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
             <h2 class="text-xl font-bold mb-4">Detalhes do Cartão</h2>
             <div id="cardDetailsContent"></div>
-            <button type="button" onclick="closeCardDetailsModal()" class="mt-4 bg-red-600 p-2 rounded hover:bg-red-500">Fechar</button>
+            <button type="button" onclick="ui.closeModal()" class="mt-4 bg-red-600 p-2 rounded hover:bg-red-500 transition">Fechar</button>
         </div>
     </div>
     <div id="confirmPurchaseModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" data-card-number="">
-        <div class="bg-gray-800 p-6 rounded-lg">
+        <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
             <h2 class="text-xl font-bold mb-4">Confirmar Compra</h2>
             <div id="confirmCardDetails"></div>
             <p><strong>Total:</strong> R$ <span id="confirmTotalAmount"></span></p>
             <p><strong>Seu Saldo:</strong> R$ <span id="confirmUserBalance"></span></p>
-            <button type="button" onclick="confirmPurchase()" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500">Confirmar</button>
-            <button type="button" onclick="closeConfirmPurchaseModal()" class="mt-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
+            <button type="button" onclick="shop.confirmPurchase()" class="mt-4 bg-green-600 p-2 rounded hover:bg-green-500 transition">Confirmar</button>
+            <button type="button" onclick="ui.closeModal()" class="mt-2 bg-red-600 p-2 rounded hover:bg-red-500 transition">Cancelar</button>
         </div>
     </div>
     <div id="rechargeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-gray-800 p-6 rounded-lg">
+        <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
             <h2 class="text-xl font-bold mb-4">Adicionar Saldo</h2>
             <form onsubmit="event.preventDefault(); ui.addBalance();">
                 <label for="rechargeAmount" class="block mb-1">Valor</label>
                 <input type="number" id="rechargeAmount" class="w-full p-2 bg-gray-700 rounded mb-4" placeholder="Digite o valor" required min="0.01" step="0.01">
-                <button type="submit" class="bg-green-600 p-2 rounded hover:bg-green-500">Adicionar</button>
-                <button type="button" onclick="ui.closeModal()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500">Cancelar</button>
+                <button type="submit" class="bg-green-600 p-2 rounded hover:bg-green-500 transition">Adicionar</button>
+                <button type="button" onclick="ui.closeModal()" class="ml-2 bg-red-600 p-2 rounded hover:bg-red-500 transition">Cancelar</button>
             </form>
         </div>
     </div>
     <div id="notifications" class="fixed top-4 right-4"></div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            if (!checkAuth()) {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
                 window.location.href = 'index.html';
             } else {
-                document.getElementById('userName').textContent = state.currentUser.user;
-                document.getElementById('userBalance').textContent = `R$ ${state.currentUser.SALDO.toFixed(2)}`;
-                document.getElementById('userBalanceAccount').textContent = `R$ ${state.currentUser.SALDO.toFixed(2)}`;
+                document.getElementById('navbar').classList.remove('hidden');
+                document.getElementById('userName').textContent = user.user;
+                document.getElementById('userBalance').textContent = `R$ ${user.SALDO.toFixed(2)}`;
+                document.getElementById('userBalanceAccount').textContent = `R$ ${user.SALDO.toFixed(2)}`;
                 shop.loadCards();
             }
+            document.documentElement.className = 'dark';
+            console.log('Página shop.html carregada em ' + new Date().toLocaleString() + '. URL da API:', CONFIG.API_URL);
         });
     </script>
 </body>
